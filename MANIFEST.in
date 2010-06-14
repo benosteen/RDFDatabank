@@ -1,0 +1,3 @@
+include rdfdatabank/config/deployment.ini_tmpl
+recursive-include rdfdatabank/public *
+recursive-include rdfdatabank/templates *

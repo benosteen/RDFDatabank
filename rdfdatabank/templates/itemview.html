@@ -1,0 +1,23 @@
+# -*- coding: utf-8 -*-
+<%inherit file="/base.html" />
+<%def name="head_tags()">
+  <title> View of item ${c.item.uri} </title>
+</%def>
+% if c.item:
+<dl>
+<dt>Item's JSON state (Accept: application/json):</dt>
+<dd>${repr(c.item)}</dd>
+<dt>Item's Embargo state</dt>
+<dd>
+<%
+c.current = c.id
+%>
+<p><%include file="/embargo_form.html"/></p>
+<p><small>Embargo state: True - only those logged in and with edit rights can see item. False - Anyone can GET the item and it's files.</small></p>
+<p><small>Embargo date: Aim is for ISO8601 dates to provide embargo trigger events. Currently unused, unvalidated and unparsed.</small></p></dd>
+<dt>Item's RDF Manifest (Accept: most RDF mimetypes):</dt>
+<dd><pre>${c.item.rdf_to_string(format="pretty-xml")}</pre></dd>
+<dt>Item's Files:</dt>
+<dd><%include file="/part_list.html"/></dd>
+</dl>
+% endif

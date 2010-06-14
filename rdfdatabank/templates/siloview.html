@@ -1,0 +1,32 @@
+# -*- coding: utf-8 -*-
+<%inherit file="/base.html" />
+<%def name="head_tags()">
+  <title> List of Data Archives </title>
+</%def>
+% if c.silo_name:
+<ul>
+% for key in ['title', 'description','owner']:
+% if c.silo.state.has_key(key):
+<li><big><big>${key.capitalize()} - </big> ${c.silo.state[key]}</big></li>
+% endif
+% endfor
+<li> <big>Items:</big> <ul>
+% for item in sorted(c.items):
+<li id="${"_".join(c.silo_name.split("."))}_${"_".join(item.split(":"))}"> 
+<a href="/objects/${c.silo_name}/${item}"> ${item}</a>
+<ul><li><a class="delete" href="/objects/${c.silo_name}/${item}" data-remove="${"_".join(c.silo_name.split("."))}_${"_".join(item.split(":"))}">Delete item</a></li>
+<%
+c.current = item
+%>
+<li><%include file="/embargo_form.html"/></li>
+</ul>
+</li>
+% endfor
+</ul>
+</li>
+<ul>
+% endif
+<p> Create new empty object: </p>
+<p>
+<%include file="create_new_item.html"/>
+</p>
