@@ -89,6 +89,10 @@ class PackagesController(BaseController):
                             return zip_item.rdf_to_string(format="pretty-xml")
                     # Whoops - nothing satisfies
                     abort(406)
+                except BadZipfile:
+                    # Bad zip file
+                    info['unpacking_status'] = "FAIL - Couldn't unzip package"
+                    abort(500, "Couldn't unpack zipfile")
             else:
                 abort(400, "You must supply a valid id")
         abort(404)
