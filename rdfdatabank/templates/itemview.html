@@ -3,7 +3,16 @@
 <%def name="head_tags()">
   <title> View of item ${c.item.uri} </title>
 </%def>
-% if c.item:
+% if c.editor:
+<p>View as <a href="/objects/${c.silo_name}/${c.id}?view=editor"> Editor </a>, or <a href="/objects/${c.silo_name}/${c.id}?view=user">User</a>
+% endif
+% if c.readme_text:
+<%include file="/readme_section.html"/>
+% endif
+<%include file="/part_list.html"/>
+% if c.item and c.view == "editor":
+<div id="editor_metadata_view">
+<p> Detailed view (As Editor)
 <dl>
 <dt>Item's JSON state (Accept: application/json):</dt>
 <dd>${repr(c.item)}</dd>
@@ -17,8 +26,7 @@ c.current = c.id
 <p><small>Embargo date: Aim is for ISO8601 dates to provide embargo trigger events. Currently unused, unvalidated and unparsed.</small></p></dd>
 <dt>Item's RDF Manifest (Accept: most RDF mimetypes):</dt>
 <dd><pre>${c.item.rdf_to_string(format="pretty-xml")}</pre></dd>
-<dt>Item's Files:</dt>
-<dd><%include file="/part_list.html"/></dd>
 </dl>
+</div>
 <%include file="/file_upload.html"/>
 % endif

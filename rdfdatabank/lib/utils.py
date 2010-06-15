@@ -71,3 +71,7 @@ def create_new(silo, id, creator, title=None, embargoed=True, embargoed_until=No
     item.sync()
     return item
 
+def get_readme_text(item, filename="README"):
+    with item.get_stream(filename) as fn:
+        text = fn.read().decode("utf-8")
+    return u"%s\n\n%s" % (filename, text)

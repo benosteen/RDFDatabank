@@ -3,6 +3,9 @@
 <%def name="head_tags()">
   <title> View of item ${c.item.uri} </title>
 </%def>
+% if c.readme_text:
+<%include file="/readme_section.html"/>
+% endif
 % if c.item:
 <%include file="/part_list.html"/>
 % endif

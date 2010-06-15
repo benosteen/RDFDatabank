@@ -47,7 +47,6 @@ def make_app(global_conf, full_stack=True, static_files=True, **app_conf):
     app = SessionMiddleware(app, config)
     app = CacheMiddleware(app, config)
 
-    app = make_who_with_config(app, global_conf, app_conf['who.config_file'], app_conf['who.log_file'], app_conf['who.log_level'])
 
     # CUSTOM MIDDLEWARE HERE (filtered by error handling middlewares)
     if asbool(full_stack):
@@ -59,7 +58,9 @@ def make_app(global_conf, full_stack=True, static_files=True, **app_conf):
         if asbool(config['debug']):
             app = StatusCodeRedirect(app)
         else:
-            app = StatusCodeRedirect(app, [400, 403, 404, 500])
+            app = StatusCodeRedirect(app, [400, 401, 403, 404, 500])
+    
+    app = make_who_with_config(app, global_conf, app_conf['who.config_file'], app_conf['who.log_file'], app_conf['who.log_level'])
 
     # Establish the Registry for this application
     app = RegistryManager(app)

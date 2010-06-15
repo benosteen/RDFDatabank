@@ -4,7 +4,7 @@ from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
 from pylons import app_globals as ag
 from rdfdatabank.lib.base import BaseController, render
-from rdfdatabank.lib.utils import create_new, is_embargoed
+from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text
 
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 
@@ -109,7 +109,7 @@ class ObjectsController(BaseController):
         c.embargos[id] = is_embargoed(c.silo, id)
         http_method = request.environ['REQUEST_METHOD']
         
-        editor = False
+        c.editor = False
         
         if not (http_method == "GET" and not c.embargoed):
             #identity management if item 
@@ -125,7 +125,7 @@ class ObjectsController(BaseController):
             else:
                 abort(403, "Forbidden")
         
-            editor = silo in c.silos
+            c.editor = silo in c.silos
         
         # Method determination
         if http_method == "GET":
@@ -135,6 +135,18 @@ class ObjectsController(BaseController):
                 
                 c.parts = c.item.list_parts(detailed=True)
                 
+                if "README" in c.parts.keys():
+                    c.readme_text = get_readme_text(c.item)
+                    
+                # View options
+                options = request.GET
+                if "view" in options:
+                    c.view = options['view']
+                elif c.editor:
+                    c.view = 'editor'
+                else:
+                    c.view = 'user'
+                    
                 accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
                 if not accept_list:
                     accept_list= [MT("text", "html")]
@@ -165,7 +177,7 @@ class ObjectsController(BaseController):
                 abort(406)
             else:
                 abort(404)
-        elif http_method == "POST" and editor:
+        elif http_method == "POST" and c.editor:
             params = request.POST
             if not c.silo.exists(id):
                 if 'id' in params.keys():
@@ -265,7 +277,7 @@ class ObjectsController(BaseController):
                 response.status_int = 204
                 return
             
-        elif http_method == "DELETE" and editor:
+        elif http_method == "DELETE" and c.editor:
             if c.silo.exists(id):
                 c.silo.del_item(id)
                 
@@ -292,7 +304,7 @@ class ObjectsController(BaseController):
         
         http_method = request.environ['REQUEST_METHOD']
         
-        editor = False
+        c.editor = False
         
         if not (http_method == "GET" and not embargoed):
             #identity management if item 
@@ -308,7 +320,7 @@ class ObjectsController(BaseController):
             else:
                 abort(403, "Forbidden")
         
-            editor = silo in c.silos
+            c.editor = silo in c.silos
         
         c.path = path
         
@@ -322,10 +334,13 @@ class ObjectsController(BaseController):
                     return fileserve_app(request.environ, self.start_response)
                 elif c.item.isdir(path):
                     c.parts = c.item.list_parts(path, detailed=True)
+                    
+                    if "README" in c.parts.keys():
+                        c.readme_text = get_readme_text(c.item, "%s/README" % path)
                     return render("/subitemview.html")
                 else:
                     return render("/nofilehere.html")
-        elif http_method == "PUT" and editor:
+        elif http_method == "PUT" and c.editor:
             if c.silo.exists(id):
                 # Pylons loads the request body into request.body...
                 # This is not going to work for large files... ah well
@@ -361,7 +376,7 @@ class ObjectsController(BaseController):
                 # Going with error out...
                 response.status_int = 404
                 return "Object %s doesn't exist" % id
-        elif http_method == "POST" and editor:
+        elif http_method == "POST" and c.editor:
             if c.silo.exists(id):
                 # POST... differences from PUT:
                 # path = filepath that this acts on, should be dir, or non-existant
@@ -401,7 +416,7 @@ class ObjectsController(BaseController):
                 # Going with error out...
                 response.status_int = 404
                 return "Object %s doesn't exist" % id
-        elif http_method == "DELETE" and editor:
+        elif http_method == "DELETE" and c.editor:
             if c.silo.exists(id):
                 item = c.silo.get_item(id)
                 if item.isfile(path):
