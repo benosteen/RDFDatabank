@@ -8,9 +8,9 @@ else:
 %>
 % for part in c.parts:
 %   if c.parts[part]:
-<li id="${"_".join(c.silo_name.split("."))}_${"_".join(c.id.split(":"))}_${"_".join(part.split("."))}"><a href="/objects/${c.silo_name}/${c.id}${subpath}/${part}">${part}</a> ${h.bytes_to_english(c.parts[part].st_size)} - <small><small><a class="delete" href="/objects/${c.silo_name}/${c.id}${subpath}/${part}" data-remove="${"_".join(c.silo_name.split("."))}_${"_".join(c.id.split(":"))}_${"_".join(part.split("."))}">(remove)</a></small></small></li>
+<li id="${"_".join(c.silo_name.split("."))}_${"_".join(c.id.split(":"))}_${"_".join( "_".join(part.split(".")).split(" ") )}"><a href="/objects/${c.silo_name}/${c.id}${subpath}/${part}">${part}</a> ${h.bytes_to_english(c.parts[part].st_size)} - <small><small><a class="delete" href="/objects/${c.silo_name}/${c.id}${subpath}/${part}" data-remove="${"_".join(c.silo_name.split("."))}_${"_".join(c.id.split(":"))}_${"_".join( "_".join(part.split(".")).split(" ") )}">(remove)</a></small></small></li>
 %   else:
-<li id="${"_".join(c.silo_name.split("."))}_${"_".join(c.id.split(":"))}_${"_".join(part.split("."))}"><a href="/objects/${c.silo_name}/${c.id}${subpath}/${part}">${part}/</a> - <small><small><a class="delete" href="/objects/${c.silo_name}/${c.id}${subpath}/${part}" data-remove="${"_".join(c.silo_name.split("."))}_${"_".join(c.id.split(":"))}_${"_".join(part.split("."))}">(remove)</a></small></small></li>
+<li id="${"_".join(c.silo_name.split("."))}_${"_".join(c.id.split(":"))}_${"_".join( "_".join(part.split(".")).split(" ") )}"><a href="/objects/${c.silo_name}/${c.id}${subpath}/${part}">${part}</a> - <small><small><a class="delete" href="/objects/${c.silo_name}/${c.id}${subpath}/${part}" data-remove="${"_".join(c.silo_name.split("."))}_${"_".join(c.id.split(":"))}_${"_".join( "_".join(part.split(".")).split(" ") )}">(remove)</a></small></small></li>
 %   endif
 % endfor
 </ul>

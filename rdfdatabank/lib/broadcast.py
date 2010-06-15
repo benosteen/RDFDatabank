@@ -1,6 +1,10 @@
 from redis import Redis
 from redis.exceptions import ConnectionError
 
+import simplejson
+
+from datetime import datetime
+
 class BroadcastToRedis(object):
     def __init__(self, redis_host, queue):
         self.redis_host = redis_host
@@ -10,13 +14,14 @@ class BroadcastToRedis(object):
     def lpush(self, msg):
         try:
             self.r.lpush(self.queue, msg)
-        except ConnectionError:
+        except ConnectionError:  # The client can sometimes be timed out and disconnected at the server.
             self.r = Redis(self.redis_host)
             self.lpush(self.queue, msg)
         
-    def b_change(self, silo, id, filepath=None, **kw):
+    def change(self, silo, id, filepath=None, **kw):
         msg = {}
         msg.update(kw)
+        msg['_timestamp'] = datetime.now().isoformat()
         msg.update({'type':'u',
                    'silo':silo,
                    'id':id})
@@ -24,9 +29,10 @@ class BroadcastToRedis(object):
                 msg['filepath'] = filepath
         self.lpush(simplejson.dumps(msg))
         
-    def b_creation(self, silo, id, filepath=None, *kw):
+    def creation(self, silo, id, filepath=None, **kw):
         msg = {}
         msg.update(kw)
+        msg['_timestamp'] = datetime.now().isoformat()
         msg.update({'type':'c',
                    'silo':silo,
                    'id':id})
@@ -34,13 +40,33 @@ class BroadcastToRedis(object):
                 msg['filepath'] = filepath
         self.lpush(simplejson.dumps(msg))
 
-    def b_deletion(self, silo, id, filepath=None, **kw):
+    def deletion(self, silo, id, filepath=None, **kw):
         msg = {}
         msg.update(kw)
+        msg['_timestamp'] = datetime.now().isoformat()
         msg.update({'type':'d',
                    'silo':silo,
                    'id':id})
         if filepath:
                 msg['filepath'] = filepath
+        self.lpush(simplejson.dumps(msg))
+
+    def silo_deletion(self, silo, **kw):
+        msg = {}
+        msg.update(kw)
+        msg['_timestamp'] = datetime.now().isoformat()
+        msg.update({'type':'d',
+                   'silo':silo})
+        self.lpush(simplejson.dumps(msg))
+
+    def embargo_change(self, silo, id, embargoed=None, until=None, **kw):
+        msg = {}
+        msg.update(kw)
+        msg['_timestamp'] = datetime.now().isoformat()
+        msg.update({'type':'embargo',
+                   'silo':silo,
+                   'id':id,
+                   'embargoed':embargoed,
+                   'embargoed_until':until})
         self.lpush(simplejson.dumps(msg))
 

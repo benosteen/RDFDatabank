@@ -3,7 +3,7 @@ import logging
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
 
-from pylons import app_globals
+from pylons import app_globals as ag
 from rdfdatabank.lib.base import BaseController, render
 
 import re, os
@@ -19,8 +19,9 @@ class PackagesController(BaseController):
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
         ident = request.environ.get('repoze.who.identity')
-        granary_list = app_globals.granary.silos
-        c.silos = app_globals.authz(granary_list, ident)
+        c.ident = ident
+        granary_list = ag.granary.silos
+        c.silos = ag.authz(granary_list, ident)
         
         return render('/list_of_zipfile_archives.html')
     
@@ -32,13 +33,14 @@ class PackagesController(BaseController):
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
         ident = request.environ.get('repoze.who.identity')
-        granary_list = app_globals.granary.silos
-        c.silos = app_globals.authz(granary_list, ident)
+        c.ident = ident
+        granary_list = ag.granary.silos
+        c.silos = ag.authz(granary_list, ident)
         if silo not in c.silos:
             abort(403, "Forbidden")
         
         c.silo_name = silo
-        c.silo = app_globals.granary.get_rdf_silo(silo)
+        c.silo = ag.granary.get_rdf_silo(silo)
         
         http_method = request.environ['REQUEST_METHOD']
         if http_method == "GET":
@@ -50,6 +52,10 @@ class PackagesController(BaseController):
                 info = {}
                 info['package_filename'] = params['file'].filename
                 zip_item = store_zipfile(c.silo, target_uri, params['file'], ident['repoze.who.userid'])
+                
+                # Broadcast zipfile creation
+                ag.b.creation(silo, params['id'], ident=ident['repoze.who.userid'], package_type="zipfile")
+                
                 info['zip_id'] = zip_item.item_id
                 info['zip_uri'] = zip_item.uri
                 info['zip_target'] = target_uri
@@ -57,6 +63,10 @@ class PackagesController(BaseController):
                 info['zip_file_size'] = info['zip_file_stat'].st_size
                 try:
                     unpack_zip_item(zip_item, c.silo, ident['repoze.who.userid'])
+                    
+                    # Broadcast derivative creation
+                    ag.b.creation(silo, params['id'], ident=ident['repoze.who.userid'])
+                    
                     # 302 Redirect to new resource? 201 with Content-Location?
                     # For now, content-location
                     response.headers.add("Content-Location",  target_uri)
@@ -79,9 +89,6 @@ class PackagesController(BaseController):
                             return zip_item.rdf_to_string(format="pretty-xml")
                     # Whoops - nothing satisfies
                     abort(406)
-                except BadZipfile:
-                    # Bad zip file
-                    info['unpacking_status'] = "FAIL - Couldn't unzip package"
             else:
                 abort(400, "You must supply a valid id")
         abort(404)

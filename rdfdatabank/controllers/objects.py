@@ -2,7 +2,7 @@ import logging
 
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
-from pylons import app_globals
+from pylons import app_globals as ag
 from rdfdatabank.lib.base import BaseController, render
 from rdfdatabank.lib.utils import create_new, is_embargoed
 
@@ -24,22 +24,23 @@ class ObjectsController(BaseController):
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
         ident = request.environ.get('repoze.who.identity')
-        granary_list = app_globals.granary.silos
-        c.silos = app_globals.authz(granary_list, ident)
-        
+        granary_list = ag.granary.silos
+        c.silos = ag.authz(granary_list, ident)
+        c.ident = ident
         return render('/list_of_archives.html')
         
     def siloview(self, silo):
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
         ident = request.environ.get('repoze.who.identity')
-        granary_list = app_globals.granary.silos
-        c.silos = app_globals.authz(granary_list, ident)
+        c.ident = ident
+        granary_list = ag.granary.silos
+        c.silos = ag.authz(granary_list, ident)
         if silo not in c.silos:
             abort(403, "Forbidden")
         
         c.silo_name = silo
-        c.silo = app_globals.granary.get_rdf_silo(silo)
+        c.silo = ag.granary.get_rdf_silo(silo)
         
         http_method = request.environ['REQUEST_METHOD']
         if http_method == "GET":
@@ -62,7 +63,10 @@ class ObjectsController(BaseController):
                     id = params['id']
                     del params['id']
                     item = create_new(c.silo, id, ident['repoze.who.userid'], **params)
-                    # TODO b_creation(silo, id)
+                    
+                    # Broadcast change as message
+                    ag.b.creation(silo, id, ident=ident['repoze.who.userid'])
+                    
                     # conneg return
                     accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
                     if not accept_list:
@@ -90,7 +94,7 @@ class ObjectsController(BaseController):
         # Check to see if embargo is on:
         c.silo_name = silo
         c.id = id
-        c.silo = app_globals.granary.get_rdf_silo(silo)
+        c.silo = ag.granary.get_rdf_silo(silo)
         
         c.embargoed = False
         if c.silo.exists(id):
@@ -109,9 +113,10 @@ class ObjectsController(BaseController):
             if not request.environ.get('repoze.who.identity'):
                 abort(401, "Not Authorised")
             ident = request.environ.get('repoze.who.identity')  
-            granary_list = app_globals.granary.silos
+            c.ident = ident
+            granary_list = ag.granary.silos
             if ident:
-                c.silos = app_globals.authz(granary_list, ident)      
+                c.silos = ag.authz(granary_list, ident)      
                 if silo not in c.silos:
                     abort(403, "Forbidden")
             else:
@@ -160,7 +165,9 @@ class ObjectsController(BaseController):
                     del params['id']
                 item = create_new(c.silo, id, ident['repoze.who.userid'], **params)
                 
-                # TODO b_creation(silo, id)
+                # Broadcast change as message
+                ag.b.creation(silo, id, ident=ident['repoze.who.userid'])
+                
                 # conneg return
                 accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
                 if not accept_list:
@@ -193,10 +200,52 @@ class ObjectsController(BaseController):
                     item.metadata['embargoed_until'] = params['embargoed_until']
                 item.sync()
                 e, e_d = is_embargoed(c.silo, id, refresh=True)
-                # TODO b_change(silo, id)
+                
+                # Broadcast change as message
+                ag.b.embargo_change(silo, id, item.metadata['embargoed'], item.metadata['embargoed_until'], ident=ident['repoze.who.userid'])
+                
                 response.content_type = "text/plain"
                 response.status_int = 200
                 return simplejson.dumps({'embargoed':e, 'embargoed_until':e_d})
+            elif params.has_key('file'):
+                # File upload by a not-too-savvy method - Service-orientated fallback:
+                # Assume file upload to 'filename'
+                params = request.POST
+                item = c.silo.get_item(id)
+                filename = params.get('filename')
+                if not filename:
+                    filename = params['file'].filename
+                upload = params.get('file')
+                if JAILBREAK.search(filename) != None:
+                    abort(400, "'..' cannot be used in the path or as a filename")
+                target_path = filename
+                
+                if item.isfile(target_path):
+                    code = 204
+                elif item.isdir(target_path):
+                    response.status_int = 403
+                    return "Cannot POST a file on to an existing directory"
+                else:
+                    code = 201
+                item.put_stream(target_path, upload.file)
+                upload.file.close()
+                
+                if code == 201:
+                    ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
+                else:
+                    ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
+                response.status_int = code
+                # conneg return
+                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                if not accept_list:
+                    accept_list= [MT("text", "html")]
+                mimetype = accept_list.pop(0)
+                while(mimetype):
+                    if str(mimetype) in ["text/html", "text/xhtml"]:
+                        redirect_to(controller="objects", action="itemview", id=id, silo=silo)
+                    else:
+                        response.status_int = 200
+                        return "Added file %s to item %s" % (filename, id)
             else:
                 ## TODO apply changeset handling
                 ## 1 - store posted CS docs in 'version' "___cs"
@@ -208,7 +257,10 @@ class ObjectsController(BaseController):
         elif http_method == "DELETE" and editor:
             if c.silo.exists(id):
                 c.silo.del_item(id)
-                # TODO b_deletion(silo, id)
+                
+                # Broadcast deletion
+                ag.b.deletion(silo, id, ident=ident['repoze.who.userid'])
+                
                 response.status_int = 200
                 return "{'ok':'true'}"   # required for the JQuery magic delete to succede.
             else:
@@ -218,7 +270,7 @@ class ObjectsController(BaseController):
         # Check to see if embargo is on:
         c.silo_name = silo
         c.id = id
-        c.silo = app_globals.granary.get_rdf_silo(silo)
+        c.silo = ag.granary.get_rdf_silo(silo)
         
         embargoed = False
         if c.silo.exists(id):
@@ -236,9 +288,10 @@ class ObjectsController(BaseController):
             if not request.environ.get('repoze.who.identity'):
                 abort(401, "Not Authorised")
             ident = request.environ.get('repoze.who.identity')  
-            granary_list = app_globals.granary.silos
+            c.ident = ident
+            granary_list = ag.granary.silos
             if ident:
-                c.silos = app_globals.authz(granary_list, ident)      
+                c.silos = ag.authz(granary_list, ident)      
                 if silo not in c.silos:
                     abort(403, "Forbidden")
             else:
@@ -283,18 +336,15 @@ class ObjectsController(BaseController):
                 
                 item.put_stream(path, content)
                 
-                #if code == 201:
-                #    b_creation(silo, id, path)
-                #else:
-                #    b_change(silo, id, path)
-                #if code == 201:
-                #    b_creation(silo, id, path)
-                #else:
-                #    b_change(silo, id, path)
+                if code == 201:
+                    ag.b.creation(silo, id, path, ident=ident['repoze.who.userid'])
+                else:
+                    ag.b.change(silo, id, path, ident=ident['repoze.who.userid'])
+                
                 response.status_int = code
                 return
             else:
-                # item doesn't exist yet...
+                # item in which to store file doesn't exist yet...
                 # DECISION: Auto-instantiate object and then put file there?
                 #           or error out with perhaps a 404?
                 # Going with error out...
@@ -325,11 +375,12 @@ class ObjectsController(BaseController):
                 else:
                     code = 201
                 item.put_stream(target_path, upload.file)
+                upload.file.close()
                 
-                #if code == 201:
-                #    b_creation(silo, id, target_path)
-                #else:
-                #    b_change(silo, id, target_path)
+                if code == 201:
+                    ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
+                else:
+                    ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
                 response.status_int = code
                 return
             else:
@@ -345,7 +396,7 @@ class ObjectsController(BaseController):
                 if item.isfile(path):
                     item.del_stream(path)
                     
-                    # TODO b_deletion(silo, id, path)
+                    ag.b.deletion(silo, id, path, ident=ident['repoze.who.userid'])
                     response.status_int = 200
                     return "{'ok':'true'}"   # required for the JQuery magic delete to succede.
                 elif item.isdir(path):
@@ -357,9 +408,9 @@ class ObjectsController(BaseController):
                             abort(400, "Directory is not empty of directories")
                     for part in parts:
                         item.del_stream(os.path.join(path, part))
-                        # TODO b_deletion(silo, id, os.path.join(path, part))
+                        ag.b.deletion(silo, id, os.path.join(path, part), ident=ident['repoze.who.userid'])
                     item.del_stream(path)
-                    # TODO b_deletion(silo, id, path)
+                    ag.b.deletion(silo, id, path, ident=ident['repoze.who.userid'])
                     response.status_int = 200
                     return "{'ok':'true'}"   # required for the JQuery magic delete to succede.
                 else:

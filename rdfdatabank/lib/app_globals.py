@@ -7,6 +7,8 @@ from redis import Redis
 
 from rdfdatabank.lib.utils import authz
 
+from rdfdatabank.lib.broadcast import BroadcastToRedis
+
 class Globals(object):
 
     """Globals acts as a container for objects available throughout the
@@ -29,3 +31,7 @@ class Globals(object):
         if config.has_key("redis.host"):
             self.redishost = config['redis.host']
             self.r = Redis(self.redishost)
+        
+        if config.has_key("broadcast.to"):
+            if config['broadcast.to'] == "redis":
+                self.b = BroadcastToRedis(config['redis.host'], config['broadcast.queue'])

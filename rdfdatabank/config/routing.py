@@ -21,6 +21,8 @@ def make_map():
     # CUSTOM ROUTES HERE
     map.redirect("/", "/objects")
 
+    map.connect('/admin', controller='admin', action='index')
+    map.connect('/admin/{silo_name}', controller='admin', action='archive')
     map.connect('/packages', controller='packages', action='index')
     map.connect('/packages/{silo}', controller='packages', action='siloview')
     map.connect('/packages/{silo}/upload', controller='packages', action='upload')

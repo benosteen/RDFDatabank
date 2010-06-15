@@ -1,0 +1,14 @@
+# -*- coding: utf-8 -*-
+<%inherit file="/base.html" />
+<%def name="head_tags()">
+  <title> List of Data Archives </title>
+</%def>
+% if c.granary_list:
+<h3> Admin Archives:
+<ul>
+% for silo in c.granary_list:
+<li id="delete_${silo}"><a href="/admin/${silo}"><big><big>${silo}</big></big></a> - <small><small><a class="delete" href="/admin/${silo}" data-remove="delete_${silo}">(remove)</a></small></small></li>
+% endfor
+</ul>
+% endif
+<%include file="/create_new_silo.html"/>

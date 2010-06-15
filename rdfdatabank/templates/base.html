@@ -38,6 +38,15 @@
 % else:
 <h1> <a href="/objects">Archives</a></h1>
 % endif
+% if c.ident and c.ident['role'] == "admin":
+<div style="float:right;">
+<p><a href="/admin">Admin pages</a>
+%   if c.silo_name:
+<a href="/admin/${c.silo_name}">Admin ${c.silo_name}</a>
+%   endif
+</p>
+</div>
+% endif
 % if c.id:
 %   if c.path:
 <h2> Subdirectory <a href="/objects/${c.silo_name}/${c.id}/${c.path}">${c.id}/${c.path}</a></h2>

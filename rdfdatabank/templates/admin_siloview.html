@@ -1,0 +1,15 @@
+# -*- coding: utf-8 -*-
+<%inherit file="/base.html" />
+<%def name="head_tags()">
+  <title> List of Data Archives </title>
+</%def>
+% if c.silo_name:
+<h3> Admin Archive ${c.silo_name}</h3>
+% if c.message:
+<p><span style="color:red;">${c.message}</span></p>
+% endif
+<hr/>
+<h4 id="delete_${c.silo_name}"> <a class="delete" href="/admin/${c.silo_name}" data-remove="delete_${c.silo_name}">Delete this silo - NO UNDO!</a></h4>
+<hr/>
+% endif
+<%include file="/alter_silo.html"/>
