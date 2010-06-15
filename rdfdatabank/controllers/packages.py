@@ -89,7 +89,7 @@ class PackagesController(BaseController):
                             return zip_item.rdf_to_string(format="pretty-xml")
                         try:
                             mimetype = accept_list.pop(0)
-                        except IndexError
+                        except IndexError:
                             mimetype = None
                     # Whoops - nothing satisfies
                     abort(406)

@@ -84,7 +84,7 @@ class ObjectsController(BaseController):
                             return "Created"
                         try:
                             mimetype = accept_list.pop(0)
-                        except IndexError
+                        except IndexError:
                             mimetype = None
                     # Whoops - nothing satisfies
                     response.content_type = "text/plain"
@@ -160,7 +160,7 @@ class ObjectsController(BaseController):
                     # Whoops - nothing satisfies
                     try:
                         mimetype = accept_list.pop(0)
-                    except IndexError
+                    except IndexError:
                         mimetype = None
                 abort(406)
             else:
@@ -192,7 +192,7 @@ class ObjectsController(BaseController):
                         return "Created"
                     try:
                         mimetype = accept_list.pop(0)
-                    except IndexError
+                    except IndexError:
                         mimetype = None
                 # Whoops - nothing satisfies
                 response.content_type = "text/plain"
