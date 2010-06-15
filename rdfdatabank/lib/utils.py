@@ -9,9 +9,12 @@ import re
 
 ID_PATTERN = re.compile(r"^[0-9A-z\-\:]+$")
 
-def authz(granary_list, ident):
+def authz(granary_list,ident):
+    g = ag.granary
+    g.state.revert()
+    g._register_silos()
+    granary_list = g.silos
     def _parse_owners(silo_name):
-        g = ag.granary
         kw = g.describe_silo(silo_name)
         if "owners" in kw.keys():
             owners = [x.strip() for x in kw['owners'].split(",") if x]

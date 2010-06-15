@@ -69,7 +69,7 @@ class PackagesController(BaseController):
                     
                     # 302 Redirect to new resource? 201 with Content-Location?
                     # For now, content-location
-                    response.headers.add("Content-Location",  target_uri)
+                    #response.headers.add("Content-Location",  target_uri)
                     # conneg return
                     accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
                     if not accept_list:
@@ -87,6 +87,10 @@ class PackagesController(BaseController):
                             response.status_int = 201
                             response.content_type = 'application/rdf+xml; charset="UTF-8"'
                             return zip_item.rdf_to_string(format="pretty-xml")
+                        try:
+                            mimetype = accept_list.pop(0)
+                        except IndexError
+                            mimetype = None
                     # Whoops - nothing satisfies
                     abort(406)
                 except BadZipfile:

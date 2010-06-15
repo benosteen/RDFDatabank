@@ -82,6 +82,10 @@ class ObjectsController(BaseController):
                             response.status = "201 Created"
                             response.headers.add("Content-Location", item.uri)
                             return "Created"
+                        try:
+                            mimetype = accept_list.pop(0)
+                        except IndexError
+                            mimetype = None
                     # Whoops - nothing satisfies
                     response.content_type = "text/plain"
                     response.status_int = 201
@@ -90,7 +94,6 @@ class ObjectsController(BaseController):
                     return "Created"
                     
     def itemview(self, silo, id):
-        
         # Check to see if embargo is on:
         c.silo_name = silo
         c.id = id
@@ -154,7 +157,11 @@ class ObjectsController(BaseController):
                     elif str(mimetype) in ["text/rdf+ntriples", "text/rdf+nt"]:
                         response.content_type = 'text/rdf+ntriples; charset="UTF-8"'
                         return c.item.rdf_to_string(format="nt")
-                # Whoops - nothing satisfies
+                    # Whoops - nothing satisfies
+                    try:
+                        mimetype = accept_list.pop(0)
+                    except IndexError
+                        mimetype = None
                 abort(406)
             else:
                 abort(404)
@@ -183,6 +190,10 @@ class ObjectsController(BaseController):
                         response.status = "201 Created"
                         response.headers.add("Content-Location", item.uri)
                         return "Created"
+                    try:
+                        mimetype = accept_list.pop(0)
+                    except IndexError
+                        mimetype = None
                 # Whoops - nothing satisfies
                 response.content_type = "text/plain"
                 response.status_int = 201
