@@ -80,7 +80,7 @@ class ObjectsController(BaseController):
                             response.content_type = "text/plain"
                             response.status_int = 201
                             response.status = "201 Created"
-                            response.headers.add("Content-Location", item.uri)
+                            #response.headers.add("Content-Location", item.uri)
                             return "Created"
                         try:
                             mimetype = accept_list.pop(0)
@@ -89,7 +89,7 @@ class ObjectsController(BaseController):
                     # Whoops - nothing satisfies
                     response.content_type = "text/plain"
                     response.status_int = 201
-                    response.headers.add("Content-Location", item.uri)
+                    #response.headers.add("Content-Location", item.uri)
                     response.status = "201 Created"
                     return "Created"
                     
@@ -188,7 +188,7 @@ class ObjectsController(BaseController):
                         response.content_type = "text/plain"
                         response.status_int = 201
                         response.status = "201 Created"
-                        response.headers.add("Content-Location", item.uri)
+                        #response.headers.add("Content-Location", item.uri)
                         return "Created"
                     try:
                         mimetype = accept_list.pop(0)
@@ -197,7 +197,7 @@ class ObjectsController(BaseController):
                 # Whoops - nothing satisfies
                 response.content_type = "text/plain"
                 response.status_int = 201
-                response.headers.add("Content-Location", item.uri)
+                #response.headers.add("Content-Location", item.uri)
                 response.status = "201 Created"
                 return "Created"
             elif params.has_key('embargo_change'):
