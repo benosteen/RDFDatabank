@@ -34,9 +34,9 @@
   </head>
   <body>
 % if c.silo_name:
-<h1> <a href="/objects">Archives</a>: <a href="/objects/${c.silo_name}">${c.silo_name}</a> - <small><small>${c.silo_name} <a href="/packages/${c.silo_name}">package upload</a> </small></small></h1>
+<h1> <a href="/objects">Archives</a> - <a href="/search/raw">Search API</a>: <a href="/objects/${c.silo_name}">${c.silo_name}</a> - <small><small>${c.silo_name} <a href="/packages/${c.silo_name}">package upload</a> </small></small></h1>
 % else:
-<h1> <a href="/objects">Archives</a></h1>
+<h1> <a href="/objects">Archives</a> - <a href="/search/raw">Search API</a></h1>
 % endif
 % if c.ident and c.ident['role'] == "admin":
 <div style="float:right;">
