@@ -7,6 +7,8 @@ from pylons import app_globals as ag
 
 from rdfobject.constructs import Manifest
 
+from uuid import uuid4
+
 import re
 
 ID_PATTERN = re.compile(r"^[0-9A-z\-\:]+$")
@@ -60,6 +62,7 @@ def create_new(silo, id, creator, title=None, embargoed=True, embargoed_until=No
     item = silo.get_item(id)
     item.metadata['createdby'] = creator
     item.metadata['embargoed'] = embargoed
+    item.metadata['uuid'] = uuid4().hex
     if embargoed:
         if embargoed_until:
             item.metadata['embargoed_until'] = embargoed_until
