@@ -4,7 +4,7 @@ from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
 from pylons import app_globals as ag
 from rdfdatabank.lib.base import BaseController, render
-from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text
+from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text, test_rdf
 
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 
@@ -252,6 +252,51 @@ class ObjectsController(BaseController):
                     code = 201
                 item.put_stream(target_path, upload.file)
                 upload.file.close()
+                
+                if code == 201:
+                    ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
+                else:
+                    ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
+                response.status_int = code
+                # conneg return
+                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                if not accept_list:
+                    accept_list= [MT("text", "html")]
+                mimetype = accept_list.pop(0)
+                while(mimetype):
+                    if str(mimetype) in ["text/html", "text/xhtml"]:
+                        redirect_to(controller="objects", action="itemview", id=id, silo=silo)
+                    else:
+                        response.status_int = 200
+                        return "Added file %s to item %s" % (filename, id)
+            elif params.has_key('text'):
+                # Text upload convenience service
+                params = request.POST
+                item = c.silo.get_item(id)
+                filename = params.get('filename')
+                if not filename:
+                    abort(406, "Must supply a filename")
+                
+                if JAILBREAK.search(filename) != None:
+                    abort(400, "'..' cannot be used in the path or as a filename")
+                target_path = filename
+                
+                if item.isfile(target_path):
+                    code = 204
+                elif item.isdir(target_path):
+                    response.status_int = 403
+                    return "Cannot POST a file on to an existing directory"
+                else:
+                    code = 201
+                
+                if filename == "manifest.rdf":
+                    # valid to make sure it's valid RDF
+                    # Otherwise this object will not be accessible
+                    text = params['text']
+                    if not test_rdf(text):
+                        abort(406, "Not able to parse RDF/XML")
+                
+                item.put_stream(target_path, params['text'].encode("utf-8"))
                 
                 if code == 201:
                     ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])

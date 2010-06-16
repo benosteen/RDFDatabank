@@ -5,6 +5,8 @@ import simplejson
 
 from pylons import app_globals as ag
 
+from rdfobject.constructs import Manifest
+
 import re
 
 ID_PATTERN = re.compile(r"^[0-9A-z\-\:]+$")
@@ -75,3 +77,11 @@ def get_readme_text(item, filename="README"):
     with item.get_stream(filename) as fn:
         text = fn.read().decode("utf-8")
     return u"%s\n\n%s" % (filename, text)
+
+def test_rdf(text):
+    try:
+        mani = Manifest()
+        mani.from_string(text)
+        return True
+    except:
+        return False

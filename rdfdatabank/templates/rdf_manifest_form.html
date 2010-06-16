@@ -1,0 +1,10 @@
+# -*- coding: utf-8 -*-
+<p>
+<form method="POST" enctype="multipart/form-data" action="/objects/${c.silo_name}/${c.id}">
+<textarea name="text" cols="60" rows="10">
+${c.item.rdf_to_string()}
+</textarea>
+<input type="hidden" name="filename" value="manifest.rdf" />
+<input type="submit" value="Alter RDF Manifest"/>
+</form>
+</p>
