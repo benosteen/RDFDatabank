@@ -31,6 +31,11 @@ class Globals(object):
         if config.has_key("redis.host"):
             self.redishost = config['redis.host']
             self.r = Redis(self.redishost)
+            
+        if config.has_key("solr.host"):
+            from solr import SolrConnection
+            self.solrhost = config['solr.host']
+            self.solr = SolrConnection(self.solrhost)
         
         if config.has_key("broadcast.to"):
             if config['broadcast.to'] == "redis":
