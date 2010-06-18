@@ -174,9 +174,25 @@ class ObjectsController(BaseController):
                 while(mimetype):
                     if str(mimetype) in ["text/html", "text/xhtml"]:
                         return render('/itemview.html')
-                    elif str(mimetype) == "application/json":
+                    elif str(mimetype) in ["text/plain", "application/json"]:
                         response.content_type = 'application/json; charset="UTF-8"'
-                        return simplejson.dumps(c.item.manifest)
+                        def serialisable_stat(stat):
+                            stat_values = {}
+                            for f in ['st_atime', 'st_blksize', 'st_blocks', 'st_ctime', 'st_dev', 'st_gid', 'st_ino', 'st_mode', 'st_mtime', 'st_nlink', 'st_rdev', 'st_size', 'st_uid']:
+                                try:
+                                    stat_values[f] = stat.__getattribute__(f)
+                                except AttributeError:
+                                    pass
+                            return stat_values
+                        items = {}
+                        items['parts'] = {}
+                        for part in c.parts:
+                            items['parts'][part] = serialisable_stat(c.parts[part])
+                        if c.readme_text:
+                            items['readme_text'] = c.readme_text
+                        if c.item.manifest:
+                            items['state'] = c.item.manifest.state
+                        return simplejson.dumps(items)
                     elif str(mimetype) in ["application/rdf+xml", "text/xml"]:
                         response.content_type = 'application/rdf+xml; charset="UTF-8"'
                         return c.item.rdf_to_string(format="pretty-xml")
