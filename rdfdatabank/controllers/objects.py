@@ -48,6 +48,26 @@ class ObjectsController(BaseController):
             for item in c.silo.list_items():
                 c.embargos[item] = is_embargoed(c.silo, item)
             c.items = c.silo.list_items()
+            # conneg return
+            accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+            if not accept_list:
+                accept_list= [MT("text", "html")]
+            mimetype = accept_list.pop(0)
+            while(mimetype):
+                if str(mimetype) in ["text/html", "text/xhtml"]:
+                    return render('/siloview.html')
+                elif str(mimetype) in ["text/plain", "application/json"]:
+                    response.content_type = "text/plain"
+                    items = {}
+                    for item_id in c.items:
+                        items[item_id] = {}
+                        items[item_id]['embargo_info'] = c.embargos[item_id]
+                    return simplejson.dumps(items)
+                    try:
+                        mimetype = accept_list.pop(0)
+                    except IndexError:
+                        mimetype = None
+                        
             return render('/siloview.html')
         elif http_method == "POST":
             params = request.POST
