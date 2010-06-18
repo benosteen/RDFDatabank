@@ -264,7 +264,7 @@ class ObjectsController(BaseController):
                 target_path = filename
                 
                 if item.isfile(target_path):
-                    code = 204
+                    code = 200
                 elif item.isdir(target_path):
                     response.status_int = 403
                     return "Cannot POST a file on to an existing directory"
@@ -287,7 +287,7 @@ class ObjectsController(BaseController):
                     if str(mimetype) in ["text/html", "text/xhtml"]:
                         redirect_to(controller="objects", action="itemview", id=id, silo=silo)
                     else:
-                        response.status_int = 200
+                        response.status_int = code
                         return "Added file %s to item %s" % (filename, id)
             elif params.has_key('text'):
                 # Text upload convenience service
@@ -402,9 +402,37 @@ class ObjectsController(BaseController):
                     
                     if "README" in c.parts.keys():
                         c.readme_text = get_readme_text(c.item, "%s/README" % path)
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                    if not accept_list:
+                        accept_list= [MT("text", "html")]
+                    mimetype = accept_list.pop(0)
+                    while(mimetype):
+                        if str(mimetype) in ["text/html", "text/xhtml"]:
+                            return render("/subitemview.html")
+                        elif str(mimetype) in ["text/plain", "application/json"]:
+                            def serialisable_stat(stat):
+                                stat_values = {}
+                                for f in ['st_atime', 'st_blksize', 'st_blocks', 'st_ctime', 'st_dev', 'st_gid', 'st_ino', 'st_mode', 'st_mtime', 'st_nlink', 'st_rdev', 'st_size', 'st_uid']:
+                                    try:
+                                        stat_values[f] = stat.__getattribute__(f)
+                                    except AttributeError:
+                                        pass
+                                return stat_values
+                            response.content_type = "text/plain"
+                            items = {}
+                            items['parts'] = {}
+                            for part in c.parts:
+                                items['parts'][part] = serialisable_stat(c.parts[part])
+                            if c.readme_text:
+                                items['readme_text'] = c.readme_text
+                            return simplejson.dumps(items)
+                            try:
+                                mimetype = accept_list.pop(0)
+                            except IndexError:
+                                mimetype = None
                     return render("/subitemview.html")
                 else:
-                    return render("/nofilehere.html")
+                    abort(404)
         elif http_method == "PUT" and c.editor:
             if c.silo.exists(id):
                 # Pylons loads the request body into request.body...
