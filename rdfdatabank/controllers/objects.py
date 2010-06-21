@@ -353,7 +353,7 @@ class ObjectsController(BaseController):
                 mimetype = accept_list.pop(0)
                 while(mimetype):
                     if str(mimetype) in ["text/html", "text/xhtml"]:
-                        redirect_to(controller="objects", action="itemview", id=id, silo=silo)]
+                        redirect_to(controller="objects", action="itemview", id=id, silo=silo)
                     elif str(mimetype) in ["text/plain"]:
                         response.status_int = 200
                         return "Added file %s to item %s" % (filename, id)
