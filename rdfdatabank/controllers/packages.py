@@ -64,39 +64,39 @@ class PackagesController(BaseController):
                 try:
                     unpack_zip_item(zip_item, c.silo, ident['repoze.who.userid'])
                     
-                    # Broadcast derivative creation
-                    ag.b.creation(silo, params['id'], ident=ident['repoze.who.userid'])
-                    
-                    # 302 Redirect to new resource? 201 with Content-Location?
-                    # For now, content-location
-                    #response.headers.add("Content-Location",  target_uri)
-                    # conneg return
-                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
-                    if not accept_list:
-                        accept_list= [MT("text", "html")]
-                    mimetype = accept_list.pop(0)
-                    while(mimetype):
-                        if str(mimetype) in ["text/html", "text/xhtml"]:
-                            c.info = info
-                            return render('/successful_package_upload.html')
-                        elif str(mimetype) == "application/json":
-                            response.status_int = 201
-                            response.content_type = 'application/json; charset="UTF-8"'
-                            return simplejson.dumps(info)
-                        elif str(mimetype) in ["application/rdf+xml", "text/xml"]:
-                            response.status_int = 201
-                            response.content_type = 'application/rdf+xml; charset="UTF-8"'
-                            return zip_item.rdf_to_string(format="pretty-xml")
-                        try:
-                            mimetype = accept_list.pop(0)
-                        except IndexError:
-                            mimetype = None
-                    # Whoops - nothing satisfies
-                    abort(406)
                 except BadZipfile:
                     # Bad zip file
                     info['unpacking_status'] = "FAIL - Couldn't unzip package"
                     abort(500, "Couldn't unpack zipfile")
+                # Broadcast derivative creation
+                ag.b.creation(silo, params['id'], ident=ident['repoze.who.userid'])
+                   
+                # 302 Redirect to new resource? 201 with Content-Location?
+                # For now, content-location
+                #response.headers.add("Content-Location",  target_uri)
+                # conneg return
+                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                if not accept_list:
+                    accept_list= [MT("text", "html")]
+                mimetype = accept_list.pop(0)
+                while(mimetype):
+                    if str(mimetype) in ["text/html", "text/xhtml"]:
+                        c.info = info
+                        return render('/successful_package_upload.html')
+                    elif str(mimetype) == "application/json":
+                        response.status_int = 201
+                        response.content_type = 'application/json; charset="UTF-8"'
+                        return simplejson.dumps(info)
+                    elif str(mimetype) in ["application/rdf+xml", "text/xml"]:
+                        response.status_int = 201
+                        response.content_type = 'application/rdf+xml; charset="UTF-8"'
+                        return zip_item.rdf_to_string(format="pretty-xml")
+                    try:
+                        mimetype = accept_list.pop(0)
+                    except IndexError:
+                        mimetype = None
+                # Whoops - nothing satisfies
+                abort(406)
             else:
                 abort(400, "You must supply a valid id")
         abort(404)
