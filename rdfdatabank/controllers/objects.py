@@ -302,9 +302,16 @@ class ObjectsController(BaseController):
                 while(mimetype):
                     if str(mimetype) in ["text/html", "text/xhtml"]:
                         redirect_to(controller="objects", action="itemview", id=id, silo=silo)
-                    else:
+                    elif str(mimetype) in ["text/plain"]:
                         response.status_int = code
                         return "Added file %s to item %s" % (filename, id)
+                    try:
+                        mimetype = accept_list.pop(0)
+                    except IndexError:
+                        mimetype = None
+                
+                response.status_int = code
+                return "Added file %s to item %s" % (filename, id)
             elif params.has_key('text'):
                 # Text upload convenience service
                 params = request.POST
@@ -346,10 +353,17 @@ class ObjectsController(BaseController):
                 mimetype = accept_list.pop(0)
                 while(mimetype):
                     if str(mimetype) in ["text/html", "text/xhtml"]:
-                        redirect_to(controller="objects", action="itemview", id=id, silo=silo)
-                    else:
+                        redirect_to(controller="objects", action="itemview", id=id, silo=silo)]
+                    elif str(mimetype) in ["text/plain"]:
                         response.status_int = 200
                         return "Added file %s to item %s" % (filename, id)
+                    try:
+                        mimetype = accept_list.pop(0)
+                    except IndexError:
+                        mimetype = None
+                
+                response.status_int = 200
+                return "Added file %s to item %s" % (filename, id)
             else:
                 ## TODO apply changeset handling
                 ## 1 - store posted CS docs in 'version' "___cs"
@@ -442,10 +456,10 @@ class ObjectsController(BaseController):
                             if c.readme_text:
                                 items['readme_text'] = c.readme_text
                             return simplejson.dumps(items)
-                            try:
-                                mimetype = accept_list.pop(0)
-                            except IndexError:
-                                mimetype = None
+                        try:
+                            mimetype = accept_list.pop(0)
+                        except IndexError:
+                            mimetype = None
                     return render("/subitemview.html")
                 else:
                     abort(404)
