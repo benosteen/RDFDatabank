@@ -63,10 +63,10 @@ class ObjectsController(BaseController):
                         items[item_id] = {}
                         items[item_id]['embargo_info'] = c.embargos[item_id]
                     return simplejson.dumps(items)
-                    try:
-                        mimetype = accept_list.pop(0)
-                    except IndexError:
-                        mimetype = None
+                try:
+                    mimetype = accept_list.pop(0)
+                except IndexError:
+                    mimetype = None
                         
             return render('/siloview.html')
         elif http_method == "POST":
