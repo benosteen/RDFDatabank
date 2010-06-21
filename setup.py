@@ -15,7 +15,7 @@ setup(
     install_requires=[
         "Pylons>=0.9.7",
     ],
-    setup_requires=["PasteScript>=1.6.3"],
+    setup_requires=["PasteScript>=1.6.3", "Pylons==0.9.7", "pairtree==0.5.6-T", "rdfobject", "recordsilo", "simplejson", "redis"],
     packages=find_packages(exclude=['ez_setup']),
     include_package_data=True,
     test_suite='nose.collector',
