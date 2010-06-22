@@ -50,7 +50,7 @@ def unzip_file(filepath, target_directory=None):
     if not target_directory:
         target_directory = "/tmp/%s" % (uuid4().hex)
     p = subprocess.Popen("unzip -d %s %s" % (target_directory, filepath), shell=True, stdout=subprocess.PIPE)
-    p.wait()
+    _,_ = p.communicate()
     if p.returncode != 0:
         raise BadZipfile
     else:
