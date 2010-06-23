@@ -67,7 +67,7 @@ class ObjectsController(BaseController):
                     mimetype = accept_list.pop(0)
                 except IndexError:
                     mimetype = None
-                        
+            #Whoops no match. return text/html            
             return render('/siloview.html')
         elif http_method == "POST":
             params = request.POST
@@ -106,7 +106,7 @@ class ObjectsController(BaseController):
                             mimetype = accept_list.pop(0)
                         except IndexError:
                             mimetype = None
-                    # Whoops - nothing satisfies
+                    # Whoops - nothing satisfies - return text/plain
                     response.content_type = "text/plain"
                     response.status_int = 201
                     #response.headers.add("Content-Location", item.uri)
@@ -210,7 +210,10 @@ class ObjectsController(BaseController):
                         mimetype = accept_list.pop(0)
                     except IndexError:
                         mimetype = None
-                abort(406)
+                #Whoops - nothing staisfies - default to text/html
+                #abort(406)
+                response.content_type = 'application/rdf+xml; charset="UTF-8"'
+                return c.item.rdf_to_string(format="pretty-xml")
             else:
                 abort(404)
         elif http_method == "POST" and c.editor:
@@ -242,7 +245,7 @@ class ObjectsController(BaseController):
                         mimetype = accept_list.pop(0)
                     except IndexError:
                         mimetype = None
-                # Whoops - nothing satisfies
+                # Whoops - nothing satisfies - return text/plain
                 response.content_type = "text/plain"
                 response.status_int = 201
                 #response.headers.add("Content-Location", item.uri)
@@ -309,7 +312,7 @@ class ObjectsController(BaseController):
                         mimetype = accept_list.pop(0)
                     except IndexError:
                         mimetype = None
-                
+                #Whoops - nothing satisfies - return text / plain
                 response.status_int = code
                 return "Added file %s to item %s" % (filename, id)
             elif params.has_key('text'):
@@ -361,7 +364,7 @@ class ObjectsController(BaseController):
                         mimetype = accept_list.pop(0)
                     except IndexError:
                         mimetype = None
-                
+                #Whoops - nothing satisfies - return text / plain
                 response.status_int = 200
                 return "Added file %s to item %s" % (filename, id)
             else:
@@ -460,6 +463,7 @@ class ObjectsController(BaseController):
                             mimetype = accept_list.pop(0)
                         except IndexError:
                             mimetype = None
+                    #Whoops - nothing satisfies - return text/html
                     return render("/subitemview.html")
                 else:
                     abort(404)

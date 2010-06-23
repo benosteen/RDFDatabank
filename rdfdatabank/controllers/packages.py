@@ -95,8 +95,10 @@ class PackagesController(BaseController):
                         mimetype = accept_list.pop(0)
                     except IndexError:
                         mimetype = None
-                # Whoops - nothing satisfies
-                abort(406)
+                # Whoops - nothing satisfies - return text/html
+                #abort(406)
+                c.info = info
+                return render('/successful_package_upload.html')
             else:
                 abort(400, "You must supply a valid id")
         abort(404)
