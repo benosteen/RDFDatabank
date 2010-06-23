@@ -19,7 +19,10 @@ def make_map():
     map.connect('/error/{action}/{id}', controller='error')
 
     # CUSTOM ROUTES HERE
+
     map.redirect("/", "/objects")
+    map.redirect('/*(url)/', '/{url}',
+             _redirect_code='301 Moved Permanently')
 
     map.connect('/admin', controller='admin', action='index')
     map.connect('/admin/{silo_name}', controller='admin', action='archive')
@@ -31,10 +34,14 @@ def make_map():
     map.connect('/objects/{silo}/{id}', controller='objects', action='itemview')
     map.connect('/objects/{silo}/{id}/{path:.*}', controller='objects', action='subitemview')
     
+    map.connect('/{controller}')
     map.connect('/{controller}/{action}')
     map.connect('/{controller}/{action}/{id}')
     
-    map.redirect('/*(url)/', '/{url}',
-             _redirect_code='301 Moved Permanently')
+    #map.connect('/{controller}/')
+    #map.connect('/{controller}/{action}/')
+    #map.connect('/{controller}/{action}/{id}/')
 
+    #map.redirect('/*(url)/', '/{url}',
+    #         _redirect_code='301 Moved Permanently')
     return map

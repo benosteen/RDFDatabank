@@ -50,12 +50,17 @@ def unzip_file(filepath, target_directory=None):
     if not target_directory:
         target_directory = "/tmp/%s" % (uuid4().hex)
     p = subprocess.Popen("unzip -d %s %s" % (target_directory, filepath), shell=True, stdout=subprocess.PIPE)
-    _,_ = p.communicate()
+    p.wait()
     if p.returncode != 0:
         raise BadZipfile
     else:
         return target_directory
      
+def get_items_in_dir(items_list, dirname, fnames):
+    for fname in fnames:
+        items_list.append(os.path.join(dirname,fname))
+    return
+
 def unpack_zip_item(zip_item, silo, ident):
     derivative = zip_item.list_rdf_objects("*", "dcterms:hasVersion")
     # 1 object holds 1 zipfile - may relax this easily given demand
@@ -70,8 +75,17 @@ def unpack_zip_item(zip_item, silo, ident):
         to_item = create_new(silo, target_item, ident)
         #to_item = silo.get_item(target_item)
         unpacked_dir = unzip_file(real_filepath)
+        items_list = []
+        os.path.walk(unpacked_dir,get_items_in_dir,items_list)
         to_item.move_directory_as_new_version(unpacked_dir)
+        to_item.add_namespace('ox', "http://vocab.ox.ac.uk/oxterms/schema#")
+        unp_dir = unpacked_dir
+        if not unp_dir.endswith('/'):
+            unp_dir += '/'
+        for i in items_list:
+            i = i.replace(unp_dir, '')
+            #print i
+            to_item.add_triple(to_item.uri, "ox:hasFile", i)
         to_item.add_triple(to_item.uri, "dcterms:isVersionOf", file_uri)
         to_item.sync()
         return True
-            

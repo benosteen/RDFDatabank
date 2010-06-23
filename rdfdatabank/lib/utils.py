@@ -63,6 +63,9 @@ def create_new(silo, id, creator, title=None, embargoed=True, embargoed_until=No
     item.metadata['createdby'] = creator
     item.metadata['embargoed'] = embargoed
     item.metadata['uuid'] = uuid4().hex
+    item.add_namespace('oxds', "http://vocab.ox.ac.uk/dataset/schema#")
+    item.add_triple(item.uri, u"rdf:type", "oxds:DataSet")
+
     if embargoed:
         if embargoed_until:
             item.metadata['embargoed_until'] = embargoed_until
