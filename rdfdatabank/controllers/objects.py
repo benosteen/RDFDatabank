@@ -67,7 +67,7 @@ class ObjectsController(BaseController):
                     mimetype = accept_list.pop(0)
                 except IndexError:
                     mimetype = None
-            #Whoops no match. return text/html            
+            #Whoops nothing satisfies - return text/html            
             return render('/siloview.html')
         elif http_method == "POST":
             params = request.POST
@@ -212,8 +212,7 @@ class ObjectsController(BaseController):
                         mimetype = None
                 #Whoops - nothing staisfies - default to text/html
                 #abort(406)
-                response.content_type = 'application/rdf+xml; charset="UTF-8"'
-                return c.item.rdf_to_string(format="pretty-xml")
+                return render('/itemview.html')
             else:
                 abort(404)
         elif http_method == "POST" and c.editor:
