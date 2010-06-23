@@ -36,7 +36,7 @@ class AdminController(BaseController):
                     # Create new silo
                     silo_name = params['silo']
                     g_root = config.get("granary.uri_root", "info:")
-                    c.silo = ag.granary.get_rdf_silo(silo_name, uri_base="%s%s" % (g_root, silo_name))
+                    c.silo = ag.granary.get_rdf_silo(silo_name, uri_base="%s%s/" % (g_root, silo_name))
                     ag.granary._register_silos()
                     kw = {}
                     for term in accepted_params:
