@@ -136,14 +136,6 @@ class ObjectsController(BaseController):
         c.editor = False
         
         if not (http_method == "GET" and not c.embargoed):
-            f = open("/tmp/python_out.log", "a")
-            f.write("\n--------------- In itemview -------------------\n")
-            f.write('in itemview get and embargoed\n')
-            f.write("http method :%s\n"%str(http_method))
-            f.write("embargoed :%s\n"%str(c.embargoed))
-            f.write("request environ \n %s \n"%str(request.environ))
-            #f.write('-'*40+'\n')
-            #f.close()
             #identity management if item 
             if not request.environ.get('repoze.who.identity'):
                 abort(401, "Not Authorised")
@@ -159,16 +151,8 @@ class ObjectsController(BaseController):
         
             c.editor = silo in c.silos
                 
-            #f = open("/tmp/python_out.log", "a")
-            f.write("Editor : %s\n"%str(c.editor))
-            f.write('-'*40+'\n')
-            f.close()
         # Method determination
         if http_method == "GET":
-            #f = open("/tmp/python_out.log", "a")
-            #f.write("--------------- In itemview Get -------------------\n")
-            #f.write('-'*40+'\n')
-            #f.close()
             if c.silo.exists(id):
                 # conneg:
                 c.item = c.silo.get_item(id)
@@ -194,17 +178,8 @@ class ObjectsController(BaseController):
                     accept_list= [MT("text", "html")]
                 mimetype = accept_list.pop(0)
 
-                f = open("/tmp/python_out.log", "a")
-                f.write("\n--------------- In itemview Get with id -------------------\n")
-                f.write("mimetype to return : %s\n"%str(mimetype))
-                f.close()
-
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                        f = open("/tmp/python_out.log", "a")
-                        f.write("Output returned :\n %s \n"%str(render('/itemview.html')))
-                        f.write('-'*40+'\n')
-                        f.close()
                         return render('/itemview.html')
                     elif str(mimetype).lower() in ["text/plain", "application/json"]:
                         response.content_type = 'application/json; charset="UTF-8"'
@@ -225,38 +200,18 @@ class ObjectsController(BaseController):
                             items['readme_text'] = c.readme_text
                         if c.item.manifest:
                             items['state'] = c.item.manifest.state
-                        f = open("/tmp/python_out.log", "a")
-                        f.write("Output returned : \n %s \n"%str(simplejson.dumps(items)))
-                        f.write('-'*40+'\n')
-                        f.close()
                         return simplejson.dumps(items)
                     elif str(mimetype).lower() in ["application/rdf+xml", "text/xml"]:
                         response.content_type = 'application/rdf+xml; charset="UTF-8"'
-                        f = open("/tmp/python_out.log", "a")
-                        f.write("Output returned : \n %s \n"%str(c.item.rdf_to_string(format="pretty-xml")))
-                        f.write('-'*40+'\n')
-                        f.close()
                         return c.item.rdf_to_string(format="pretty-xml")
                     elif str(mimetype).lower() == "text/rdf+n3":
                         response.content_type = 'text/rdf+n3; charset="UTF-8"'
-                        f = open("/tmp/python_out.log", "a")
-                        f.write("Output returned : \n %s \n"%str(c.item.rdf_to_string(format="n3")))
-                        f.write('-'*40+'\n')
-                        f.close()
                         return c.item.rdf_to_string(format="n3")
                     elif str(mimetype).lower() == "application/x-turtle":
                         response.content_type = 'application/x-turtle; charset="UTF-8"'
-                        f = open("/tmp/python_out.log", "a")
-                        f.write("Output returned : \n %s \n"%str(c.item.rdf_to_string(format="turtle")))
-                        f.write('-'*40+'\n')
-                        f.close()
                         return c.item.rdf_to_string(format="turtle")
                     elif str(mimetype).lower() in ["text/rdf+ntriples", "text/rdf+nt"]:
                         response.content_type = 'text/rdf+ntriples; charset="UTF-8"'
-                        f = open("/tmp/python_out.log", "a")
-                        f.write("Output returned : \n %s \n"%str(c.item.rdf_to_string(format="nt")))
-                        f.write('-'*40+'\n')
-                        f.close()
                         return c.item.rdf_to_string(format="nt")
                     # Whoops - nothing satisfies
                     try:
@@ -265,10 +220,6 @@ class ObjectsController(BaseController):
                         mimetype = None
                 #Whoops - nothing staisfies - default to text/html
                 #abort(406)
-                f = open("/tmp/python_out.log", "a")
-                f.write("Output returned : \n %s \n"%str(render('/itemview.html')))
-                f.write('-'*40+'\n')
-                f.close()
                 return render('/itemview.html')
             else:
                 abort(404)

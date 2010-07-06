@@ -33,11 +33,9 @@ class FilesController(BaseController):
             abort(403, "Forbidden")
         
         c.silo_name = silo
-        #print "silo name: ", c.silo_name
         c.silo = ag.granary.get_rdf_silo(silo)
         http_method = request.environ['REQUEST_METHOD']
         c.items = c.silo.list_items()
-        #print "items : ", c.items
         return render("/files_list_of_objects.html")
 
     def itemview(self, silo, id):
@@ -64,21 +62,14 @@ class FilesController(BaseController):
         #c.item is the object containing the zip files
         c.item = c.silo.get_item(id)
         item_real_filepath = c.item.to_dirpath()
-        #print "Item real filepath :",item_real_filepath
         #c.parts = c.item.list_parts(detailed=False)
-        #print "parts: ", c.parts
-
         c.zipfiles = get_zipfiles_in_dataset(c.item)
-        #print "list of zip files: ", c.zipfiles
 
         http_method = request.environ['REQUEST_METHOD']
         if http_method == "GET":
             return render("/files_list_of_items.html")
         elif http_method == "POST":
             params = request.POST
-            f = open("/tmp/python_out.log", "a")
-            f.write("\n--------------- In itemview POST -------------------\n")
-            f.write("Params :%s\n"%str(params))
             if not (params.has_key("filename") and params['filename']):
                 abort(400, "You must supply a filename to unpack")
 
@@ -94,10 +85,7 @@ class FilesController(BaseController):
                 (head, fn) = os.path.split(params['filename'])
                 (fn, ext) = os.path.splitext(fn)
                 target_dataset_name = "%s-%s"%(id,fn)
-            f.write("No aborts. Next need to unpack\n")
             #target_dataset_name, current_dataset, post_filepath, silo, ident
-            f.write('-'*40+'\n')
-            f.close()
             try:
                 unpack_zip_item(target_dataset_name, c.item, params['filename'], c.silo, ident['repoze.who.userid'])
             except BadZipfile:
@@ -155,12 +143,9 @@ class FilesController(BaseController):
         #c.item is the object containing the zip files
         c.item = c.silo.get_item(id)
         item_real_filepath = c.item.to_dirpath()
-        print "Item real filepath :",item_real_filepath
         #c.parts = c.item.list_parts(detailed=False)
-        #print "parts: ", c.parts
 
         #c.zipfiles = get_zipfiles_in_dataset(c.item)
-        #print "list of zip files: ", c.zipfiles
 
         http_method = request.environ['REQUEST_METHOD']
         #if http_method == "GET":
@@ -169,9 +154,6 @@ class FilesController(BaseController):
         #elif http_method == "POST":
         if http_method == "POST":
             params = request.POST
-            f = open("/tmp/python_out.log", "a")
-            f.write("\n--------------- In itemview POST -------------------\n")
-            f.write("Params :%s\n"%str(params))
             #if not (params.has_key("filename") and params['filename']):
             #    abort(400, "You must supply a filename to unpack")
 
@@ -179,7 +161,6 @@ class FilesController(BaseController):
                 abort(400, "You must supply a filename to unpack")
 
             target_filepath = "%s/%s"%(item_real_filepath, path)
-            f.write("Target filepath: %s\n"%target_filepath)
             if not os.path.isfile(target_filepath):
                 abort(404, "File to unpack not found")
             if not check_file_mimetype(target_filepath, 'application/zip'): 
@@ -191,10 +172,7 @@ class FilesController(BaseController):
                 (head, fn) = os.path.split(path)
                 (fn, ext) = os.path.splitext(fn)
                 target_dataset_name = "%s-%s"%(id,fn)
-            f.write("No aborts. Next need to unpack\n")
             #target_dataset_name, current_dataset, post_filepath, silo, ident
-            f.write('-'*40+'\n')
-            f.close()
             try:
                 unpack_zip_item(target_dataset_name, c.item, path, c.silo, ident['repoze.who.userid'])
             except BadZipfile:

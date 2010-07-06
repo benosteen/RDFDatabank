@@ -20,12 +20,6 @@ class PackagesController(BaseController):
         return render("/success_message.html")
 
     def siloview(self, silo):
-        f = open("/tmp/python_out.log", "a")
-        f.write("-------------packages siloview -----------------\n")
-        f.write("request environ follows \n")
-        f.write(str(request.environ))
-        f.write('-'*40+'\n')
-        f.close()
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
         ident = request.environ.get('repoze.who.identity')

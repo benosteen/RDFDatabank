@@ -87,7 +87,6 @@ def unpack_zip_item(zip_item, silo, ident):
             unp_dir += '/'
         for i in items_list:
             i = i.replace(unp_dir, '')
-            #print i
             to_item.add_triple(to_item.uri, "ox:hasFile", i)
         to_item.add_triple(to_item.uri, "rdf:type", "oxds:Grouping")
         to_item.add_triple(to_item.uri, u"dcterms:modified", datetime.now())
