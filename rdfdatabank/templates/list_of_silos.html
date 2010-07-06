@@ -1,0 +1,16 @@
+# -*- coding: utf-8 -*-
+<%inherit file="/base.html" />
+<%def name="head_tags()">
+  <title> List of Data Archives that accept zipped packages </title>
+</%def>
+% if c.silos:
+<h3> List of Archives:
+<ul>
+% for silo in c.silos:
+<li><a href="/${silo}"><big><big>${silo}</big></big></a><br /><ul>
+<li><a href="/${silo}/datasets">Datasets </a></li>
+<li><a href="/${silo}/packages">Package Upload</a></li>
+<li><a href="/${silo}/items">Unpack Files</a></li></ul>
+% endfor
+</ul>
+% endif

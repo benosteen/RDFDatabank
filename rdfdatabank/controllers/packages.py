@@ -14,22 +14,18 @@ from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 
 log = logging.getLogger(__name__)
 
-class PackagesController(BaseController):
-    def index(self):
-        if not request.environ.get('repoze.who.identity'):
-            abort(401, "Not Authorised")
-        ident = request.environ.get('repoze.who.identity')
-        c.ident = ident
-        granary_list = ag.granary.silos
-        c.silos = ag.authz(granary_list, ident)
-        
-        return render('/list_of_zipfile_archives.html')
-    
+class PackagesController(BaseController):  
     def success(self, message):
         c.message = message
         return render("/success_message.html")
 
     def siloview(self, silo):
+        f = open("/tmp/python_out.log", "a")
+        f.write("-------------packages siloview -----------------\n")
+        f.write("request environ follows \n")
+        f.write(str(request.environ))
+        f.write('-'*40+'\n')
+        f.close()
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
         ident = request.environ.get('repoze.who.identity')
@@ -75,7 +71,9 @@ class PackagesController(BaseController):
                 # For now, content-location
                 #response.headers.add("Content-Location",  target_uri)
                 # conneg return
-                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                accept_list = None
+                if 'HTTP_ACCEPT' in request.environ:
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
                 if not accept_list:
                     accept_list= [MT("text", "html")]
                 mimetype = accept_list.pop(0)

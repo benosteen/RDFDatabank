@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 <p> Add File to ${c.id}</p>
 <p>
-<form method="POST" enctype="multipart/form-data" action="/objects/${c.silo_name}/${c.id}">
+<form method="POST" enctype="multipart/form-data" action="/${c.silo_name}/datasets/${c.id}">
 <input type="file" name="file" /> 
 <label for="filename">Filename: (optional)</label><input type="text" name="filename"/>
 <input type="submit" value="Add File"/>

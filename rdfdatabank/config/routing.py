@@ -20,28 +20,29 @@ def make_map():
 
     # CUSTOM ROUTES HERE
 
-    map.redirect("/", "/objects")
+    map.redirect("/", "/silos")
     map.redirect('/*(url)/', '/{url}',
              _redirect_code='301 Moved Permanently')
 
     map.connect('/admin', controller='admin', action='index')
     map.connect('/admin/{silo_name}', controller='admin', action='archive')
-    map.connect('/packages', controller='packages', action='index')
-    map.connect('/packages/{silo}', controller='packages', action='siloview')
-    map.connect('/packages/{silo}/upload', controller='packages', action='upload')
-    map.connect('/objects', controller='objects', action='index')
-    map.connect('/objects/{silo}', controller='objects', action='siloview')
-    map.connect('/objects/{silo}/{id}', controller='objects', action='itemview')
-    map.connect('/objects/{silo}/{id}/{path:.*}', controller='objects', action='subitemview')
+    
+    map.connect('/silos', controller='silos', action='index')
+
+    map.connect('/{silo}', controller='silos', action='siloview')
+
+    map.connect('/{silo}/packages', controller='packages', action='siloview')
+
+    map.connect('/{silo}/datasets', controller='datasets', action='siloview')
+    map.connect('/{silo}/datasets/{id}', controller='datasets', action='datasetview')
+    map.connect('/{silo}/datasets/{id}/{path:.*}', controller='objects', action='itemview')
+
+    map.connect('/{silo}/items', controller='items', action='siloview')
+    map.connect('/{silo}/items/{id}', controller='items', action='datasetview')
+    map.connect('/{silo}/items/{id}/{path:.*}', controller='items', action='itemview')
     
     map.connect('/{controller}')
     map.connect('/{controller}/{action}')
     map.connect('/{controller}/{action}/{id}')
-    
-    #map.connect('/{controller}/')
-    #map.connect('/{controller}/{action}/')
-    #map.connect('/{controller}/{action}/{id}/')
 
-    #map.redirect('/*(url)/', '/{url}',
-    #         _redirect_code='301 Moved Permanently')
     return map

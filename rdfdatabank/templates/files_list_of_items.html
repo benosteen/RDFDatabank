@@ -1,0 +1,19 @@
+# -*- coding: utf-8 -*-
+<%inherit file="/base.html" />
+<%def name="head_tags()">
+  <title> List of zipped packages </title>
+</%def>
+% if c.silo_name and c.item and c.zipfiles:
+<h3> List of package unpack endpoints: </h3>
+<ul>
+% for zf in c.zipfiles:
+<%
+c.zipfile = zf
+c.newid = c.zipfiles[zf]
+%>
+<li><p><a href="/${c.silo_name}/datasets/${c.item}/${zf}">${zf}</a> : 
+<%include file="/files_unpack.html"/></p>
+</li>
+% endfor
+</ul>
+% endif

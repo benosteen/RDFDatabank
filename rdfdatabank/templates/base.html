@@ -34,9 +34,9 @@
   </head>
   <body>
 % if c.silo_name:
-<h1> <a href="/objects">Archives</a> - <a href="/search/raw">Search API</a>: <a href="/objects/${c.silo_name}">${c.silo_name}</a> - <small><small>${c.silo_name} <a href="/packages/${c.silo_name}">package upload</a> </small></small></h1>
+<h1> <a href="/silos">Archives</a> - <a href="/search/raw">Search API</a>: <a href="/${c.silo_name}/datasets">${c.silo_name}</a> - <small><small>${c.silo_name} <a href="/${c.silo_name}/packages">package upload</a> </small></small></h1>
 % else:
-<h1> <a href="/objects">Archives</a> - <a href="/search/raw">Search API</a></h1>
+<h1> <a href="/silos">Archives</a> - <a href="/search/raw">Search API</a></h1>
 % endif
 % if c.ident and c.ident['role'] == "admin":
 <div style="float:right;">
@@ -49,15 +49,15 @@
 % endif
 % if c.id:
 %   if c.path:
-<h2> Subdirectory <a href="/objects/${c.silo_name}/${c.id}/${c.path}">${c.id}/${c.path}</a></h2>
-<h3> Root directory: <a href="/objects/${c.silo_name}/${c.id}">${c.id}</a> </h3>
+<h2> Subdirectory <a href="/${c.silo_name}/datasets/${c.id}/${c.path}">${c.id}/${c.path}</a></h2>
+<h3> Root directory: <a href="/${c.silo_name}/datasets/${c.id}">${c.id}</a> </h3>
 %   else:
-<h2> Root directory of <a href="/objects/${c.silo_name}/${c.id}">${c.id}</a> </h2>
+<h2> Root directory of <a href="/${c.silo_name}/datasets/${c.id}">${c.id}</a> </h2>
 %   endif
 % endif
     ${self.body()}
    <hr/>
-   <p><a href="/api.html"> /objects API list </a></p>
+   <p><a href="/api.html"> /Datsets API list </a></p>
   </body>
 </html>
 

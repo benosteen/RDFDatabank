@@ -5,7 +5,7 @@ from pylons.controllers.util import abort, redirect_to
 from pylons import app_globals as ag
 from rdfdatabank.lib.base import BaseController, render
 from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text, test_rdf
-
+from rdfdatabank.lib.file_unpack import get_zipfiles_in_dataset
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 
 from datetime import datetime, timedelta
@@ -19,16 +19,7 @@ import simplejson
 
 log = logging.getLogger(__name__)
 
-class ObjectsController(BaseController):
-    def index(self):
-        if not request.environ.get('repoze.who.identity'):
-            abort(401, "Not Authorised")
-        ident = request.environ.get('repoze.who.identity')
-        granary_list = ag.granary.silos
-        c.silos = ag.authz(granary_list, ident)
-        c.ident = ident
-        return render('/list_of_archives.html')
-        
+class DatasetsController(BaseController):      
     def siloview(self, silo):
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
@@ -57,7 +48,7 @@ class ObjectsController(BaseController):
             mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                    return render('/siloview.html')
+                    return render('/silo_dataset_view.html')
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = "text/plain"
                     items = {}
@@ -70,15 +61,15 @@ class ObjectsController(BaseController):
                 except IndexError:
                     mimetype = None
             #Whoops nothing satisfies - return text/html            
-            return render('/siloview.html')
+            return render('/silo_dataset_view.html')
         elif http_method == "POST":
             params = request.POST
             if params.has_key("id"):
                 if c.silo.exists(params['id']):
                     response.content_type = "text/plain"
                     response.status_int = 409
-                    response.status = "409 Conflict: Object Already Exists"
-                    return "Object Already Exists"
+                    response.status = "409 Conflict: Dataset Already Exists"
+                    return "Dataset Already Exists"
                 else:
                     # Supported params:
                     # id, title, embargoed, embargoed_until, embargo_days_from_now
@@ -98,8 +89,8 @@ class ObjectsController(BaseController):
                     mimetype = accept_list.pop(0)
                     while(mimetype):
                         if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                            # probably a browser - redirect to newly created object
-                            redirect_to(controller="objects", action="itemview", silo=silo, id=id)
+                            # probably a browser - redirect to newly created dataset
+                            redirect_to(controller="datasets", action="datasetview", silo=silo, id=id)
                         elif str(mimetype).lower() in ["text/plain"]:
                             response.content_type = "text/plain"
                             response.status_int = 201
@@ -117,7 +108,7 @@ class ObjectsController(BaseController):
                     response.status = "201 Created"
                     return "Created"
                     
-    def itemview(self, silo, id):
+    def datasetview(self, silo, id):
         # Check to see if embargo is on:
         c.silo_name = silo
         c.id = id
@@ -174,7 +165,8 @@ class ObjectsController(BaseController):
                 c.item = c.silo.get_item(id)
                 
                 c.parts = c.item.list_parts(detailed=True)
-                
+                c.zipfiles = get_zipfiles_in_dataset(c.item) 
+                print "zipfiles :", c.zipfiles
                 if "README" in c.parts.keys():
                     c.readme_text = get_readme_text(c.item)
                     
@@ -202,10 +194,10 @@ class ObjectsController(BaseController):
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                         f = open("/tmp/python_out.log", "a")
-                        f.write("Output returned :\n %s \n"%str(render('/itemview.html')))
+                        f.write("Output returned :\n %s \n"%str(render('/datasetview.html')))
                         f.write('-'*40+'\n')
                         f.close()
-                        return render('/itemview.html')
+                        return render('/datasetview.html')
                     elif str(mimetype).lower() in ["text/plain", "application/json"]:
                         response.content_type = 'application/json; charset="UTF-8"'
                         #response.content_type = 'application/JSON; charset="UTF-8"'
@@ -266,10 +258,10 @@ class ObjectsController(BaseController):
                 #Whoops - nothing staisfies - default to text/html
                 #abort(406)
                 f = open("/tmp/python_out.log", "a")
-                f.write("Output returned : \n %s \n"%str(render('/itemview.html')))
+                f.write("Output returned : \n %s \n"%str(render('/datasetview.html')))
                 f.write('-'*40+'\n')
                 f.close()
-                return render('/itemview.html')
+                return render('/datasetview.html')
             else:
                 abort(404)
         elif http_method == "POST" and c.editor:
@@ -291,8 +283,8 @@ class ObjectsController(BaseController):
                 mimetype = accept_list.pop(0)
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                        # probably a browser - redirect to newly created object
-                        redirect_to(controller="objects", action="itemview", silo=silo, id=id)
+                        # probably a browser - redirect to newly created dataset
+                        redirect_to(controller="datasets", action="datasetview", silo=silo, id=id)
                     elif str(mimetype).lower() in ["text/plain"]:
                         response.content_type = "text/plain"
                         response.status_int = 201
@@ -364,7 +356,7 @@ class ObjectsController(BaseController):
                 mimetype = accept_list.pop(0)
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                        redirect_to(controller="objects", action="itemview", id=id, silo=silo)
+                        redirect_to(controller="datasets", action="datasetview", id=id, silo=silo)
                     elif str(mimetype).lower() in ["text/plain"]:
                         response.status_int = code
                         return "Added file %s to item %s" % (filename, id)
@@ -397,7 +389,7 @@ class ObjectsController(BaseController):
                 
                 if filename == "manifest.rdf":
                     # valid to make sure it's valid RDF
-                    # Otherwise this object will not be accessible
+                    # Otherwise this dataset will not be accessible
                     text = params['text']
                     if not test_rdf(text):
                         abort(406, "Not able to parse RDF/XML")
@@ -418,7 +410,7 @@ class ObjectsController(BaseController):
                 mimetype = accept_list.pop(0)
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                        redirect_to(controller="objects", action="itemview", id=id, silo=silo)
+                        redirect_to(controller="datasets", action="datasetview", id=id, silo=silo)
                     elif str(mimetype).lower() in ["text/plain"]:
                         response.status_int = 200
                         return "Added file %s to item %s" % (filename, id)
@@ -449,7 +441,7 @@ class ObjectsController(BaseController):
             else:
                 abort(404)
 
-    def subitemview(self, silo, id, path):
+    def itemview(self, silo, id, path):
         # Check to see if embargo is on:
         c.silo_name = silo
         c.id = id
@@ -505,7 +497,7 @@ class ObjectsController(BaseController):
                     mimetype = accept_list.pop(0)
                     while(mimetype):
                         if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                            return render("/subitemview.html")
+                            return render("/itemview.html")
                         elif str(mimetype).lower() in ["text/plain", "application/json"]:
                             def serialisable_stat(stat):
                                 stat_values = {}
@@ -528,7 +520,7 @@ class ObjectsController(BaseController):
                         except IndexError:
                             mimetype = None
                     #Whoops - nothing satisfies - return text/html
-                    return render("/subitemview.html")
+                    return render("/itemview.html")
                 else:
                     abort(404)
         elif http_method == "PUT" and c.editor:
@@ -561,12 +553,12 @@ class ObjectsController(BaseController):
                 response.status_int = code
                 return
             else:
-                # item in which to store file doesn't exist yet...
-                # DECISION: Auto-instantiate object and then put file there?
+                # dataset in which to store file doesn't exist yet...
+                # DECISION: Auto-instantiate dataset and then put file there?
                 #           or error out with perhaps a 404?
                 # Going with error out...
                 response.status_int = 404
-                return "Object %s doesn't exist" % id
+                return "Dataset %s doesn't exist" % id
         elif http_method == "POST" and c.editor:
             if c.silo.exists(id):
                 # POST... differences from PUT:
@@ -601,12 +593,12 @@ class ObjectsController(BaseController):
                 response.status_int = code
                 return
             else:
-                # item doesn't exist yet...
-                # DECISION: Auto-instantiate object and then put file there?
+                # dataset doesn't exist yet...
+                # DECISION: Auto-instantiate dataset and then put file there?
                 #           or error out with perhaps a 404?
                 # Going with error out...
                 response.status_int = 404
-                return "Object %s doesn't exist" % id
+                return "Dataset %s doesn't exist" % id
         elif http_method == "DELETE" and c.editor:
             if c.silo.exists(id):
                 item = c.silo.get_item(id)

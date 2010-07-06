@@ -33,6 +33,7 @@ a:hover {
 h1 {
 	margin-top: 1em;
 	line-height: 1.5em;
+	border-top: 2px groove #CCCCCC;
 }
 h1.Part {
 	text-align: center;
@@ -371,6 +372,7 @@ div.Plain {
 }
 h1.title {
 	text-align: center;
+	border: None;
 }
 h2.author {
 	text-align: center;
@@ -466,6 +468,10 @@ span.greyedout {
 }
 div.Description, div.List, li {
 	margin: 1em 0;
+}
+
+div.List {
+    border-bottom:1px dotted #CCCCCC;
 }
 li.nested {
 	list-style-type: none;
