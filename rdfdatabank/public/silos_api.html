@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xml:lang="en" xmlns="http://www.w3.org/1999/xhtml" lang="en"><head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="generator" content="http://www.nongnu.org/elyxer/">
+<meta name="create-date" content="2010-06-18">
+<link rel="stylesheet" href="api_files/lyx.css" type="text/css" 
+media="screen">
+<title>RDFdatabank API document</title>
+</head><body>
+<h1 class="title">RDFdatabank API Document</h1>
+<h2 class="title">Silos</h2>
+<h2 class="menu"><ul>
+<li class="menu"><a href="silos_api.html">Silos</a></li>
+<li class="menu"><a href="datasets_api.html">Datasets</li>
+<li class="menu"><a href="packages_api.html">Packages</li>
+<li class="menu"><a href="items_api.html">Items</li>
+</ul></h2>
+<div id="globalWrapper">
+
+<!-- ========== /silos ========== -->
+<h1 class="Section-">
+<a class="toc" name="toc-Section-1"></a>/silos
+</h1>
+<i><b>Controller: silos &nbsp;&nbsp;&nbsp;&nbsp;action: index</b></i>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: text/html, authd - Returns an HTML 
+page listing the ’silos’ your account can see, with links to dataset view and package upload page</span>
+</div>
+<div class="List">
+<span class="List-entry">POST,PUT,DELETE</span><span class="List-contents">NOOP</span>
+</div>
+
+<!-- ========== /{silo name} ========== -->
+<h1 class="Section-">
+<a class="toc" name="toc-Section-2"></a>/{silo name}
+</h1>
+<i><b>Controller: silos &nbsp;&nbsp;&nbsp;&nbsp;action: siloview</b></i>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept:text/html - Returns an HTML 
+page listing the dataset ids, along with a form for dataset creation and a from for package upload</span>
+</div>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: text/plain, application/json -
+Returns a JSON-encoded hash/dict, keys map to exising dataset ids, and 
+include embargo information</span>
+</div>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: * / none - Returns text/HTML 
+listing the dataset ids, along with a form for dataset creation and a from for package upload</span>
+</div>
+<div class="List">
+<span class="List-entry">POST, PUT,DELETE</span><span class="List-contents">NOOP</span>
+</div>
+<!-- ========== END ========== -->
+</div>
+</body></html>

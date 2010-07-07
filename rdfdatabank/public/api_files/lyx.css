@@ -374,8 +374,20 @@ h1.title {
 	text-align: center;
 	border: None;
 }
+h2.title {
+	text-align: center;
+	border: None;
+}
 h2.author {
 	text-align: center;
+}
+h2.menu {
+	text-align: center;
+}
+
+h2.menu ul{
+	padding: 0px;
+	margin:0px;
 }
 h2.Date {
 	text-align: center;
@@ -475,6 +487,14 @@ div.List {
 }
 li.nested {
 	list-style-type: none;
+}
+li.menu {
+	list-style-type: none;
+	display: inline;
+	border-right: dotted 1px #cccccc;
+	border-left: dotted 1px #cccccc;
+	padding-right: 10px;
+	padding-left: 10px;
 }
 span.Info {
 	background: #f0f0f0;

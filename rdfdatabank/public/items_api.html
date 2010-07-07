@@ -1,0 +1,87 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xml:lang="en" xmlns="http://www.w3.org/1999/xhtml" lang="en"><head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="generator" content="http://www.nongnu.org/elyxer/">
+<meta name="create-date" content="2010-06-18">
+<link rel="stylesheet" href="api_files/lyx.css" type="text/css" 
+media="screen">
+<title>RDFdatabank API document</title>
+</head><body>
+<h1 class="title">RDFdatabank API Document</h1>
+<h2 class="title">Items</h2>
+<h2 class="menu"><ul>
+<li class="menu"><a href="silos_api.html">Silos</a></li>
+<li class="menu"><a href="datasets_api.html">Datasets</li>
+<li class="menu"><a href="packages_api.html">Packages</li>
+<li class="menu"><a href="items_api.html">Items</li>
+</ul></h2>
+<div id="globalWrapper">
+
+<!-- ========== /{silo name}/items ========== -->
+<h1 class="Section-">
+<a class="toc" name="toc-Section-1"></a>/{silo name}/items
+</h1>
+<i><b>Controller: items &nbsp;&nbsp;&nbsp;&nbsp;action: siloview</b></i>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: *, authd - Returns 403, Forbidden</span>
+</div>
+<div class="List">
+<span class="List-entry">POST,PUT,DELETE</span><span class="List-contents">NOOP</span>
+</div>
+
+<!-- ========== /{silo name}/items/{id} ========== -->
+<h1 class="Section1-1">
+<a class="toc" name="toc-Section-2"></a>/{silo name}/items/{id}
+</h1>
+<i><b>Controller: items &nbsp;&nbsp;&nbsp;&nbsp;action: datasetview</b></i>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: *, authd - Returns an HTML 
+page with list of zipfiles in <i>{id}</i> with form to unpack the zip file</span>
+</div>
+<div class="List">
+<span class="List-entry">POST</span><span class="List-contents">Unpack file. Create new dataset containing upacked file contents</span>
+</div>
+<ul>
+<li class="nested">
+<div class="List">
+<span class="List-entry">Parameters</span><span class="List-contents">-&gt; filename = {name of file to be unpacked, including the path} <br />-&gt;
+Id={(Optional)}. if Id is not supplied, the default dataset id for the new dataset will be {dataset_id}-{file_name}</span>
+</div>
+<div class="List">
+<span class="List-entry">Returns:</span><span class="List-contents">Accept:text/html - 302 to splash
+ page for newly created dataset</span>
+</div>
+<div class="List">
+<span class="List-entry">Returns:</span><span class="List-contents">Accept:* 200/201 on update/creation of dataset; 404 if file not found; 415 if file isn't a zip file; 400 if no filename or if unzipping fails</span>
+</div>
+</li>
+</ul>
+
+<!-- ========== /{silo name}/items/{id}/{path} ========== -->
+<h1 class="Section1-1">
+<a class="toc" name="toc-Section-2"></a>/{silo name}/items/{id}/{path}
+</h1>
+<i><b>Controller: items &nbsp;&nbsp;&nbsp;&nbsp;action: itemview</b></i>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: *, authd - Returns an HTML 
+page with list of zipfiles in <i>{id}</i> with form to unpack the zip file</span>
+</div>
+<div class="List">
+<span class="List-entry">POST</span><span class="List-contents">Unpack file. Create new dataset containing upacked file contents</span>
+</div>
+<ul>
+<li class="nested">
+<div class="List">
+<span class="List-entry">Parameters</span><span class="List-contents">-&gt; Id={(Optional)}. if Id is not supplied, the default dataset id for the new dataset will be {dataset_id}-{file_name}</span>
+</div>
+<div class="List">
+<span class="List-entry">Returns:</span><span class="List-contents">Accept:text/html - 302 to splash
+ page for newly created dataset</span>
+</div>
+<div class="List">
+<span class="List-entry">Returns:</span><span class="List-contents">Accept:* 200/201 on update/creation of dataset; 404 if file not found; 415 if file isn't a zip file; 400 if no filename or if unzipping fails</span>
+</div>
+<!-- ========== END ========== -->
+</div>
+</body></html>

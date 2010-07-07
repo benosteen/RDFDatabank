@@ -1,0 +1,259 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xml:lang="en" xmlns="http://www.w3.org/1999/xhtml" lang="en"><head>
+
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="generator" content="http://www.nongnu.org/elyxer/">
+<meta name="create-date" content="2010-06-18">
+<link rel="stylesheet" href="api_files/lyx.css" type="text/css" 
+media="screen">
+<title>RDFdatabank API document</title>
+</head><body>
+<h1 class="title">RDFdatabank API Document</h1>
+<h2 class="title">Datasets</h2>
+<h2 class="menu"><ul>
+<li class="menu"><a href="silos_api.html">Silos</a></li>
+<li class="menu"><a href="datasets_api.html">Datasets</li>
+<li class="menu"><a href="packages_api.html">Packages</li>
+<li class="menu"><a href="items_api.html">Items</li>
+</ul></h2>
+<div id="globalWrapper">
+
+<!-- ========== /{silo name}/datasets ========== -->
+<h1 class="Section-">
+<a class="toc" name="toc-Section-1"></a>/{silo name}/datasets
+</h1>
+<i><b>Controller: datasets &nbsp;&nbsp;&nbsp;&nbsp;action: siloview</b></i>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept:text/html - Returns an HTML 
+page listing the ids, along with a form for dataset creation and a form for package upload</span>
+</div>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: text/plain, application/json -
+Returns a JSON-encoded hash/dict, keys map to exising dataset ids, and 
+include embargo information</span>
+</div>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: * / none - Returns text/HTML 
+listing the ids, along with a form for dataset creation and a form for package upload</span>
+</div>
+<div class="List">
+<span class="List-entry">POST</span><span class="List-contents">Create new dataset</span>
+</div>
+<ul>
+<li class="nested">
+<div class="List">
+<span class="List-entry">Parameters</span><span class="List-contents">-&gt; id = {id to create}, 
+embargoed = {true|false}, embargoed_until = {ISO8601 date}, 
+title={(Optional)}</span>
+</div>
+<div class="List">
+<span class="List-entry">Returns:</span><span class="List-contents">Accept:text/html - 302 to splash
+ page for newly created dataset, 201 otherwise on success. Code 409 if 
+dataset already exists.</span>
+</div>
+</li>
+</ul>
+<div class="List">
+<span class="List-entry">PUT,DELETE</span><span class="List-contents">NOOP</span>
+</div>
+
+<!-- ========== /{silo name}/datasets/{id} ========== -->
+<h1 class="Section-">
+<a class="toc" name="toc-Section-2"></a>/{silo name}/datasets/{id}
+</h1>
+<i><b>Controller: datasets &nbsp;&nbsp;&nbsp;&nbsp;action: datasetview</b></i>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: text/html - returns HTML 
+splash page for dataset <i>id</i></span>
+</div>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: application/json - returns 
+dataset’s JSON-encoded state</span>
+</div>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: application/rdf+xml, text/xml
+ - returns dataset’s RDF manifest as RDF/XML</span>
+</div>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: text/rdf+n3 - returns dataset’s 
+RDF manifest as N3</span>
+</div>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: application/x-turtle - 
+returns dataset’s RDF manifest as Turtle</span>
+</div>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: text/rdf+ntriples, 
+text/rdf+nt - returns dataset's RDF manifest as ntriples</span>
+</div>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: * / none - returns text/HTML 
+of splash page for dataset <i>id</i></span>
+</div>
+<div class="List">
+<span class="List-entry">POST</span><span class="List-contents">If dataset <i>id</i> <b>doesn’t</b> 
+exist, create it. (As POST /{silo}/datasets id=...)</span>
+</div>
+<div class="List">
+<span class="List-entry">POST</span><span class="List-contents">Dataset <i>id</i> <b>does</b> exist:</span>
+</div>
+<ul>
+<li class="nested">
+<div class="List">
+<span class="List-entry">Embargo-control</span><span class="List-contents">Change embargo</span> 
+information on dataset <i>id</i>
+</div>
+<ul>
+<li class="nested">
+<div class="List">
+<span class="List-entry">Parameters</span><span class="List-contents">-&gt; embargo_change = true, 
+embargoed = {true|false}, embargoed_until = {ISO8601 date}</span>
+</div>
+<div class="List">
+<span class="List-entry">Returns:</span><span class="List-contents">JSON-encoded statement of new 
+embargo information with a 200 on success.</span>
+</div>
+</li>
+</ul>
+<div class="List">
+<span class="List-entry">File-upload:</span><span class="List-contents">Upload file to root 
+directory (makes HTML forms easier)</span>
+</div>
+<ul>
+<li class="nested">
+<div class="List">
+<span class="List-entry">Parameters</span><span class="List-contents">-&gt; file = Multipart-encoded
+ (HTML) file upload, filename = {Optional filename for upload}</span>
+</div>
+<div class="List">
+<span class="List-entry">Returns:</span><span class="List-contents">Accept: text/html - 302 redirect
+ to top-level dataset view on success</span>
+</div>
+<div class="List">
+<span class="List-entry">Returns:</span><span class="List-contents">Accept: * - 200/201 on 
+update/creation of file with <i>filename</i> 403 if filename == existing
+ subdirectory name. (For the sake of web UI)</span>
+</div>
+</li>
+</ul>
+<div class="List">
+<span class="List-entry">Text-upload</span><span class="List-contents">Convenience function for HTML
+ to update/create text files</span>
+</div>
+<ul>
+<li class="nested">
+<div class="List">
+<span class="List-entry">Parameters</span><span class="List-contents">-&gt; text = {UTF text to 
+store}, filename = {desired filename}</span>
+</div>
+<div class="List">
+<span class="List-entry">Returns:</span><span class="List-contents">As File upload, but with the 
+following changes: if ’filename’ isn’t set, 406 error will result. If 
+filename == ’manifest.rdf’, and the text isn’t valid RDF/XML, again, 406
+ will result.</span>
+</div>
+</li>
+</ul>
+</li>
+</ul>
+<div class="List">
+<span class="List-entry">DELETE</span><span class="List-contents">Deletes the dataset <i>id</i> - 200 
+on success, 404 if <i>id</i> doesn’t exist</span>
+</div>
+<div class="List">
+<span class="List-entry">PUT</span><span class="List-contents">NOOP</span>
+</div>
+
+<!-- ========== /{silo name}/datasets/{id}/{subpath} ========== -->
+<h1 class="Section-">
+<a class="toc" name="toc-Section-3"></a>/{silo name}/datasets/{id}/{subpath}
+</h1>
+<i><b>Controller: datasets &nbsp;&nbsp;&nbsp;&nbsp;action: itemview</b></i>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: text/html - HTML page listing
+ the files within a given subpath</span>
+</div>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: text/plain, application/json -
+ JSON-encoded listing of files {’parts’: { ’filename’: {python os.stat 
+results}, ...} with ’readme_text’ being a potential top-level key-value pair</span>
+</div>
+<div class="List">
+<span class="List-entry">PUT</span><span class="List-contents">results in a 403 - cannot put content
+ onto an existing directory</span>
+</div>
+<div class="List">
+<span class="List-entry">POST</span><span class="List-contents">Upload a file within the subpath</span>
+</div>
+<ul>
+<li class="nested">
+<div class="List">
+<span class="List-entry">Parameters</span><span class="List-contents">-&gt; file = Multipart-encoded
+ (HTML) file upload, filename = {Optional <i>filename</i> for upload}</span>
+</div>
+<div class="List">
+<span class="List-entry">Returns:</span><span class="List-contents">Accept: * - 200/201 on 
+update/creation of file with <i>filename</i> 403 if filename == existing
+ subdirectory name. (For the sake of web UI)</span>
+</div>
+</li>
+</ul>
+<div class="List">
+<span class="List-entry">DELETE</span><span class="List-contents">TODO - recursive delete. Returns 
+400 if the directory has subdirectories but this is not intended to be a
+ long-term API choice.</span>
+</div>
+
+<!-- ========== /{silo name}/datasets/{id}[/{subpath}]/{filename} ========== -->
+<h1 class="Section-">
+<a class="toc" name="toc-Section-4"></a>/{silo name}/datasets/{id}[/{subpath}]/{filename}
+</h1>
+<i><b>Controller: objects &nbsp;&nbsp;&nbsp;&nbsp;action: itemview</b></i>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">GETs the file at 
+[/{subpath}]/{filename}, 404 otherwise</span>
+</div>
+<div class="List">
+<span class="List-entry">PUT</span><span class="List-contents">PUTs the request body in the place of
+ the [/subpath]/filename, whether it already exists or not.</span>
+</div>
+<ul>
+<li class="nested">
+<div class="List">
+<span class="List-entry">Returns</span><span class="List-contents">200/201 for update/creation</span>
+</div>
+</li>
+</ul>
+<div class="List">
+<span class="List-entry">POST</span><span class="List-contents">Upload a file within the same 
+subpath as the file (HTML convenience)</span>
+</div>
+<ul>
+<li class="nested">
+<div class="List">
+<span class="List-entry">Parameters</span><span class="List-contents">-&gt; file = Multipart-encoded
+ (HTML) file upload, filename = {Optional <i>filename</i> for upload}</span>
+</div>
+<div class="List">
+<span class="List-entry">Returns:</span><span class="List-contents">Accept: * - 200/201 on 
+update/creation of file with <i>filename</i> 403 if filename == existing
+ subdirectory name. (For the sake of web UI)</span>
+</div>
+</li>
+</ul>
+<div class="List">
+<span class="List-entry">DELETE</span><span class="List-contents">Removes the filename from the item
+ and subpath.</span>
+</div>
+<ul>
+<li class="nested">
+<div class="List">
+<span class="List-entry">Returns:</span><span class="List-contents">200 on success.</span>
+</div>
+</li>
+</ul>
+<!-- ========== END ========== -->
+</div>
+</body></html>

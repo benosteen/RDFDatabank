@@ -1,0 +1,13 @@
+# -*- coding: utf-8 -*-
+<%inherit file="/base.html" />
+<%def name="head_tags()">
+  <title> Objects that may have files to unpack </title>
+</%def>
+<h3> Items to unpack in ${c.silo_name}</h3>
+% if c.items:
+<ul>
+% for item in c.items:
+<li><p><a href="/files/${c.silo_name}/${item}">${item}</a></p></li>
+% endfor
+</ul>
+% endif

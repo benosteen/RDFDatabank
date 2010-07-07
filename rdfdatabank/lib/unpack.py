@@ -80,14 +80,14 @@ def unpack_zip_item(zip_item, silo, ident):
         items_list = []
         os.path.walk(unpacked_dir,get_items_in_dir,items_list)
         to_item.move_directory_as_new_version(unpacked_dir)
-        to_item.add_namespace('ox', "http://vocab.ox.ac.uk/oxterms/schema#")
+        #to_item.add_namespace('ox', "http://vocab.ox.ac.uk/oxterms/schema#")
         to_item.add_namespace('oxds', "http://vocab.ox.ac.uk/dataset/schema#")
         unp_dir = unpacked_dir
         if not unp_dir.endswith('/'):
             unp_dir += '/'
         for i in items_list:
             i = i.replace(unp_dir, '')
-            to_item.add_triple(to_item.uri, "ox:hasFile", i)
+            to_item.add_triple(to_item.uri, "ore:aggregates", i)
         to_item.add_triple(to_item.uri, "rdf:type", "oxds:Grouping")
         to_item.add_triple(to_item.uri, u"dcterms:modified", datetime.now())
         to_item.add_triple(to_item.uri, "dcterms:isVersionOf", file_uri)

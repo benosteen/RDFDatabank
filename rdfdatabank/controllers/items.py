@@ -56,7 +56,7 @@ class ItemsController(BaseController):
         if not c.silo.exists(id):
             abort (403, "Forbidden")
 
-        #c.item is the object containing the zip files
+        #c.item is the dataset containing the zip files
         c.item = c.silo.get_item(id)
         item_real_filepath = c.item.to_dirpath()
         #c.parts = c.item.list_parts(detailed=False)
@@ -97,8 +97,8 @@ class ItemsController(BaseController):
             mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                    # probably a browser - redirect to newly created object
-                    redirect_to(controller="objects", action="itemview", silo=silo, id=target_dataset_name)
+                    # probably a browser - redirect to newly created dataset 
+                    redirect_to(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
                 elif str(mimetype).lower() in ["text/plain"]:
                     response.content_type = "text/plain"
                     response.status_int = 201
@@ -137,7 +137,7 @@ class ItemsController(BaseController):
         if not c.silo.exists(id):
             abort (403, "Forbidden")
 
-        #c.item is the object containing the zip files
+        #c.item is the dataset containing the zip files
         c.item = c.silo.get_item(id)
         item_real_filepath = c.item.to_dirpath()
         #c.parts = c.item.list_parts(detailed=False)
@@ -182,8 +182,8 @@ class ItemsController(BaseController):
             mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                    # probably a browser - redirect to newly created object
-                    redirect_to(controller="objects", action="itemview", silo=silo, id=target_dataset_name)
+                    # probably a browser - redirect to newly created dataset
+                    redirect_to(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
                 elif str(mimetype).lower() in ["text/plain"]:
                     response.content_type = "text/plain"
                     response.status_int = 201
