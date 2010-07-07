@@ -85,9 +85,12 @@ def unpack_zip_item(zip_item, silo, ident):
         unp_dir = unpacked_dir
         if not unp_dir.endswith('/'):
             unp_dir += '/'
+        item_uri_base = to_item.uri
+        if not item_uri_base.endswith('/'):
+            item_uri_base += '/'
         for i in items_list:
             i = i.replace(unp_dir, '')
-            to_item.add_triple(to_item.uri, "ore:aggregates", i)
+            to_item.add_triple(to_item.uri, "ore:aggregates", "%s%s"%(item_uri_base,i))
         to_item.add_triple(to_item.uri, "rdf:type", "oxds:Grouping")
         to_item.add_triple(to_item.uri, u"dcterms:modified", datetime.now())
         to_item.add_triple(to_item.uri, "dcterms:isVersionOf", file_uri)
