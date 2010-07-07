@@ -108,7 +108,7 @@ class DatasetsController(BaseController):
                     response.status = "201 Created"
                     return "Created"
                     
-    def datasetview(self, silo, id):
+    def datasetview(self, silo, id):       
         # Check to see if embargo is on:
         c.silo_name = silo
         c.id = id
@@ -123,6 +123,7 @@ class DatasetsController(BaseController):
         c.embargos = {}
         c.embargos[id] = is_embargoed(c.silo, id)
         http_method = request.environ['REQUEST_METHOD']
+        print http_method
         
         c.editor = False
         
