@@ -123,7 +123,7 @@ class DatasetsController(BaseController):
         c.embargos = {}
         c.embargos[id] = is_embargoed(c.silo, id)
         http_method = request.environ['REQUEST_METHOD']
-        print http_method
+        #print http_method
         
         c.editor = False
         

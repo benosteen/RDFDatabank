@@ -83,7 +83,7 @@ class ItemsController(BaseController):
                 (fn, ext) = os.path.splitext(fn)
                 target_dataset_name = "%s-%s"%(id,fn)
             #target_dataset_name, current_dataset, post_filepath, silo, ident
-            print 'Calling unpack zip item'
+            #print 'Calling unpack zip item'
             try:
                 unpack_zip_item(target_dataset_name, c.item, params['filename'], c.silo, ident['repoze.who.userid'])
             except BadZipfile:
