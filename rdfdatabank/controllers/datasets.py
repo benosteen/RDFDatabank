@@ -4,14 +4,14 @@ from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
 from pylons import app_globals as ag
 from rdfdatabank.lib.base import BaseController, render
-from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text, test_rdf
+from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text, test_rdf, munge_rdf
 from rdfdatabank.lib.file_unpack import get_zipfiles_in_dataset
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 
 from datetime import datetime, timedelta
 from paste.fileapp import FileApp
 
-import re, os
+import re, os, shutil
 
 JAILBREAK = re.compile("[\/]*\.\.[\/]*")
 
@@ -123,6 +123,7 @@ class DatasetsController(BaseController):
         c.embargos = {}
         c.embargos[id] = is_embargoed(c.silo, id)
         http_method = request.environ['REQUEST_METHOD']
+        print http_method
         
         c.editor = False
         
@@ -282,20 +283,49 @@ class DatasetsController(BaseController):
                     abort(400, "'..' cannot be used in the path or as a filename")
                 target_path = filename
                 
-                if item.isfile(target_path):
+                #Check if the filename is manifest.rdf. if it is, extract triples and munge
+                if 'manifest.rdf' in filename:
+                    mani_file = os.path.join('/tmp', filename.lstrip(os.sep))
+                    mani_file_obj = open(mani_file, 'w')
+                    shutil.copyfileobj(upload.file, mani_file_obj)
+                    upload.file.close()
+                    mani_file_obj.close()
+                    #test rdf file
+                    mani_file_obj = open(mani_file, 'r')
+                    manifest_str = mani_file_obj.read()
+                    mani_file_obj.close()
+                    if not test_rdf(manifest_str):
+                        response.status_int = 400
+                        return "Bad manifest file"
+                    #Get triples from the manifest file and remove the file
+                    triples = None
+                    ns = None
+                    ns, triples = munge_rdf(item.uri, mani_file)
+                    #item.add_namespace('owl', "http://www.w3.org/2002/07/owl#")
+                    if ns:
+                        for k, v in ns.iteritems():
+                            item.add_namespace(k, v)
+                    if triples:
+                        for (s, p, o) in triples:
+                            item.add_triple(s, p, o)
+                    item.sync()
                     code = 200
-                elif item.isdir(target_path):
-                    response.status_int = 403
-                    return "Cannot POST a file on to an existing directory"
                 else:
-                    code = 201
-                item.put_stream(target_path, upload.file)
-                upload.file.close()
+                    if item.isfile(target_path):
+                        code = 200
+                    elif item.isdir(target_path):
+                        response.status_int = 403
+                        return "Cannot POST a file on to an existing directory"
+                    else:
+                        code = 201
+                    item.put_stream(target_path, upload.file)
+                    upload.file.close()
                 
-                if code == 201:
-                    ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
-                else:
-                    ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
+                    if code == 201:
+                        ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
+                    else:
+                        ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
+
                 response.status_int = code
                 # conneg return
                 accept_list = None

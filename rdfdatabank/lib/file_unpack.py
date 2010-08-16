@@ -8,7 +8,7 @@ from redis import Redis
 
 from uuid import uuid4
 
-from rdfdatabank.lib.utils import create_new
+from rdfdatabank.lib.utils import create_new, munge_rdf, test_rdf
 
 #import checkm
 
@@ -99,8 +99,31 @@ def unpack_zip_item(target_dataset_name, current_dataset, zip_item, silo, ident)
                 
     items_list = []
     os.path.walk(unpacked_dir,get_items_in_dir,items_list)
+    
+    triples = None
+    ns = None
+    for i in items_list:
+        if 'manifest.rdf' in i and os.path.isfile(i):
+            #test rdf file
+            F = open(i, 'r')
+            manifest_str = F.read()
+            F.close()
+            if not test_rdf(manifest_str):
+                return False
+            #Get triples from the manifest file and remove the file
+            ns, triples = munge_rdf(target_dataset.uri, i)
+            items_list.remove(i)
+            os.remove(i)
+            break
     target_dataset.move_directory_as_new_version(unpacked_dir)
     target_dataset.add_namespace('oxds', "http://vocab.ox.ac.uk/dataset/schema#")
+    #target_dataset.add_namespace('owl', "http://www.w3.org/2002/07/owl#")
+    if ns:
+        for k, v in ns.iteritems():
+            target_dataset.add_namespace(k, v)
+    if triples:
+        for (s, p, o) in triples:
+            target_dataset.add_triple(s, p, o)
     unp_dir = unpacked_dir
     if not unp_dir.endswith('/'):
         unp_dir += '/'

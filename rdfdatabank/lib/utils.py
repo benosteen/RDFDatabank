@@ -83,7 +83,7 @@ def get_readme_text(item, filename="README"):
     with item.get_stream(filename) as fn:
         text = fn.read().decode("utf-8")
     return u"%s\n\n%s" % (filename, text)
-
+    
 def test_rdf(text):
     try:
         mani = Manifest()
@@ -91,3 +91,29 @@ def test_rdf(text):
         return True
     except:
         return False
+
+def munge_rdf(target_dataset_uri, manifest_file):
+    triples = []
+    namespaces = {}
+    F = open(manifest_file, 'r')
+    manifest_str = F.read()
+    #if not test_rdf(manifest_str):
+    #    return False
+    mani = Manifest()
+    mani.from_string(manifest_str)
+    namespaces = mani.namespaces
+    for s_uri in mani.items_rdfobjects:
+        datasetType = False
+        for t in mani.items_rdfobjects[s_uri].types:
+            if str(t) == 'http://vocab.ox.ac.uk/dataset/schema#Grouping':
+                datasetType = True
+        if datasetType:
+            #Add to existing uri and add a sameAs triple with this uri
+            for s,p,o in mani.items_rdfobjects[s_uri].list_triples():
+                triples.append((target_dataset_uri, p, o))
+            namespaces['owl'] = "http://www.w3.org/2002/07/owl#"
+            triples.append((target_dataset_uri, 'owl:sameAs', s_uri))
+        else:
+            for s,p,o in mani.items_rdfobjects[s_uri].list_triples():
+                triples.append((s, p, o))
+    return namespaces, triples
