@@ -104,7 +104,8 @@ class ItemsController(BaseController):
                     response.content_type = "text/plain"
                     response.status_int = 201
                     response.status = "201 Created"
-                    #response.headers.add("Content-Location", item.uri)
+                    new_item = c.silo.get_item(target_dataset_name)
+                    response.headers.add("Content-Location", new_item.uri)
                     return "Created"
                 try:
                     mimetype = accept_list.pop(0)
@@ -113,7 +114,8 @@ class ItemsController(BaseController):
             # Whoops - nothing satisfies - return text/plain
             response.content_type = "text/plain"
             response.status_int = 201
-            #response.headers.add("Content-Location", item.uri)
+            new_item = c.silo.get_item(target_dataset_name)
+            response.headers.add("Content-Location", new_item.uri)
             response.status = "201 Created"
             return "Created"
             
@@ -189,7 +191,8 @@ class ItemsController(BaseController):
                     response.content_type = "text/plain"
                     response.status_int = 201
                     response.status = "201 Created"
-                    #response.headers.add("Content-Location", item.uri)
+                    new_item = c.silo.get_item(target_dataset_name)
+                    response.headers.add("Content-Location", new_item.uri)
                     return "Created"
                 try:
                     mimetype = accept_list.pop(0)
@@ -198,6 +201,7 @@ class ItemsController(BaseController):
             # Whoops - nothing satisfies - return text/plain
             response.content_type = "text/plain"
             response.status_int = 201
-            #response.headers.add("Content-Location", item.uri)
+            new_item = c.silo.get_item(target_dataset_name)
+            response.headers.add("Content-Location", new_item.uri)
             response.status = "201 Created"
             return "Created"

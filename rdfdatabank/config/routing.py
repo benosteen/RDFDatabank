@@ -31,7 +31,7 @@ def make_map():
 
     map.connect('/{silo}', controller='silos', action='siloview')
 
-    map.connect('/{silo}/packages', controller='packages', action='siloview')
+    #map.connect('/{silo}/packages', controller='packages', action='siloview')
 
     map.connect('/{silo}/datasets', controller='datasets', action='siloview')
     map.connect('/{silo}/datasets/{id}', controller='datasets', action='datasetview')
@@ -41,6 +41,9 @@ def make_map():
     map.connect('/{silo}/items/{id}', controller='items', action='datasetview')
     map.connect('/{silo}/items/{id}/{path:.*}', controller='items', action='itemview')
     
+    map.connect('/{silo}/states', controller='states', action='siloview')
+    map.connect('/{silo}/states/{id}', controller='states', action='datasetview')
+
     map.connect('/{controller}')
     map.connect('/{controller}/{action}')
     map.connect('/{controller}/{action}/{id}')

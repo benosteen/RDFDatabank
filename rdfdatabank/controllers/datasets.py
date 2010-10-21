@@ -4,7 +4,7 @@ from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
 from pylons import app_globals as ag
 from rdfdatabank.lib.base import BaseController, render
-from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text, test_rdf, munge_rdf
+from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text, test_rdf, munge_rdf, serialisable_stat
 from rdfdatabank.lib.file_unpack import get_zipfiles_in_dataset
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 
@@ -48,20 +48,21 @@ class DatasetsController(BaseController):
             mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                    return render('/silo_dataset_view.html')
+                    return render('/siloview.html')
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = "text/plain"
-                    items = {}
-                    for item_id in c.items:
-                        items[item_id] = {}
-                        items[item_id]['embargo_info'] = c.embargos[item_id]
-                    return simplejson.dumps(items)
+                    response.status_int = 200
+                    response.status = "200 OK"
+                    list_of_datasets = []
+                    for dataset_id in c.items:
+                        list_of_datasets.append(dataset_id)
+                    return simplejson.dumps(list_of_datasets)
                 try:
                     mimetype = accept_list.pop(0)
                 except IndexError:
                     mimetype = None
             #Whoops nothing satisfies - return text/html            
-            return render('/silo_dataset_view.html')
+            return render('/siloview.html')
         elif http_method == "POST":
             params = request.POST
             if params.has_key("id"):
@@ -95,7 +96,7 @@ class DatasetsController(BaseController):
                             response.content_type = "text/plain"
                             response.status_int = 201
                             response.status = "201 Created"
-                            #response.headers.add("Content-Location", item.uri)
+                            response.headers.add("Content-Location", item.uri)
                             return "Created"
                         try:
                             mimetype = accept_list.pop(0)
@@ -104,7 +105,7 @@ class DatasetsController(BaseController):
                     # Whoops - nothing satisfies - return text/plain
                     response.content_type = "text/plain"
                     response.status_int = 201
-                    #response.headers.add("Content-Location", item.uri)
+                    response.headers.add("Content-Location", item.uri)
                     response.status = "201 Created"
                     return "Created"
                     
@@ -127,8 +128,9 @@ class DatasetsController(BaseController):
         
         c.editor = False
         
-        if not (http_method == "GET" and not c.embargoed):
-            #identity management if item 
+        #if not (http_method == "GET" and not c.embargoed):
+        if (http_method == "GET" and c.embargoed) or (http_method != "GET"):
+            #identity management of item 
             if not request.environ.get('repoze.who.identity'):
                 abort(401, "Not Authorised")
             ident = request.environ.get('repoze.who.identity')  
@@ -140,19 +142,34 @@ class DatasetsController(BaseController):
                     abort(403, "Forbidden")
             else:
                 abort(403, "Forbidden")
-        
+            
             c.editor = silo in c.silos
-                
+        else:
+            if request.environ.get('repoze.who.identity'):
+                ident = request.environ.get('repoze.who.identity')  
+                c.ident = ident
+                granary_list = ag.granary.silos
+                if ident:
+                    c.silos = ag.authz(granary_list, ident)
+                    c.editor = silo in c.silos
+
         # Method determination
         if http_method == "GET":
             if c.silo.exists(id):
                 # conneg:
-                c.item = c.silo.get_item(id)
-                
-                c.parts = c.item.list_parts(detailed=True)
-                c.zipfiles = get_zipfiles_in_dataset(c.item) 
-                if "README" in c.parts.keys():
+                #c.item = c.silo.get_item(id)
+                #c.parts = c.item.list_parts(detailed=True)
+                #if "README" in c.parts.keys():
+                #c.parts = c.item.list_parts(detailed=False)
+                #if "README" in c.parts:
+                if c.item.isfile("README"):
                     c.readme_text = get_readme_text(c.item)
+                c.parts = []
+                if c.item.manifest:
+                    state = c.item.manifest.state
+                    if state and "currentversion" in state and "files" in state and state["files"] :
+                        c_ver = state["currentversion"]
+                        c.parts = state["files"][c_ver]
                     
                 # View options
                 options = request.GET
@@ -172,26 +189,19 @@ class DatasetsController(BaseController):
 
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                        c.zipfiles = get_zipfiles_in_dataset(c.item)
                         return render('/datasetview.html')
                     elif str(mimetype).lower() in ["text/plain", "application/json"]:
                         response.content_type = 'application/json; charset="UTF-8"'
-                        #response.content_type = 'application/JSON; charset="UTF-8"'
-                        def serialisable_stat(stat):
-                            stat_values = {}
-                            for f in ['st_atime', 'st_blksize', 'st_blocks', 'st_ctime', 'st_dev', 'st_gid', 'st_ino', 'st_mode', 'st_mtime', 'st_nlink', 'st_rdev', 'st_size', 'st_uid']:
-                                try:
-                                    stat_values[f] = stat.__getattribute__(f)
-                                except AttributeError:
-                                    pass
-                            return stat_values
                         items = {}
-                        items['parts'] = {}
-                        for part in c.parts:
-                            items['parts'][part] = serialisable_stat(c.parts[part])
+                        #items['parts'] = {}
+                        #for part in c.parts:
+                        #    items['parts'][part] = serialisable_stat(c.parts[part])
+                        items['parts'] = c.parts
                         if c.readme_text:
                             items['readme_text'] = c.readme_text
                         if c.item.manifest:
-                            items['state'] = c.item.manifest.state
+                            items['state'] = state
                         return simplejson.dumps(items)
                     elif str(mimetype).lower() in ["application/rdf+xml", "text/xml"]:
                         response.content_type = 'application/rdf+xml; charset="UTF-8"'
@@ -211,7 +221,6 @@ class DatasetsController(BaseController):
                     except IndexError:
                         mimetype = None
                 #Whoops - nothing staisfies - default to text/html
-                #abort(406)
                 return render('/datasetview.html')
             else:
                 abort(404)
@@ -240,7 +249,7 @@ class DatasetsController(BaseController):
                         response.content_type = "text/plain"
                         response.status_int = 201
                         response.status = "201 Created"
-                        #response.headers.add("Content-Location", item.uri)
+                        response.headers.add("Content-Location", item.uri)
                         return "Created"
                     try:
                         mimetype = accept_list.pop(0)
@@ -249,18 +258,27 @@ class DatasetsController(BaseController):
                 # Whoops - nothing satisfies - return text/plain
                 response.content_type = "text/plain"
                 response.status_int = 201
-                #response.headers.add("Content-Location", item.uri)
+                response.headers.add("Content-Location", item.uri)
                 response.status = "201 Created"
                 return "Created"
             elif params.has_key('embargo_change'):
+                #TODO: Change embargoed metadata
                 item = c.silo.get_item(id)
                 if params.has_key('embargoed'):
                     item.metadata['embargoed'] = True
+                    item.del_triple(item.uri, u"oxds:isEmbargoed")
+                    item.add_triple(item.uri, u"oxds:isEmbargoed", 'True')
+                    if params.has_key('embargoed_until') and params['embargoed_until']:
+                        item.metadata['embargoed_until'] = params['embargoed_until']
+                        item.del_triple(item.uri, u"oxds:embargoedUntil")
+                        item.add_triple(item.uri, u"oxds:embargoedUntil", params['embargoed_until'])                
                 else:
                     #if is_embargoed(c.silo, id)[0] == True:
                     item.metadata['embargoed'] = False
-                if params.has_key('embargoed_until'):
-                    item.metadata['embargoed_until'] = params['embargoed_until']
+                    item.metadata['embargoed_until'] = ''
+                    item.del_triple(item.uri, u"oxds:isEmbargoed")
+                    item.del_triple(item.uri, u"oxds:embargoedUntil")
+                    item.add_triple(item.uri, u"oxds:isEmbargoed", 'False')
                 item.sync()
                 e, e_d = is_embargoed(c.silo, id, refresh=True)
                 
@@ -323,6 +341,9 @@ class DatasetsController(BaseController):
                 
                     if code == 201:
                         ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
+                        response.status = "201 Created"
+                        #TODO: The uri here should be the target path, not the item uri
+                        response.headers.add("Content-Location", item.uri)
                     else:
                         ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
 
@@ -378,6 +399,9 @@ class DatasetsController(BaseController):
                 
                 if code == 201:
                     ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
+                    response.status = "201 Created"
+                    #TODO: The uri here should be the target path, not the item uri
+                    response.headers.add("Content-Location", item.uri)
                 else:
                     ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
                 response.status_int = code
@@ -460,15 +484,14 @@ class DatasetsController(BaseController):
         
         if http_method == "GET":
             if c.silo.exists(id):
-                c.item = c.silo.get_item(id)
                 if c.item.isfile(path):
                     fileserve_app = FileApp(c.item.to_dirpath(path))
                     return fileserve_app(request.environ, self.start_response)
                 elif c.item.isdir(path):
-                    c.parts = c.item.list_parts(path, detailed=True)
-                    
-                    if "README" in c.parts.keys():
+                    c.parts = c.item.list_parts(path, detailed=False)
+                    if "README" in c.parts:
                         c.readme_text = get_readme_text(c.item, "%s/README" % path)
+                    
                     accept_list = None
                     if 'HTTP_ACCEPT' in request.environ:
                         accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
@@ -479,19 +502,9 @@ class DatasetsController(BaseController):
                         if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                             return render("/itemview.html")
                         elif str(mimetype).lower() in ["text/plain", "application/json"]:
-                            def serialisable_stat(stat):
-                                stat_values = {}
-                                for f in ['st_atime', 'st_blksize', 'st_blocks', 'st_ctime', 'st_dev', 'st_gid', 'st_ino', 'st_mode', 'st_mtime', 'st_nlink', 'st_rdev', 'st_size', 'st_uid']:
-                                    try:
-                                        stat_values[f] = stat.__getattribute__(f)
-                                    except AttributeError:
-                                        pass
-                                return stat_values
                             response.content_type = "text/plain"
                             items = {}
-                            items['parts'] = {}
-                            for part in c.parts:
-                                items['parts'][part] = serialisable_stat(c.parts[part])
+                            items['parts'] = c.parts
                             if c.readme_text:
                                 items['readme_text'] = c.readme_text
                             return simplejson.dumps(items)
@@ -527,6 +540,9 @@ class DatasetsController(BaseController):
                 
                 if code == 201:
                     ag.b.creation(silo, id, path, ident=ident['repoze.who.userid'])
+                    response.status = "201 Created"
+                    #TODO: The uri here should be the path, not the item uri
+                    response.headers.add("Content-Location", item.uri)
                 else:
                     ag.b.change(silo, id, path, ident=ident['repoze.who.userid'])
                 
@@ -568,6 +584,9 @@ class DatasetsController(BaseController):
                 
                 if code == 201:
                     ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
+                    response.status = "201 Created"
+                    #TODO: The uri here should be the target path, not the item uri
+                    response.headers.add("Content-Location", item.uri)
                 else:
                     ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
                 response.status_int = code

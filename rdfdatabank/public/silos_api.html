@@ -13,8 +13,9 @@ media="screen">
 <h2 class="menu"><ul>
 <li class="menu"><a href="silos_api.html">Silos</a></li>
 <li class="menu"><a href="datasets_api.html">Datasets</li>
-<li class="menu"><a href="packages_api.html">Packages</li>
+<!-- <li class="menu"><a href="packages_api.html">Packages</li> -->
 <li class="menu"><a href="items_api.html">Items</li>
+<li class="menu"><a href="states_api.html">States</li>
 </ul></h2>
 <div id="globalWrapper">
 
@@ -24,8 +25,16 @@ media="screen">
 </h1>
 <i><b>Controller: silos &nbsp;&nbsp;&nbsp;&nbsp;action: index</b></i>
 <div class="List">
-<span class="List-entry">GET</span><span class="List-contents">Accept: text/html, authd - Returns an HTML 
-page listing the ’silos’ your account can see, with links to dataset view and package upload page</span>
+<span class="List-entry">GET</span><span class="List-contents">Accept: text/html, authd - Returns text/HTML 
+listing the ’silos’ your account can see, with links to dataset view</span>
+</div>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: text/plain, application/json, authd -
+Returns a JSON-encoded list of exising silos your account can see</span>
+</div>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: * / none, authd - Returns text/HTML 
+listing the ’silos’ your account can see, with links to dataset view</span>
 </div>
 <div class="List">
 <span class="List-entry">POST,PUT,DELETE</span><span class="List-contents">NOOP</span>
@@ -37,17 +46,18 @@ page listing the ’silos’ your account can see, with links to dataset view an
 </h1>
 <i><b>Controller: silos &nbsp;&nbsp;&nbsp;&nbsp;action: siloview</b></i>
 <div class="List">
-<span class="List-entry">GET</span><span class="List-contents">Accept:text/html - Returns an HTML 
-page listing the dataset ids, along with a form for dataset creation and a from for package upload</span>
+<span class="List-entry">GET</span><span class="List-contents">Accept:text/html - Returns text/HTML  
+listing the ids of each dataset, along with a form for changing the embargo information and deleting the dataset. 
+A form for dataset creation is also available. </span>
 </div>
 <div class="List">
 <span class="List-entry">GET</span><span class="List-contents">Accept: text/plain, application/json -
-Returns a JSON-encoded hash/dict, keys map to exising dataset ids, and 
-include embargo information</span>
+Returns a JSON-encoded list of dataset ids in that silo</span>
 </div>
 <div class="List">
-<span class="List-entry">GET</span><span class="List-contents">Accept: * / none - Returns text/HTML 
-listing the dataset ids, along with a form for dataset creation and a from for package upload</span>
+<span class="List-entry">GET</span><span class="List-contents">Accept:text/html - Returns text/HTML  
+listing the ids of each dataset, along with a form for changing the embargo information and deleting the dataset. 
+A form for dataset creation is also available. </span>
 </div>
 <div class="List">
 <span class="List-entry">POST, PUT,DELETE</span><span class="List-contents">NOOP</span>

@@ -27,6 +27,29 @@ class SilosController(BaseController):
         granary_list = ag.granary.silos
         c.silos = ag.authz(granary_list, ident)
         c.ident = ident
+        # conneg return
+        accept_list = None
+        if 'HTTP_ACCEPT' in request.environ:
+            accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+        if not accept_list:
+            accept_list= [MT("text", "html")]
+        mimetype = accept_list.pop(0)
+        while(mimetype):
+            if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                return render('/list_of_silos.html')
+            elif str(mimetype).lower() in ["text/plain", "application/json"]:
+                response.content_type = "text/plain"
+                response.status_int = 200
+                response.status = "200 OK"
+                list_of_silos = []
+                for silo_id in c.silos:
+                    list_of_silos.append(silo_id)
+                return simplejson.dumps(list_of_silos)
+            try:
+                mimetype = accept_list.pop(0)
+            except IndexError:
+                mimetype = None
+        #Whoops nothing satisfies - return text/html            
         return render('/list_of_silos.html')
         
     def siloview(self, silo):
@@ -58,11 +81,12 @@ class SilosController(BaseController):
                 return render('/siloview.html')
             elif str(mimetype).lower() in ["text/plain", "application/json"]:
                 response.content_type = "text/plain"
-                items = {}
-                for item_id in c.items:
-                    items[item_id] = {}
-                    items[item_id]['embargo_info'] = c.embargos[item_id]
-                return simplejson.dumps(items)
+                response.status_int = 200
+                response.status = "200 OK"
+                list_of_datasets = []
+                for dataset_id in c.items:
+                    list_of_datasets.append(dataset_id)
+                return simplejson.dumps(list_of_datasets)
             try:
                 mimetype = accept_list.pop(0)
             except IndexError:

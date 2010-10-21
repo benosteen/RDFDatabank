@@ -6,7 +6,7 @@
   <title> View of item ${c.item.uri} </title>
 </%def>
 % if c.editor:
-<p>View as <a href="/${c.silo_name}/datasets/${c.id}?view=editor"> Editor </a>, or <a href="/${c.silo_name}/objects/${c.id}?view=user">User</a>
+<p>View as <a href="/${c.silo_name}/datasets/${c.id}?view=editor"> Editor </a>, or <a href="/${c.silo_name}/datasets/${c.id}?view=user">User</a></p>
 % endif
 % if c.readme_text:
 <%include file="/readme_section.html"/>
@@ -15,10 +15,13 @@
 % if c.item and c.view == "editor":
 <div id="editor_metadata_view">
 <p> Detailed view (As Editor)
+<p><b><a href="/${c.silo_name}/states/${c.id}">View state information</a></b></p>
 <dl>
-<dt>Item's JSON state (Accept: application/json):</dt>
-<dd>${repr(c.item)}</dd>
-<dt>Item's Embargo state</dt>
+<!--
+ <dt>Item's JSON state (Accept: application/json):</dt>
+<dd>${repr(c.item)}</dd> 
+-->
+<dt><b>Item's Embargo state</b></dt>
 <dd>
 <%
 c.current = c.id
@@ -26,16 +29,16 @@ c.current = c.id
 <p><%include file="/embargo_form.html"/></p>
 <p><small>Embargo state: True - only those logged in and with edit rights can see item. False - Anyone can GET the item and it's files.</small></p>
 <p><small>Embargo date: Aim is for ISO8601 dates to provide embargo trigger events. Currently unused, unvalidated and unparsed.</small></p></dd>
-<dt>Item's RDF Manifest (Accept: most RDF mimetypes):</dt>
+<dt><b>Item's RDF Manifest (Accept: most RDF mimetypes):</b></dt>
 <dd><pre>${c.item.rdf_to_string(format="pretty-xml")}</pre></dd>
 
-<dt>Change RDF Manifest:</dt>
+<dt><b>Change RDF Manifest:</b></dt>
 <dd><%include file="/rdf_manifest_form.html"/></dd>
 </dl>
 </div>
 <%include file="/file_upload.html"/>
 % if c.zipfiles:
-<h3> List of package unpack endpoints:</h3>
+<h3> List of item unpack endpoints:</h3>
 <ul>
 % for zf in c.zipfiles:
 <%

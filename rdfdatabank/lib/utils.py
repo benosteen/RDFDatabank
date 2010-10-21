@@ -68,12 +68,20 @@ def create_new(silo, id, creator, title=None, embargoed=True, embargoed_until=No
 
     if embargoed:
         if embargoed_until:
-            item.metadata['embargoed_until'] = embargoed_until
+            embargoed_until_date = embargoed_until
         elif embargo_days_from_now:
-            item.metadata['embargoed_until'] = (datetime.now() + timedelta(days=embargo_days_from_now)).isoformat()
+            embargoed_until_date = (datetime.now() + timedelta(days=embargo_days_from_now)).isoformat()
         else:
-            item.metadata['embargoed_until'] = (datetime.now() + timedelta(days=365*70)).isoformat()
-    item.add_triple(item.uri, u"dcterms:dateSubmitted", datetime.now())
+            embargoed_until_date = (datetime.now() + timedelta(days=365*70)).isoformat()
+        item.metadata['embargoed_until'] = embargoed_until_date
+        item.add_triple(item.uri, u"oxds:isEmbargoed", 'True')
+        item.add_triple(item.uri, u"oxds:embargoedUntil", embargoed_until_date)
+    else:
+        item.add_triple(item.uri, u"oxds:isEmbargoed", 'False')
+    item.add_triple(item.uri, u"dcterms:identifier", id)
+    item.add_triple(item.uri, u"dcterms:creator", creator)   
+    item.add_triple(item.uri, u"dcterms:created", datetime.now())
+    #TODO: Add current version metadata
     if title:
         item.add_triple(item.uri, u"rdfs:label", title)
     item.sync()
@@ -101,19 +109,32 @@ def munge_rdf(target_dataset_uri, manifest_file):
     #    return False
     mani = Manifest()
     mani.from_string(manifest_str)
-    namespaces = mani.namespaces
+    namespaces = mani.namespaces   
     for s_uri in mani.items_rdfobjects:
         datasetType = False
+        #print '------------------ types ---------------------'
+        #print mani.items_rdfobjects[s_uri].types
+        #print '----------------  triples --------------------'
+        #print mani.items_rdfobjects[s_uri].list_triples()
+        #print '----------------------------------------------'
         for t in mani.items_rdfobjects[s_uri].types:
             if str(t) == 'http://vocab.ox.ac.uk/dataset/schema#Grouping':
                 datasetType = True
         if datasetType:
             #Add to existing uri and add a sameAs triple with this uri
-            for s,p,o in mani.items_rdfobjects[s_uri].list_triples():
-                triples.append((target_dataset_uri, p, o))
+            #for s,p,o in mani.items_rdfobjects[s_uri].list_triples():
+            #    triples.append((target_dataset_uri, p, o))
             namespaces['owl'] = "http://www.w3.org/2002/07/owl#"
             triples.append((target_dataset_uri, 'owl:sameAs', s_uri))
-        else:
-            for s,p,o in mani.items_rdfobjects[s_uri].list_triples():
-                triples.append((s, p, o))
+        for s,p,o in mani.items_rdfobjects[s_uri].list_triples():
+            triples.append((s, p, o))
     return namespaces, triples
+
+def serialisable_stat(stat):
+    stat_values = {}
+    for f in ['st_atime', 'st_blksize', 'st_blocks', 'st_ctime', 'st_dev', 'st_gid', 'st_ino', 'st_mode', 'st_mtime', 'st_nlink', 'st_rdev', 'st_size', 'st_uid']:
+        try:
+            stat_values[f] = stat.__getattribute__(f)
+        except AttributeError:
+            pass
+    return stat_values

@@ -1,6 +1,6 @@
 import subprocess
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import os
 
@@ -60,11 +60,11 @@ def store_zipfile(silo, target_item_uri, POSTED_file, ident):
     return zip_item
 
 def unzip_file(filepath, target_directory=None):
-    f = open("/tmp/python_out.log", "a")
-    f.write("\n--------------- In unzip file -------------------\n")
-    f.write("filepath : %s\n"%str(filepath))
-    f.write('-'*40+'\n')
-    f.close()
+    #f = open("/tmp/python_out.log", "a")
+    #f.write("\n--------------- In unzip file -------------------\n")
+    #f.write("filepath : %s\n"%str(filepath))
+    #f.write('-'*40+'\n')
+    #f.close()
     # TODO add the checkm stuff back in
     if not target_directory:
         target_directory = "/tmp/%s" % (uuid4().hex)
@@ -81,17 +81,16 @@ def get_items_in_dir(items_list, dirname, fnames):
     return
 
 def unpack_zip_item(target_dataset_name, current_dataset, zip_item, silo, ident):
-    f = open("/tmp/python_out.log", "a")
-    f.write("\n--------------- In unpack zip item -------------------\n")
-    f.write("target item :%s\n"%str(target_dataset_name))
-    f.write("zip item: %s \n"%str(zip_item))
-    filepath = current_dataset.to_dirpath(zip_item)    
-    f.write("filepath : %s\n"%filepath)
-    f.write('-'*40+'\n')
-    f.close()
+    filepath = current_dataset.to_dirpath(zip_item)
+    #f = open("/tmp/python_out.log", "a")
+    #f.write("\n--------------- In unpack zip item -------------------\n")
+    #f.write("target item :%s\n"%str(target_dataset_name))
+    #f.write("zip item: %s \n"%str(zip_item))
+    #f.write("filepath : %s\n"%filepath)
+    #f.write('-'*40+'\n')
+    #f.close()
     unpacked_dir = unzip_file(filepath)
     target_dataset = create_new(silo, target_dataset_name, ident)
-    
     file_uri = current_dataset.uri
     if not file_uri.endswith('/'):
         file_uri += '/'
@@ -102,6 +101,11 @@ def unpack_zip_item(target_dataset_name, current_dataset, zip_item, silo, ident)
     
     triples = None
     ns = None
+    #f = open("/tmp/python_out.log", "a")
+    #f.write("\n--------------- Items list -------------------\n")
+    #f.write("%s\n"%str(items_list))
+    #f.write('-'*40+'\n')
+    #f.close()
     for i in items_list:
         if 'manifest.rdf' in i and os.path.isfile(i):
             #test rdf file
@@ -118,6 +122,15 @@ def unpack_zip_item(target_dataset_name, current_dataset, zip_item, silo, ident)
     target_dataset.move_directory_as_new_version(unpacked_dir)
     target_dataset.add_namespace('oxds', "http://vocab.ox.ac.uk/dataset/schema#")
     #target_dataset.add_namespace('owl', "http://www.w3.org/2002/07/owl#")
+    target_dataset.add_triple(target_dataset.uri, u"rdf:type", "oxds:Grouping")
+    target_dataset.add_triple(target_dataset.uri, "dcterms:isVersionOf", file_uri)
+    #TODO: Adding all of this metadata again as moving directory deletes all this information. Need to find a better way
+    embargoed_until_date = (datetime.now() + timedelta(days=365*70)).isoformat()
+    target_dataset.add_triple(target_dataset.uri, u"oxds:isEmbargoed", 'True')
+    target_dataset.add_triple(target_dataset.uri, u"oxds:embargoedUntil", embargoed_until_date)
+    target_dataset.add_triple(target_dataset.uri, u"dcterms:identifier", target_dataset_name)
+    target_dataset.add_triple(target_dataset.uri, u"dcterms:creator", ident)
+    target_dataset.add_triple(target_dataset.uri, u"dcterms:created", datetime.now())
     if ns:
         for k, v in ns.iteritems():
             target_dataset.add_namespace(k, v)
@@ -133,9 +146,7 @@ def unpack_zip_item(target_dataset_name, current_dataset, zip_item, silo, ident)
     for i in items_list:
         i = i.replace(unp_dir, '')
         target_dataset.add_triple(target_dataset.uri, "ore:aggregates", "%s%s"%(target_uri_base,i))
-    target_dataset.add_triple(target_dataset.uri, "rdf:type", "oxds:Grouping")
     target_dataset.add_triple(target_dataset.uri, u"dcterms:modified", datetime.now())
-    target_dataset.add_triple(target_dataset.uri, "dcterms:isVersionOf", file_uri)
     target_dataset.sync()
     current_dataset.add_triple("%s/%s" % (current_dataset.uri, zip_item.lstrip(os.sep)), "dcterms:hasVersion", target_dataset.uri)
     current_dataset.sync()
