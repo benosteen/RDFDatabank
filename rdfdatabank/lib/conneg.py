@@ -205,7 +205,7 @@ class Parser(object):
         key = self.ml.next()
         eq = self.ml.next()
         if eq != "=":
-            raise ParseError("Expected =, got: " + sl)
+            raise ParseError("Expected =, got: " + eq)
         val = self.ml.next()
         return (key, val)
             
