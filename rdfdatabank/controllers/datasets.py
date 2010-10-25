@@ -50,7 +50,7 @@ class DatasetsController(BaseController):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                     return render('/siloview.html')
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
-                    response.content_type = "text/plain"
+                    response.content_type = 'application/json; charset="UTF-8"'
                     response.status_int = 200
                     response.status = "200 OK"
                     list_of_datasets = []
