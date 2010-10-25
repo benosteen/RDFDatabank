@@ -34,7 +34,8 @@
   </head>
   <body>
 % if c.silo_name:
-<h1> <a href="/silos">Archives</a> - <a href="/search/raw">Search API</a>: <a href="/${c.silo_name}/datasets">${c.silo_name}</a> - <small><small>${c.silo_name} <a href="/${c.silo_name}/packages">package upload</a> </small></small></h1>
+<!-- <h1> <a href="/silos">Archives</a> - <a href="/search/raw">Search API</a>: <a href="/${c.silo_name}/datasets">${c.silo_name}</a> - <small><small>${c.silo_name} <a href="/${c.silo_name}/packages">package upload</a> </small></small></h1> -->
+<h1> <a href="/silos">Archives</a> - <a href="/search/raw">Search API</a>: <a href="/${c.silo_name}/datasets">${c.silo_name}</a> </h1>
 % else:
 <h1> <a href="/silos">Archives</a> - <a href="/search/raw">Search API</a></h1>
 % endif

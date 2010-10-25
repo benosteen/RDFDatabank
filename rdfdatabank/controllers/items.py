@@ -104,6 +104,9 @@ class ItemsController(BaseController):
                     response.content_type = "text/plain"
                     response.status_int = 201
                     response.status = "201 Created"
+		    #response.location = item.uri
+		    #response.headers['location'] = item.uri
+		    #response.content_location = item.uri
                     #response.headers.add("Content-Location", item.uri)
                     return "Created"
                 try:
@@ -113,7 +116,10 @@ class ItemsController(BaseController):
             # Whoops - nothing satisfies - return text/plain
             response.content_type = "text/plain"
             response.status_int = 201
+	    #response.location = item.uri
             #response.headers.add("Content-Location", item.uri)
+            #response.content_location = item.uri
+            #response.headers['location'] = item.uri
             response.status = "201 Created"
             return "Created"
             
@@ -190,6 +196,9 @@ class ItemsController(BaseController):
                     response.status_int = 201
                     response.status = "201 Created"
                     #response.headers.add("Content-Location", item.uri)
+		    #response.content_location = item.uri
+		    #response.headers['location'] = item.uri
+		    #response.location = item.uri
                     return "Created"
                 try:
                     mimetype = accept_list.pop(0)
@@ -199,5 +208,8 @@ class ItemsController(BaseController):
             response.content_type = "text/plain"
             response.status_int = 201
             #response.headers.add("Content-Location", item.uri)
+            #response.content_location = item.uri
+            #response.headers['location'] = item.uri
+	    #response.location = item.uri
             response.status = "201 Created"
             return "Created"

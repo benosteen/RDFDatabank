@@ -15,8 +15,9 @@ media="screen">
 <h2 class="menu"><ul>
 <li class="menu"><a href="silos_api.html">Silos</a></li>
 <li class="menu"><a href="datasets_api.html">Datasets</li>
-<li class="menu"><a href="packages_api.html">Packages</li>
+<!-- <li class="menu"><a href="packages_api.html">Packages</li> -->
 <li class="menu"><a href="items_api.html">Items</li>
+<li class="menu"><a href="states_api.html">States</li>
 </ul></h2>
 <div id="globalWrapper">
 
@@ -26,17 +27,18 @@ media="screen">
 </h1>
 <i><b>Controller: datasets &nbsp;&nbsp;&nbsp;&nbsp;action: siloview</b></i>
 <div class="List">
-<span class="List-entry">GET</span><span class="List-contents">Accept:text/html - Returns an HTML 
-page listing the ids, along with a form for dataset creation and a form for package upload</span>
+<span class="List-entry">GET</span><span class="List-contents">Accept:text/html - Returns text/HTML  
+listing the ids of each dataset, along with a form for changing the embargo information and deleting the dataset. 
+A form for dataset creation is also available. </span>
 </div>
 <div class="List">
 <span class="List-entry">GET</span><span class="List-contents">Accept: text/plain, application/json -
-Returns a JSON-encoded hash/dict, keys map to exising dataset ids, and 
-include embargo information</span>
+Returns a JSON-encoded list of dataset ids in that silo</span>
 </div>
 <div class="List">
-<span class="List-entry">GET</span><span class="List-contents">Accept: * / none - Returns text/HTML 
-listing the ids, along with a form for dataset creation and a form for package upload</span>
+<span class="List-entry">GET</span><span class="List-contents">Accept:text/html - Returns text/HTML  
+listing the ids of each dataset, along with a form for changing the embargo information and deleting the dataset. 
+A form for dataset creation is also available. </span>
 </div>
 <div class="List">
 <span class="List-entry">POST</span><span class="List-contents">Create new dataset</span>
@@ -66,7 +68,16 @@ dataset already exists.</span>
 <i><b>Controller: datasets &nbsp;&nbsp;&nbsp;&nbsp;action: datasetview</b></i>
 <div class="List">
 <span class="List-entry">GET</span><span class="List-contents">Accept: text/html - returns HTML 
-splash page for dataset <i>id</i></span>
+splash page for dataset <i>id</i> </span>
+<ul>
+<li>View options: user / editor</li>
+<li>Readme</li>
+<li>List of files</li>
+<li>Item's embargo state</li>
+<li>Manifest</li>
+<li>File upload</li>
+<li>List of dataset unpack endpoints</li>
+</ul>
 </div>
 <div class="List">
 <span class="List-entry">GET</span><span class="List-contents">Accept: application/json - returns 
@@ -173,7 +184,7 @@ on success, 404 if <i>id</i> doesn’t exist</span>
 <i><b>Controller: datasets &nbsp;&nbsp;&nbsp;&nbsp;action: itemview</b></i>
 <div class="List">
 <span class="List-entry">GET</span><span class="List-contents">Accept: text/html - HTML page listing
- the files within a given subpath</span>
+ the files within a given subpath and readme_text</span>
 </div>
 <div class="List">
 <span class="List-entry">GET</span><span class="List-contents">Accept: text/plain, application/json -
@@ -194,7 +205,7 @@ results}, ...} with ’readme_text’ being a potential top-level key-value pair
  (HTML) file upload, filename = {Optional <i>filename</i> for upload}</span>
 </div>
 <div class="List">
-<span class="List-entry">Returns:</span><span class="List-contents">Accept: * - 200/201 on 
+<span class="List-entry">Returns:</span><span class="List-contents">Accept: * - 204/201 on 
 update/creation of file with <i>filename</i> 403 if filename == existing
  subdirectory name. (For the sake of web UI)</span>
 </div>
@@ -210,7 +221,7 @@ update/creation of file with <i>filename</i> 403 if filename == existing
 <h1 class="Section-">
 <a class="toc" name="toc-Section-4"></a>/{silo name}/datasets/{id}[/{subpath}]/{filename}
 </h1>
-<i><b>Controller: objects &nbsp;&nbsp;&nbsp;&nbsp;action: itemview</b></i>
+<i><b>Controller: datasets &nbsp;&nbsp;&nbsp;&nbsp;action: itemview</b></i>
 <div class="List">
 <span class="List-entry">GET</span><span class="List-contents">GETs the file at 
 [/{subpath}]/{filename}, 404 otherwise</span>
@@ -222,7 +233,7 @@ update/creation of file with <i>filename</i> 403 if filename == existing
 <ul>
 <li class="nested">
 <div class="List">
-<span class="List-entry">Returns</span><span class="List-contents">200/201 for update/creation</span>
+<span class="List-entry">Returns</span><span class="List-contents">204/201 for update/creation</span>
 </div>
 </li>
 </ul>
@@ -237,7 +248,7 @@ subpath as the file (HTML convenience)</span>
  (HTML) file upload, filename = {Optional <i>filename</i> for upload}</span>
 </div>
 <div class="List">
-<span class="List-entry">Returns:</span><span class="List-contents">Accept: * - 200/201 on 
+<span class="List-entry">Returns:</span><span class="List-contents">Accept: * - 204/201 on 
 update/creation of file with <i>filename</i> 403 if filename == existing
  subdirectory name. (For the sake of web UI)</span>
 </div>
