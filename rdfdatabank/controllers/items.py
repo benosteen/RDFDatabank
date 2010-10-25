@@ -106,6 +106,9 @@ class ItemsController(BaseController):
                     response.status = "201 Created"
                     new_item = c.silo.get_item(target_dataset_name)
                     #response.headers.add("Content-Location", new_item.uri)
+                    #response.content_location = item.uri
+                    #response.headers['location'] = item.uri
+                    #response.location = item.uri
                     return "Created"
                 try:
                     mimetype = accept_list.pop(0)
