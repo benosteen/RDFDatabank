@@ -39,7 +39,7 @@ class StatesController(BaseController):
         c.items = c.silo.list_items()
         # conneg return
         # Always return text/plain
-        response.content_type = "text/plain"
+        response.content_type = 'application/json; charset="UTF-8"'
         response.status_int = 200
         response.status = "200 OK"
         items = {}
@@ -89,7 +89,7 @@ class StatesController(BaseController):
             items['parts'][part] = serialisable_stat(c.parts[part])
             if c.item.manifest:
                 items['state'] = c.item.manifest.state
-        response.content_type = "text/plain"
+        response.content_type = 'application/json; charset="UTF-8"'
         response.status_int = 200
         response.status = "200 OK"
         return simplejson.dumps(items)

@@ -100,7 +100,7 @@ class ItemsController(BaseController):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                     # probably a browser - redirect to newly created dataset 
                     redirect_to(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
-                elif str(mimetype).lower() in ["text/plain"]:
+                elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = "text/plain"
                     response.status_int = 201
                     response.status = "201 Created"
@@ -190,7 +190,7 @@ class ItemsController(BaseController):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                     # probably a browser - redirect to newly created dataset
                     redirect_to(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
-                elif str(mimetype).lower() in ["text/plain"]:
+                elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = "text/plain"
                     response.status_int = 201
                     response.status = "201 Created"

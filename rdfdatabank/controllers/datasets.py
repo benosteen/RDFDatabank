@@ -92,7 +92,7 @@ class DatasetsController(BaseController):
                         if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                             # probably a browser - redirect to newly created dataset
                             redirect_to(controller="datasets", action="datasetview", silo=silo, id=id)
-                        elif str(mimetype).lower() in ["text/plain"]:
+                        elif str(mimetype).lower() in ["text/plain", "application/json"]:
                             response.content_type = "text/plain"
                             response.status_int = 201
                             response.status = "201 Created"
@@ -245,7 +245,7 @@ class DatasetsController(BaseController):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                         # probably a browser - redirect to newly created dataset
                         redirect_to(controller="datasets", action="datasetview", silo=silo, id=id)
-                    elif str(mimetype).lower() in ["text/plain"]:
+                    elif str(mimetype).lower() in ["text/plain", "application/json"]:
                         response.content_type = "text/plain"
                         response.status_int = 201
                         response.status = "201 Created"
@@ -262,7 +262,6 @@ class DatasetsController(BaseController):
                 response.status = "201 Created"
                 return "Created"
             elif params.has_key('embargo_change'):
-                #TODO: Change embargoed metadata
                 item = c.silo.get_item(id)
                 if params.has_key('embargoed'):
                     item.metadata['embargoed'] = True
@@ -285,7 +284,7 @@ class DatasetsController(BaseController):
                 # Broadcast change as message
                 ag.b.embargo_change(silo, id, item.metadata['embargoed'], item.metadata['embargoed_until'], ident=ident['repoze.who.userid'])
                 
-                response.content_type = "text/plain"
+                response.content_type = 'application/json; charset="UTF-8"'
                 response.status_int = 200
                 return simplejson.dumps({'embargoed':e, 'embargoed_until':e_d})
             elif params.has_key('file'):
@@ -346,6 +345,7 @@ class DatasetsController(BaseController):
                         #response.headers.add("Content-Location", item.uri)
                     else:
                         ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
+                        response.status = "200 OK"
 
                 response.status_int = code
                 # conneg return
@@ -359,6 +359,7 @@ class DatasetsController(BaseController):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                         redirect_to(controller="datasets", action="datasetview", id=id, silo=silo)
                     elif str(mimetype).lower() in ["text/plain"]:
+                        response.content_type = "text/plain"
                         response.status_int = code
                         return "Added file %s to item %s" % (filename, id)
                     try:
@@ -366,6 +367,7 @@ class DatasetsController(BaseController):
                     except IndexError:
                         mimetype = None
                 #Whoops - nothing satisfies - return text / plain
+                response.content_type = "text/plain"
                 response.status_int = code
                 return "Added file %s to item %s" % (filename, id)
             elif params.has_key('text'):
@@ -404,6 +406,7 @@ class DatasetsController(BaseController):
                     #response.headers.add("Content-Location", item.uri)
                 else:
                     ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
+                    response.status = "200 OK"
                 response.status_int = code
                 # conneg return
                 accept_list = None
@@ -415,7 +418,8 @@ class DatasetsController(BaseController):
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                         redirect_to(controller="datasets", action="datasetview", id=id, silo=silo)
-                    elif str(mimetype).lower() in ["text/plain"]:
+                    elif str(mimetype).lower() in ["text/plain", "application/json"]:
+                        response.content_type = "text/plain"
                         response.status_int = 200
                         return "Added file %s to item %s" % (filename, id)
                     try:
@@ -424,6 +428,7 @@ class DatasetsController(BaseController):
                         mimetype = None
                 #Whoops - nothing satisfies - return text / plain
                 response.status_int = 200
+                response.content_type = "text/plain"
                 return "Added file %s to item %s" % (filename, id)
             else:
                 ## TODO apply changeset handling
