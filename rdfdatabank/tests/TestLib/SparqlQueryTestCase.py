@@ -15,7 +15,11 @@ import base64
 import mimetypes
 import urllib
 import urlparse
-import simplejson
+try:
+    # Running Python 2.5 with simplejson?
+    import simplejson as simplejson
+except ImportError:
+    import json as simplejson
 
 if __name__ == "__main__":
     # For testing: 
@@ -134,6 +138,7 @@ class SparqlQueryTestCase(unittest.TestCase):
         if self._endpointuser:
             auth = base64.encodestring("%s:%s" % (self._endpointuser, self._endpointpass)).strip()
             reqheaders["Authorization"] = "Basic %s" % auth
+        #print "Connect to "+self._endpointhost
         hc   = httplib.HTTPConnection(self._endpointhost)
         path = self.getRequestPath(resource)
         response     = None
@@ -141,11 +146,18 @@ class SparqlQueryTestCase(unittest.TestCase):
         repeat       = 10
         while path and repeat > 0:
             repeat -= 1
+            #print "Request "+command+", path "+path
             hc.request(command, path, reqdata, reqheaders)
             response = hc.getresponse()
             if response.status != 301: break
             path = response.getheader('Location', None)
-            response.read()  # Seems to be needed to free up connection
+            #print "Redirect to: "+path
+            if path[0:6] == "https:":
+                # close old connection, create new HTTPS connection
+                hc.close()
+                hc = httplib.HTTPSConnection(self._endpointhost)    # Assume same host for https:
+            else:
+                response.read()  # Seems to be needed to free up connection for new request
         logger.debug("Status: %i %s" % (response.status, response.reason))
         if expect_status != "*": self.assertEqual(response.status, expect_status)
         if expect_reason != "*": self.assertEqual(response.reason, expect_reason)
