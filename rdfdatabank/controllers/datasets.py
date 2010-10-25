@@ -96,7 +96,7 @@ class DatasetsController(BaseController):
                             response.content_type = "text/plain"
                             response.status_int = 201
                             response.status = "201 Created"
-                            response.headers.add("Content-Location", item.uri)
+                            #response.headers.add("Content-Location", item.uri)
                             return "Created"
                         try:
                             mimetype = accept_list.pop(0)
@@ -105,7 +105,7 @@ class DatasetsController(BaseController):
                     # Whoops - nothing satisfies - return text/plain
                     response.content_type = "text/plain"
                     response.status_int = 201
-                    response.headers.add("Content-Location", item.uri)
+                    #response.headers.add("Content-Location", item.uri)
                     response.status = "201 Created"
                     return "Created"
                     
@@ -124,7 +124,7 @@ class DatasetsController(BaseController):
         c.embargos = {}
         c.embargos[id] = is_embargoed(c.silo, id)
         http_method = request.environ['REQUEST_METHOD']
-        print http_method
+        #print http_method
         
         c.editor = False
         
@@ -249,7 +249,7 @@ class DatasetsController(BaseController):
                         response.content_type = "text/plain"
                         response.status_int = 201
                         response.status = "201 Created"
-                        response.headers.add("Content-Location", item.uri)
+                        #response.headers.add("Content-Location", item.uri)
                         return "Created"
                     try:
                         mimetype = accept_list.pop(0)
@@ -258,7 +258,7 @@ class DatasetsController(BaseController):
                 # Whoops - nothing satisfies - return text/plain
                 response.content_type = "text/plain"
                 response.status_int = 201
-                response.headers.add("Content-Location", item.uri)
+                #response.headers.add("Content-Location", item.uri)
                 response.status = "201 Created"
                 return "Created"
             elif params.has_key('embargo_change'):
@@ -343,7 +343,7 @@ class DatasetsController(BaseController):
                         ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
                         response.status = "201 Created"
                         #TODO: The uri here should be the target path, not the item uri
-                        response.headers.add("Content-Location", item.uri)
+                        #response.headers.add("Content-Location", item.uri)
                     else:
                         ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
 
@@ -401,7 +401,7 @@ class DatasetsController(BaseController):
                     ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
                     response.status = "201 Created"
                     #TODO: The uri here should be the target path, not the item uri
-                    response.headers.add("Content-Location", item.uri)
+                    #response.headers.add("Content-Location", item.uri)
                 else:
                     ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
                 response.status_int = code
@@ -542,7 +542,7 @@ class DatasetsController(BaseController):
                     ag.b.creation(silo, id, path, ident=ident['repoze.who.userid'])
                     response.status = "201 Created"
                     #TODO: The uri here should be the path, not the item uri
-                    response.headers.add("Content-Location", item.uri)
+                    #response.headers.add("Content-Location", item.uri)
                 else:
                     ag.b.change(silo, id, path, ident=ident['repoze.who.userid'])
                 
@@ -586,7 +586,7 @@ class DatasetsController(BaseController):
                     ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
                     response.status = "201 Created"
                     #TODO: The uri here should be the target path, not the item uri
-                    response.headers.add("Content-Location", item.uri)
+                    #response.headers.add("Content-Location", item.uri)
                 else:
                     ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
                 response.status_int = code

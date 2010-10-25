@@ -83,7 +83,7 @@ class ItemsController(BaseController):
                 (fn, ext) = os.path.splitext(fn)
                 target_dataset_name = "%s-%s"%(id,fn)
             #target_dataset_name, current_dataset, post_filepath, silo, ident
-            print 'Calling unpack zip item'
+            #print 'Calling unpack zip item'
             try:
                 unpack_zip_item(target_dataset_name, c.item, params['filename'], c.silo, ident['repoze.who.userid'])
             except BadZipfile:
@@ -105,7 +105,7 @@ class ItemsController(BaseController):
                     response.status_int = 201
                     response.status = "201 Created"
                     new_item = c.silo.get_item(target_dataset_name)
-                    response.headers.add("Content-Location", new_item.uri)
+                    #response.headers.add("Content-Location", new_item.uri)
                     return "Created"
                 try:
                     mimetype = accept_list.pop(0)
@@ -115,7 +115,7 @@ class ItemsController(BaseController):
             response.content_type = "text/plain"
             response.status_int = 201
             new_item = c.silo.get_item(target_dataset_name)
-            response.headers.add("Content-Location", new_item.uri)
+            #response.headers.add("Content-Location", new_item.uri)
             response.status = "201 Created"
             return "Created"
             
@@ -192,7 +192,7 @@ class ItemsController(BaseController):
                     response.status_int = 201
                     response.status = "201 Created"
                     new_item = c.silo.get_item(target_dataset_name)
-                    response.headers.add("Content-Location", new_item.uri)
+                    #response.headers.add("Content-Location", new_item.uri)
                     return "Created"
                 try:
                     mimetype = accept_list.pop(0)
@@ -202,6 +202,6 @@ class ItemsController(BaseController):
             response.content_type = "text/plain"
             response.status_int = 201
             new_item = c.silo.get_item(target_dataset_name)
-            response.headers.add("Content-Location", new_item.uri)
+            #response.headers.add("Content-Location", new_item.uri)
             response.status = "201 Created"
             return "Created"
