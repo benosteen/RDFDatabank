@@ -164,7 +164,7 @@ class SparqlQueryTestCase(unittest.TestCase):
         (response, responsedata) = self.doRequest("GET", resource, 
             reqheaders=reqheaders,
             expect_status=expect_status, expect_reason=expect_reason)
-        if (expect_type == "application/JSON"): responsedata = simplejson.loads(responsedata)
+        if (expect_type == "application/json"): responsedata = simplejson.loads(responsedata)
         return responsedata
 
     def doQueryGET(self, query, 
@@ -175,7 +175,7 @@ class SparqlQueryTestCase(unittest.TestCase):
         encodequery  = urllib.urlencode({"query": query})
         self.doHTTP_GET(endpointpath=self.getRequestPath("?"+encodequery), 
             expect_status=expect_status, expect_reason=expect_reason,
-            expect_type=("application/JSON" if JSON else None))
+            expect_type=("application/json" if JSON else None))
         return responsedata
 
     def doHTTP_POST(self, data, data_type="application/octet-strem",
@@ -190,7 +190,7 @@ class SparqlQueryTestCase(unittest.TestCase):
         (response, responsedata) = self.doRequest("POST", resource,
             reqdata=data, reqheaders=reqheaders,
             expect_status=expect_status, expect_reason=expect_reason)
-        if (expect_type == "application/JSON"): responsedata = simplejson.loads(responsedata)
+        if (expect_type == "application/json"): responsedata = simplejson.loads(responsedata)
         return responsedata
 
     def doQueryPOST(self, query, 
@@ -199,14 +199,14 @@ class SparqlQueryTestCase(unittest.TestCase):
             JSON=False):
         reqheaders = {
             "Content-type": "application/x-www-form-urlencoded",
-            "Accept":       "application/JSON"
+            "Accept":       "application/json"
             }
         encodequery = urllib.urlencode({"query": query})
         return self.doHTTP_POST(
             encodequery, data_type="application/x-www-form-urlencoded",
             endpointhost=None, endpointpath=None, 
             expect_status=200, expect_reason="OK",
-            expect_type=("application/JSON" if JSON else None))
+            expect_type=("application/json" if JSON else None))
 
     def doHTTP_DELETE(self,
             endpointhost=None, endpointpath=None, resource=None,

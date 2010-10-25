@@ -97,17 +97,17 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         data = self.doHTTP_GET(
             endpointpath=None,
             resource="/silos/", 
-            expect_status=200, expect_reason="OK", expect_type="text/plain")
+            expect_status=200, expect_reason="OK", expect_type="application/json")
         # check list of silos is not empty
-        data = json.loads(data)
+        #data = json.loads(data)
         self.failUnless(len(data)>0, "No silos returned")
    
     def testListDatasets(self):
         # Access list of datasets in the silo, check response
         data = self.doHTTP_GET(
             resource="datasets/", 
-            expect_status=200, expect_reason="OK", expect_type="text/plain")
-        data = json.loads(data)
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        #data = json.loads(data)
         # Save initial list of datasets
         datasetlist = []
         for k in data:
@@ -117,8 +117,8 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Read list of datasets, check that new list is original + new dataset
         data = self.doHTTP_GET(
             resource="datasets/", 
-            expect_status=200, expect_reason="OK", expect_type="text/plain")
-        data = json.loads(data)
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        #data = json.loads(data)
         newlist = []
         for k in data:
             newlist.append(k)
@@ -134,8 +134,8 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # read list of datasets, check result is same as original list
         data = self.doHTTP_GET(
             resource="datasets/", 
-            expect_status=200, expect_reason="OK", expect_type="text/plain")
-        data = json.loads(data)
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        #data = json.loads(data)
         newlist = []
         for k in data:
             newlist.append(k)
@@ -149,9 +149,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Access state information of silo, check response
         data = self.doHTTP_GET(
             resource="states/", 
-            expect_status=200, expect_reason="OK", expect_type="text/plain")
+            expect_status=200, expect_reason="OK", expect_type="application/json")
         # check silo name and base_uri
-        data = json.loads(data)
+        #data = json.loads(data)
         silo_name = RDFDatabankConfig.endpointpath.strip('/')
         silo_base = 'http://%s%sdatasets/'%(RDFDatabankConfig.endpointhost, RDFDatabankConfig.endpointpath)
         self.assertEqual(data['silo'], silo_name, 'Silo name is %s not %s' %(data['silo'], silo_name))
@@ -164,8 +164,8 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Read list of datasets, check that new list is original + new dataset
         data = self.doHTTP_GET(
             resource="states/", 
-            expect_status=200, expect_reason="OK", expect_type="text/plain")
-        data = json.loads(data)
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        #data = json.loads(data)
         newlist = data['datasets']
         logger.debug("Orig. length "+str(len(datasetlist))+", new length "+str(len(newlist)))
         self.assertEquals(len(newlist), len(datasetlist)+1, "One additional dataset")
@@ -179,8 +179,8 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # read list of datasets, check result is same as original list
         data = self.doHTTP_GET(
             resource="states/", 
-            expect_status=200, expect_reason="OK", expect_type="text/plain")
-        data = json.loads(data)
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        #data = json.loads(data)
         newlist = data['datasets']
         logger.debug("Orig. length "+str(len(datasetlist))+", new length "+str(len(newlist)))
         self.assertEquals(len(newlist), len(datasetlist), "Back to original content in silo")
@@ -219,8 +219,8 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Access state info
         data = self.doHTTP_GET(
             resource="states/TestSubmission", 
-            expect_status=200, expect_reason="OK", expect_type="text/plain")
-        data = json.loads(data)
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        #data = json.loads(data)
         state = data['state']
         parts = data['parts']
         self.assertEqual(state['item_id'], "TestSubmission", "Submission item identifier")
@@ -293,7 +293,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Access parent dataset, check response
         data = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
-            expect_status=200, expect_reason="OK", expect_type="application/JSON")
+            expect_status=200, expect_reason="OK", expect_type="application/json")
         # Access and check list of contents in TestSubmission
         rdfdata = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
@@ -349,6 +349,10 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             expect_status=200, expect_reason="OK", expect_type="*/*")
         checkdata = open("data/testdir/directory/file1.b").read()
         self.assertEqual(filedata, checkdata, "Difference between local and remote data!")
+        # Delete the dataset TestSubmission-testdir
+        self.doHTTP_DELETE(
+            resource="datasets/TestSubmission-testdir", 
+            expect_status="*", expect_reason="*")
 
     def testFileUpdate(self):
         #TODO: REVIEW THIS TEST
@@ -412,7 +416,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Access parent dataset, check response
         data = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
-            expect_status=200, expect_reason="OK", expect_type="application/JSON")
+            expect_status=200, expect_reason="OK", expect_type="application/json")
         # Access and check list of contents in parent dataset - TestSubmission
         rdfdata = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
@@ -468,6 +472,10 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
         self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
+        # Delete the dataset TestSubmission-testrdf
+        self.doHTTP_DELETE(
+            resource="datasets/TestSubmission-testrdf", 
+            expect_status="*", expect_reason="*")
 
     def testOneDownMetadataMerging(self):
         #Test to create a dataset, upload a zip file, unpack it. 
@@ -500,7 +508,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Access parent dataset, check response
         data = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
-            expect_status=200, expect_reason="OK", expect_type="application/JSON")
+            expect_status=200, expect_reason="OK", expect_type="application/json")
         # Access and check list of contents in parent dataset - TestSubmission
         rdfdata = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
@@ -557,6 +565,10 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
         self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
+        # Delete the dataset TestSubmission-testrdf2
+        self.doHTTP_DELETE(
+            resource="datasets/TestSubmission-testrdf2", 
+            expect_status="*", expect_reason="*")
 
     def testDeleteDataset(self):
         # Create a new dataset, check response
@@ -564,7 +576,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Access dataset, check response
         data = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
-            expect_status=200, expect_reason="OK", expect_type="application/JSON")
+            expect_status=200, expect_reason="OK", expect_type="application/json")
         # Delete dataset, check response
         self.doHTTP_DELETE(
             resource="datasets/TestSubmission", 
@@ -591,7 +603,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Access dataset, check response
         data = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
-            expect_status=200, expect_reason="OK", expect_type="application/JSON")
+            expect_status=200, expect_reason="OK", expect_type="application/json")
         # Access versions info, check two versions exist
         state = data['state']
         parts = data['parts']
@@ -610,7 +622,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Access dataset, check response
         data = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
-            expect_status=200, expect_reason="OK", expect_type="application/JSON")
+            expect_status=200, expect_reason="OK", expect_type="application/json")
         # Access versions info, check three versions exist
         state = data['state']
         parts = data['parts']
@@ -653,7 +665,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Access dataset, check response
         data = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
-            expect_status=200, expect_reason="OK", expect_type="application/JSON")
+            expect_status=200, expect_reason="OK", expect_type="application/json")
         rdfdata = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
@@ -727,31 +739,6 @@ def getTestSuite(select="unit"):
             "all"       return suite of unit, component and integration tests
             "pending"   return suite of pending tests
             name        a single named test to be run
-    """
-    """
-    testdict = {
-        "unit":
-            [ "testUnits"
-            , "testDatasetNotPresent"
-            , "testInitialSubmission"
-            , "testInitialSubmissionContent"
-            , "testUpdateSubmission"
-            , "testUpdatedSubmissionContent"
-            , "testMetadataMerging"
-            , "testDeleteDataset"
-            , "testDeleteZipFiles"
-            , "testListDatasets"
-            ],
-        "component":
-            [ "testComponents"
-            ],
-        "integration":
-            [ "testIntegration"
-            ],
-        "pending":
-            [ "testPending"
-            ]
-        }
     """
     testdict = {
         "unit":
