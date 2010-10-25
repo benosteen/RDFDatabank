@@ -197,7 +197,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         rdfdata = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
-        print rdfdata
+        #print rdfdata
         rdfgraph = Graph()
         rdfstream = StringIO(rdfdata)
         rdfgraph.parse(rdfstream) 
