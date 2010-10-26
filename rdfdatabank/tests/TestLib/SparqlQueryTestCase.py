@@ -187,7 +187,7 @@ class SparqlQueryTestCase(unittest.TestCase):
         encodequery  = urllib.urlencode({"query": query})
         self.doHTTP_GET(endpointpath=self.getRequestPath("?"+encodequery), 
             expect_status=expect_status, expect_reason=expect_reason,
-            expect_type=("application/json" if JSON else None))
+            expect_type=("application/JSON" if JSON else None))
         return responsedata
 
     def doHTTP_POST(self, data, data_type="application/octet-strem",
@@ -211,14 +211,14 @@ class SparqlQueryTestCase(unittest.TestCase):
             JSON=False):
         reqheaders = {
             "Content-type": "application/x-www-form-urlencoded",
-            "Accept":       "application/json"
+            "Accept":       "application/JSON"
             }
         encodequery = urllib.urlencode({"query": query})
         return self.doHTTP_POST(
             encodequery, data_type="application/x-www-form-urlencoded",
             endpointhost=None, endpointpath=None, 
             expect_status=200, expect_reason="OK",
-            expect_type=("application/json" if JSON else None))
+            expect_type=("application/JSON" if JSON else None))
 
     def doHTTP_DELETE(self,
             endpointhost=None, endpointpath=None, resource=None,
