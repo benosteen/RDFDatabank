@@ -50,7 +50,7 @@ class AdminController(BaseController):
                         accept_list= [MT("text", "html")]
                     mimetype = accept_list.pop(0)
                     while(mimetype):
-                        if str(mimetype) in ["text/html", "text/xhtml"]:
+                        if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                             redirect_to(controller="admin", action="index")
                         else:
                             response.status_int = 201
@@ -89,7 +89,7 @@ class AdminController(BaseController):
                         accept_list= [MT("text", "html")]
                     mimetype = accept_list.pop(0)
                     while(mimetype):
-                        if str(mimetype) in ["text/html", "text/xhtml"]:
+                        if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                             c.message = "Metadata updated"
                             c.kw = ag.granary.describe_silo(silo_name)
                             return render("/admin_siloview.html")

@@ -176,7 +176,7 @@ class SparqlQueryTestCase(unittest.TestCase):
         (response, responsedata) = self.doRequest("GET", resource, 
             reqheaders=reqheaders,
             expect_status=expect_status, expect_reason=expect_reason)
-        if (expect_type == "application/json"): responsedata = simplejson.loads(responsedata)
+        if (expect_type.lower() == "application/json"): responsedata = simplejson.loads(responsedata)
         return responsedata
 
     def doQueryGET(self, query, 
@@ -202,7 +202,7 @@ class SparqlQueryTestCase(unittest.TestCase):
         (response, responsedata) = self.doRequest("POST", resource,
             reqdata=data, reqheaders=reqheaders,
             expect_status=expect_status, expect_reason=expect_reason)
-        if (expect_type == "application/json"): responsedata = simplejson.loads(responsedata)
+        if (expect_type.lower() == "application/json"): responsedata = simplejson.loads(responsedata)
         return responsedata
 
     def doQueryPOST(self, query, 
