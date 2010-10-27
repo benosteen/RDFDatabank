@@ -97,7 +97,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         data = self.doHTTP_GET(
             endpointpath=None,
             resource="/silos/", 
-            expect_status=200, expect_reason="OK", expect_type="application/json")
+            expect_status=200, expect_reason="OK", expect_type="application/JSON")
         # check list of silos is not empty
         #data = json.loads(data)
         self.failUnless(len(data)>0, "No silos returned")
