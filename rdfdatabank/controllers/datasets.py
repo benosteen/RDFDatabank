@@ -266,7 +266,7 @@ class DatasetsController(BaseController):
                 response.status = "201 Created"
                 return "Created"
             elif params.has_key('embargo_change'):
-                item.increment_version(clone_previous_version=True)
+                item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                 item = c.silo.get_item(id)
                 if params.has_key('embargoed'):
                     if params.has_key('embargoed_until') and params['embargoed_until']:
@@ -338,11 +338,10 @@ class DatasetsController(BaseController):
                         response.status_int = 400
                         return "Bad manifest file"
                     #munge rdf
-                    #TODO: Increment the version for manifest changes in the next version of databank, when version increment is by symlinks and not a copy
-                    #item.increment_version(clone_previous_version=True)
+                    item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                     munge_manifest(manifest_str, item)                        
                 else:
-                    item.increment_version(clone_previous_version=True)
+                    item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                     item.put_stream(target_path, upload.file)
                     upload.file.close()
                 item.del_triple(item.uri, u"dcterms:modified")
@@ -410,11 +409,10 @@ class DatasetsController(BaseController):
                     text = params['text']
                     if not test_rdf(text):
                         abort(406, "Not able to parse RDF/XML")
-                    #TODO: Increment the version for manifest changes in the next version of databank, when version increment is by symlinks and not a copy
-                    #item.increment_version(clone_previous_version=True)
+                    item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                     munge_manifest(text, item)
                 else:
-                    item.increment_version(clone_previous_version=True)
+                    item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                     item.put_stream(target_path, params['text'].encode("utf-8"))
                 item.del_triple(item.uri, u"dcterms:modified")
                 item.add_triple(item.uri, u"dcterms:modified", datetime.now())
@@ -573,11 +571,10 @@ class DatasetsController(BaseController):
                         response.status_int = 400
                         return "Bad manifest file"
                     #munge rdf
-                    #TODO: Increment the version for manifest changes in the next version of databank, when version increment is by symlinks and not a copy
-                    #item.increment_version(clone_previous_version=True)
+                    item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                     munge_manifest(content, item)                        
                 else:
-                    item.increment_version(clone_previous_version=True)
+                    item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                     item.put_stream(path, content)
                 item.del_triple(item.uri, u"dcterms:modified")
                 item.add_triple(item.uri, u"dcterms:modified", datetime.now())
@@ -644,11 +641,11 @@ class DatasetsController(BaseController):
                         response.status_int = 400
                         return "Bad manifest file"
                     #munge rdf
-                    #TODO: Increment the version for manifest changes in the next version of databank, when version increment is by symlinks and not a copy
-                    #item.increment_version(clone_previous_version=True)
+                    item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                     munge_manifest(manifest_str, item)                        
                 else:
-                    item.increment_version(clone_previous_version=True)
+                    item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
+                    
                     item.put_stream(target_path, upload.file)
                     upload.file.close()
                 item.del_triple(item.uri, u"dcterms:modified")
@@ -680,7 +677,7 @@ class DatasetsController(BaseController):
             if c.silo.exists(id):
                 item = c.silo.get_item(id)
                 if item.isfile(path):
-                    item.increment_version(clone_previous_version=True)
+                    item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                     item.del_stream(path)
                     item.del_triple(item.uri, u"dcterms:modified")
                     item.add_triple(item.uri, u"dcterms:modified", datetime.now())
@@ -698,7 +695,7 @@ class DatasetsController(BaseController):
                             # TODO implement proper recursive delete, with RDF aggregation
                             # updating
                             abort(400, "Directory is not empty of directories")
-                    item.increment_version(clone_previous_version=True)
+                    item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                     item.del_triple(item.uri, u"oxds:currentVersion")
                     item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
                     for part in parts:

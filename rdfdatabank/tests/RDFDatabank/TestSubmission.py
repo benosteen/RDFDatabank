@@ -74,6 +74,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             reqdata, reqtype, 
             resource="datasets/", 
             expect_status=201, expect_reason="Created")
+        #TODO: TEST FOR LOCATION HEADER
         return
 
     def uploadTestSubmissionZipfile(self):
@@ -88,6 +89,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             reqdata, reqtype, 
             resource="datasets/TestSubmission/", 
             expect_status=201, expect_reason="Created")
+        #TODO: TEST FOR LOCATION HEADER
         return zipdata
 
     # Actual tests follow
@@ -381,6 +383,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             reqdata, reqtype, 
             resource="items/TestSubmission", 
             expect_status=201, expect_reason="Created")
+        #TODO: TEST FOR LOCATION HEADER
         # Access parent dataset, check response
         data = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
@@ -448,6 +451,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             resource="datasets/TestSubmission-testdir", 
             expect_status="*", expect_reason="*")
 
+    def testFileUploadToUnpackedDataset(self):
+        pass
+
     def testMetadataMerging(self):
         #Test to create a dataset, upload a zip file, unpack it. The zipfile contains a manifest.rdf. 
         #     The metadata in this file needs to be munged with the system geenrated metadata
@@ -464,6 +470,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             reqdata, reqtype, 
             resource="datasets/TestSubmission/", 
             expect_status=201, expect_reason="Created")
+        #TODO: TEST FOR LOCATION HEADER
         # Unpack ZIP file into a new dataset, check response
         fields = \
             [ ("filename", "testrdf.zip")
@@ -474,6 +481,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             reqdata, reqtype, 
             resource="items/TestSubmission", 
             expect_status=201, expect_reason="Created")
+        #TODO: TEST FOR LOCATION HEADER
         # Access parent dataset, check response
         data = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
@@ -556,6 +564,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             reqdata, reqtype, 
             resource="datasets/TestSubmission/", 
             expect_status=201, expect_reason="Created")
+        #TODO: TEST FOR LOCATION HEADER
         # Unpack ZIP file into a new dataset, check response
         fields = \
             [ ("filename", "testrdf2.zip")
@@ -566,6 +575,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             reqdata, reqtype, 
             resource="items/TestSubmission", 
             expect_status=201, expect_reason="Created")
+        #TODO: TEST FOR LOCATION HEADER
         # Access parent dataset, check response
         data = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
