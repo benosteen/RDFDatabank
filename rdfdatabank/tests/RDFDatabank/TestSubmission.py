@@ -197,11 +197,11 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         rdfdata = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
-        #print rdfdata
+        #print rdfdata, '\n'
         rdfgraph = Graph()
         rdfstream = StringIO(rdfdata)
         rdfgraph.parse(rdfstream) 
-        self.assertEqual(len(rdfgraph),6,'Graph length %i' %len(rdfgraph))
+        self.assertEqual(len(rdfgraph),7,'Graph length %i' %len(rdfgraph))
         oxds = "http://vocab.ox.ac.uk/dataset/schema#"
         dcterms = "http://purl.org/dc/terms/"
         subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
@@ -212,6 +212,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
 
     def testDatasetStateInformation(self):
         # Create a new dataset, check response
@@ -258,7 +259,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         ore  = "http://www.openarchives.org/ore/terms/"
         oxds = "http://vocab.ox.ac.uk/dataset/schema#"
         stype = URIRef(oxds+"DataSet")
-        self.assertEqual(len(rdfgraph),7,'Graph length %i' %len(rdfgraph))
+        self.assertEqual(len(rdfgraph),9,'Graph length %i' %len(rdfgraph))
         self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
         self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testdir.zip")) in rdfgraph)
@@ -266,6 +267,8 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access and check zip file content
         zipfile = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip",
@@ -273,6 +276,94 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(zipdata, zipfile, "Difference between local and remote zipfile!")
 
     def testFileUploadState(self):
+        pass
+
+    def testFileDelete(self):
+        #TODO: Complete this test. For now it is the same as testFileUpload
+        # Create a new dataset, check response
+        self.createTestSubmissionDataset()
+        # Upload zip file, check response
+        zipdata = self.uploadTestSubmissionZipfile()
+        # Access and check list of contents
+        rdfdata = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        base = self.getRequestUri("datasets/TestSubmission/")
+        dcterms = "http://purl.org/dc/terms/"
+        ore  = "http://www.openarchives.org/ore/terms/"
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        stype = URIRef(oxds+"DataSet")
+        self.assertEqual(len(rdfgraph),9,'Graph length %i' %len(rdfgraph))
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
+        self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testdir.zip")) in rdfgraph)
+        self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
+        self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
+        self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
+        # Access and check zip file content
+        zipfile = self.doHTTP_GET(
+            resource="datasets/TestSubmission/testdir.zip",
+            expect_status=200, expect_reason="OK", expect_type="application/zip")
+        self.assertEqual(zipdata, zipfile, "Difference between local and remote zipfile!")
+        #TODO: Delete the file and check version is incremented and file is deleted
+        #TODO: Add the file again, check version is incremented and access and check zip file content 
+
+    def testFileUpdate(self):
+        #TODO: REVIEW THIS TEST
+        # Create a new dataset, check response
+        self.createTestSubmissionDataset()
+        # Upload zip file, check response
+        zipdata = self.uploadTestSubmissionZipfile()
+        # Upload zip file again, check response
+        zipdata = self.uploadTestSubmissionZipfile()
+        # Access and check list of contents
+        rdfdata = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),3,'Graph length %i' %len(rdfgraph))
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        stype = URIRef("http://vocab.ox.ac.uk/dataset/schema#DataSet")
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        dcterms = "http://purl.org/dc/terms/"
+        base = self.getRequestUri("datasets/TestSubmission/")
+        ore  = "http://www.openarchives.org/ore/terms/"
+        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
+        self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testdir.zip")) in rdfgraph)
+        # Access and check zip file content
+        zipfile = self.doHTTP_GET(
+            resource="datasets/TestSubmission/testdir.zip",
+            expect_status=200, expect_reason="OK", expect_type="application/zip")
+        self.assertEqual(zipdata, zipfile, "Difference between local and remote zipfile!")
+
+    def testFileUpdateState(self):
+        pass
+
+    def testMetadataFileUpload(self):
+        pass
+
+    def testPutFile(self):
+        pass
+
+    def testPutMetadataFile(self):
+        pass
+
+    def testDeleteEmbargo(self):
+        pass
+        
+    def testAddEmbargo(self):
+        pass
+
+    def testUpdateEmbargo(self):
         pass
 
     def testFileUnpack(self):
@@ -307,7 +398,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         ore  = "http://www.openarchives.org/ore/terms/"
         oxds = "http://vocab.ox.ac.uk/dataset/schema#"
         stype = URIRef(oxds+"DataSet")
-        self.assertEqual(len(rdfgraph),8,'Graph length %i' %len(rdfgraph))
+        self.assertEqual(len(rdfgraph),10,'Graph length %i' %len(rdfgraph))
         self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
         self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testdir.zip")) in rdfgraph)
@@ -316,6 +407,8 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access new dataset, check response
         rdfdata = self.doHTTP_GET(
             resource="datasets/TestSubmission-testdir",  # dataset-zipfile: default
@@ -323,13 +416,12 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         rdfgraph = Graph()
         rdfstream = StringIO(rdfdata)
         rdfgraph.parse(rdfstream)
-        self.assertEqual(len(rdfgraph),14,'Graph length %i' %len(rdfgraph))
+        #print rdfdata, '\n'
         subj  = URIRef(self.getRequestUri("datasets/TestSubmission-testdir"))
         stype = URIRef("http://vocab.ox.ac.uk/dataset/schema#Grouping")
-        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
-        dcterms = "http://purl.org/dc/terms/"
         base = self.getRequestUri("datasets/TestSubmission-testdir/")
-        ore  = "http://www.openarchives.org/ore/terms/"
+        self.assertEqual(len(rdfgraph),15,'Graph length %i' %len(rdfgraph))
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
         self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
@@ -343,6 +435,8 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testdir/directory/file1.b")) in rdfgraph)
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testdir/directory/file2.a")) in rdfgraph)
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testdir/test-csv.csv")) in rdfgraph)
+        #print oxds, '\n', URIRef(oxds+"currentVersion"), '\n'
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
         # Access and check content of a resource
         filedata = self.doHTTP_GET(
             resource="datasets/TestSubmission-testdir/testdir/directory/file1.b",
@@ -353,39 +447,6 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.doHTTP_DELETE(
             resource="datasets/TestSubmission-testdir", 
             expect_status="*", expect_reason="*")
-
-    def testFileUpdate(self):
-        #TODO: REVIEW THIS TEST
-        # Create a new dataset, check response
-        self.createTestSubmissionDataset()
-        # Upload zip file, check response
-        zipdata = self.uploadTestSubmissionZipfile()
-        # Upload zip file again, check response
-        zipdata = self.uploadTestSubmissionZipfile()
-        # Access and check list of contents
-        rdfdata = self.doHTTP_GET(
-            resource="datasets/TestSubmission", 
-            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
-        rdfgraph = Graph()
-        rdfstream = StringIO(rdfdata)
-        rdfgraph.parse(rdfstream) 
-        self.assertEqual(len(rdfgraph),3,'Graph length %i' %len(rdfgraph))
-        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
-        stype = URIRef("http://vocab.ox.ac.uk/dataset/schema#DataSet")
-        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
-        dcterms = "http://purl.org/dc/terms/"
-        base = self.getRequestUri("datasets/TestSubmission/")
-        ore  = "http://www.openarchives.org/ore/terms/"
-        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
-        self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testdir.zip")) in rdfgraph)
-        # Access and check zip file content
-        zipfile = self.doHTTP_GET(
-            resource="datasets/TestSubmission/testdir.zip",
-            expect_status=200, expect_reason="OK", expect_type="application/zip")
-        self.assertEqual(zipdata, zipfile, "Difference between local and remote zipfile!")
-
-    def testFileUpdateState(self):
-        pass
 
     def testMetadataMerging(self):
         #Test to create a dataset, upload a zip file, unpack it. The zipfile contains a manifest.rdf. 
@@ -430,7 +491,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         ore  = "http://www.openarchives.org/ore/terms/"
         oxds = "http://vocab.ox.ac.uk/dataset/schema#"
         stype = URIRef(oxds+"DataSet")
-        self.assertEqual(len(rdfgraph),8,'Graph length %i' %len(rdfgraph))
+        self.assertEqual(len(rdfgraph),10,'Graph length %i' %len(rdfgraph))
         self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
         self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf.zip")) in rdfgraph)
@@ -439,6 +500,8 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access and check list of contents in child dataset - TestSubmission-testrdf
         rdfdata = self.doHTTP_GET(
             resource="datasets/TestSubmission-testrdf", 
@@ -449,12 +512,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         rdfgraph.parse(rdfstream) 
         subj  = URIRef(self.getRequestUri("datasets/TestSubmission-testrdf"))
         base = self.getRequestUri("datasets/TestSubmission-testrdf/")
-        dcterms = "http://purl.org/dc/terms/"
-        ore  = "http://www.openarchives.org/ore/terms/"
-        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
         owl = "http://www.w3.org/2002/07/owl#"
         stype = URIRef(oxds+"Grouping")
-        self.assertEqual(len(rdfgraph),16,'Graph length %i' %len(rdfgraph))
+        self.assertEqual(len(rdfgraph),17,'Graph length %i' %len(rdfgraph))
         self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
         self.failUnless((subj,URIRef(owl+"sameAs"),URIRef("http://example.org/testrdf/")) in rdfgraph, 'owl:sameAs')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
@@ -472,6 +532,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
         self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
         # Delete the dataset TestSubmission-testrdf
         self.doHTTP_DELETE(
             resource="datasets/TestSubmission-testrdf", 
@@ -522,7 +583,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         ore  = "http://www.openarchives.org/ore/terms/"
         oxds = "http://vocab.ox.ac.uk/dataset/schema#"
         stype = URIRef(oxds+"DataSet")
-        self.assertEqual(len(rdfgraph),8,'Graph length %i' %len(rdfgraph))
+        self.assertEqual(len(rdfgraph),10,'Graph length %i' %len(rdfgraph))
         self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
         self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf2.zip")) in rdfgraph)
@@ -531,6 +592,8 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access and check list of contents in child dataset - TestSubmission-testrdf
         rdfdata = self.doHTTP_GET(
             resource="datasets/TestSubmission-testrdf2", 
@@ -541,12 +604,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         rdfgraph.parse(rdfstream) 
         subj  = URIRef(self.getRequestUri("datasets/TestSubmission-testrdf2"))
         base = self.getRequestUri("datasets/TestSubmission-testrdf2/")
-        dcterms = "http://purl.org/dc/terms/"
-        ore  = "http://www.openarchives.org/ore/terms/"
-        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
         owl = "http://www.w3.org/2002/07/owl#"
         stype = URIRef(oxds+"Grouping")
-        self.assertEqual(len(rdfgraph),17,'Graph length %i' %len(rdfgraph))
+        self.assertEqual(len(rdfgraph),18,'Graph length %i' %len(rdfgraph))
         self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
         self.failUnless((subj,URIRef(owl+"sameAs"),URIRef("http://example.org/testrdf/")) in rdfgraph, 'owl:sameAs')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
@@ -565,6 +625,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
         self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
         # Delete the dataset TestSubmission-testrdf2
         self.doHTTP_DELETE(
             resource="datasets/TestSubmission-testrdf2", 

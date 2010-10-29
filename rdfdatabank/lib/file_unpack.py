@@ -8,7 +8,7 @@ from redis import Redis
 
 from uuid import uuid4
 
-from rdfdatabank.lib.utils import create_new, munge_rdf, test_rdf
+from rdfdatabank.lib.utils import create_new, munge_manifest, test_rdf
 
 #import checkm
 
@@ -80,17 +80,9 @@ def get_items_in_dir(items_list, dirname, fnames):
         items_list.append(os.path.join(dirname,fname))
     return
 
-def unpack_zip_item(target_dataset_name, current_dataset, zip_item, silo, ident):
+def unpack_zip_item(target_dataset, current_dataset, zip_item, silo, ident):
     filepath = current_dataset.to_dirpath(zip_item)
-    #f = open("/tmp/python_out.log", "a")
-    #f.write("\n--------------- In unpack zip item -------------------\n")
-    #f.write("target item :%s\n"%str(target_dataset_name))
-    #f.write("zip item: %s \n"%str(zip_item))
-    #f.write("filepath : %s\n"%filepath)
-    #f.write('-'*40+'\n')
-    #f.close()
     unpacked_dir = unzip_file(filepath)
-    target_dataset = create_new(silo, target_dataset_name, ident)
     file_uri = current_dataset.uri
     if not file_uri.endswith('/'):
         file_uri += '/'
@@ -98,45 +90,31 @@ def unpack_zip_item(target_dataset_name, current_dataset, zip_item, silo, ident)
                 
     items_list = []
     os.path.walk(unpacked_dir,get_items_in_dir,items_list)
-    
-    triples = None
-    ns = None
-    #f = open("/tmp/python_out.log", "a")
-    #f.write("\n--------------- Items list -------------------\n")
-    #f.write("%s\n"%str(items_list))
-    #f.write('-'*40+'\n')
-    #f.close()
+    manifest_str = None
+    #Read manifest    
     for i in items_list:
         if 'manifest.rdf' in i and os.path.isfile(i):
-            #test rdf file
             F = open(i, 'r')
             manifest_str = F.read()
             F.close()
-            if not test_rdf(manifest_str):
-                return False
-            #Get triples from the manifest file and remove the file
-            ns, triples = munge_rdf(target_dataset.uri, i)
             items_list.remove(i)
             os.remove(i)
             break
+    #Copy unpacked dir as new version
     target_dataset.move_directory_as_new_version(unpacked_dir)
+    #Add type and isVersionOf metadata
     target_dataset.add_namespace('oxds', "http://vocab.ox.ac.uk/dataset/schema#")
-    #target_dataset.add_namespace('owl', "http://www.w3.org/2002/07/owl#")
     target_dataset.add_triple(target_dataset.uri, u"rdf:type", "oxds:Grouping")
     target_dataset.add_triple(target_dataset.uri, "dcterms:isVersionOf", file_uri)
-    #TODO: Adding all of this metadata again as moving directory deletes all this information. Need to find a better way
+    #TODO: Adding the following metadata again as moving directory deletes all this information. Need to find a better way
     embargoed_until_date = (datetime.now() + timedelta(days=365*70)).isoformat()
     target_dataset.add_triple(target_dataset.uri, u"oxds:isEmbargoed", 'True')
     target_dataset.add_triple(target_dataset.uri, u"oxds:embargoedUntil", embargoed_until_date)
-    target_dataset.add_triple(target_dataset.uri, u"dcterms:identifier", target_dataset_name)
+    target_dataset.add_triple(target_dataset.uri, u"dcterms:identifier", target_dataset.item_id)
     target_dataset.add_triple(target_dataset.uri, u"dcterms:creator", ident)
     target_dataset.add_triple(target_dataset.uri, u"dcterms:created", datetime.now())
-    if ns:
-        for k, v in ns.iteritems():
-            target_dataset.add_namespace(k, v)
-    if triples:
-        for (s, p, o) in triples:
-            target_dataset.add_triple(s, p, o)
+    target_dataset.add_triple(target_dataset.uri, u"oxds:currentVersion", target_dataset.currentversion)
+    #Adding ore aggregates
     unp_dir = unpacked_dir
     if not unp_dir.endswith('/'):
         unp_dir += '/'
@@ -148,6 +126,11 @@ def unpack_zip_item(target_dataset_name, current_dataset, zip_item, silo, ident)
         target_dataset.add_triple(target_dataset.uri, "ore:aggregates", "%s%s"%(target_uri_base,i))
     target_dataset.add_triple(target_dataset.uri, u"dcterms:modified", datetime.now())
     target_dataset.sync()
+    #Munge rdf
+    #TODO: If manifest is not well formed rdf - inform user. Currently just ignored.
+    if manifest_str and test_rdf(manifest_str):
+        munge_manifest(manifest_str, target_dataset)
+        
     current_dataset.add_triple("%s/%s" % (current_dataset.uri, zip_item.lstrip(os.sep)), "dcterms:hasVersion", target_dataset.uri)
     current_dataset.sync()
     return True

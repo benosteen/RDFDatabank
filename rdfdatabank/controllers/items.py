@@ -6,7 +6,7 @@ from pylons.controllers.util import abort, redirect_to
 from pylons import app_globals as ag
 
 from rdfdatabank.lib.base import BaseController, render
-
+from rdfdatabank.lib.utils import create_new
 from rdfdatabank.lib.file_unpack import check_file_mimetype, BadZipfile, get_zipfiles_in_dataset, unpack_zip_item
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 
@@ -82,10 +82,14 @@ class ItemsController(BaseController):
                 (head, fn) = os.path.split(params['filename'])
                 (fn, ext) = os.path.splitext(fn)
                 target_dataset_name = "%s-%s"%(id,fn)
-            #target_dataset_name, current_dataset, post_filepath, silo, ident
-            #print 'Calling unpack zip item'
+            
+            if not c.silo.exists(target_dataset_name):
+                target_dataset = create_new(c.silo, target_dataset_name, ident['repoze.who.userid'])
+            else:
+                target_dataset = c.silo.get_item(target_dataset_name)
+            
             try:
-                unpack_zip_item(target_dataset_name, c.item, params['filename'], c.silo, ident['repoze.who.userid'])
+                unpack_zip_item(target_dataset, c.item, params['filename'], c.silo, ident['repoze.who.userid'])
             except BadZipfile:
                 abort(400, "Couldn't unpack zipfile")
 
@@ -105,6 +109,7 @@ class ItemsController(BaseController):
                     response.status_int = 201
                     response.status = "201 Created"
                     new_item = c.silo.get_item(target_dataset_name)
+                    #response.headers["Content-Location"] = new_item.uri
                     #response.headers.add("Content-Location", new_item.uri)
                     #response.content_location = item.uri
                     #response.headers['location'] = item.uri

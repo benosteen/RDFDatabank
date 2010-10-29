@@ -4,7 +4,7 @@ from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
 from pylons import app_globals as ag
 from rdfdatabank.lib.base import BaseController, render
-from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text, test_rdf, munge_rdf, serialisable_stat
+from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text, test_rdf, munge_manifest, serialisable_stat
 from rdfdatabank.lib.file_unpack import get_zipfiles_in_dataset
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 
@@ -96,6 +96,7 @@ class DatasetsController(BaseController):
                             response.content_type = "text/plain"
                             response.status_int = 201
                             response.status = "201 Created"
+                            #response.headers["Content-Location"] = item.uri
                             #response.headers.add("Content-Location", item.uri)
                             return "Created"
                         try:
@@ -105,6 +106,7 @@ class DatasetsController(BaseController):
                     # Whoops - nothing satisfies - return text/plain
                     response.content_type = "text/plain"
                     response.status_int = 201
+                    #response.headers["Content-Location"] = item.uri
                     #response.headers.add("Content-Location", item.uri)
                     response.status = "201 Created"
                     return "Created"
@@ -249,6 +251,7 @@ class DatasetsController(BaseController):
                         response.content_type = "text/plain"
                         response.status_int = 201
                         response.status = "201 Created"
+                        #response.headers["Content-Location"] = item.uri
                         #response.headers.add("Content-Location", item.uri)
                         return "Created"
                     try:
@@ -258,19 +261,26 @@ class DatasetsController(BaseController):
                 # Whoops - nothing satisfies - return text/plain
                 response.content_type = "text/plain"
                 response.status_int = 201
+                #response.headers["Content-Location"] = item.uri
                 #response.headers.add("Content-Location", item.uri)
                 response.status = "201 Created"
                 return "Created"
             elif params.has_key('embargo_change'):
+                item.increment_version(clone_previous_version=True)
                 item = c.silo.get_item(id)
                 if params.has_key('embargoed'):
-                    item.metadata['embargoed'] = True
-                    item.del_triple(item.uri, u"oxds:isEmbargoed")
-                    item.add_triple(item.uri, u"oxds:isEmbargoed", 'True')
                     if params.has_key('embargoed_until') and params['embargoed_until']:
-                        item.metadata['embargoed_until'] = params['embargoed_until']
-                        item.del_triple(item.uri, u"oxds:embargoedUntil")
-                        item.add_triple(item.uri, u"oxds:embargoedUntil", params['embargoed_until'])                
+                        embargoed_until_date = params['embargoed_until']
+                    elif params.has_key('embargo_days_from_now') and params['embargo_days_from_now']:
+                        embargoed_until_date = (datetime.now() + timedelta(days=params['embargo_days_from_now'])).isoformat()
+                    else:
+                        embargoed_until_date = (datetime.now() + timedelta(days=365*70)).isoformat()
+                    item.metadata['embargoed'] = True
+                    item.metadata['embargoed_until'] = embargoed_until_date
+                    item.del_triple(item.uri, u"oxds:isEmbargoed")
+                    item.del_triple(item.uri, u"oxds:embargoedUntil")
+                    item.add_triple(item.uri, u"oxds:isEmbargoed", 'True')
+                    item.add_triple(item.uri, u"oxds:embargoedUntil", embargoed_until_date)
                 else:
                     #if is_embargoed(c.silo, id)[0] == True:
                     item.metadata['embargoed'] = False
@@ -278,6 +288,10 @@ class DatasetsController(BaseController):
                     item.del_triple(item.uri, u"oxds:isEmbargoed")
                     item.del_triple(item.uri, u"oxds:embargoedUntil")
                     item.add_triple(item.uri, u"oxds:isEmbargoed", 'False')
+                item.del_triple(item.uri, u"dcterms:modified")
+                item.add_triple(item.uri, u"dcterms:modified", datetime.now())
+                item.del_triple(item.uri, u"oxds:currentVersion")
+                item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
                 item.sync()
                 e, e_d = is_embargoed(c.silo, id, refresh=True)
                 
@@ -285,7 +299,8 @@ class DatasetsController(BaseController):
                 ag.b.embargo_change(silo, id, item.metadata['embargoed'], item.metadata['embargoed_until'], ident=ident['repoze.who.userid'])
                 
                 response.content_type = 'application/json; charset="UTF-8"'
-                response.status_int = 200
+                response.status_int = 204
+                response.status = "204 Updated"
                 return simplejson.dumps({'embargoed':e, 'embargoed_until':e_d})
             elif params.has_key('file'):
                 # File upload by a not-too-savvy method - Service-orientated fallback:
@@ -300,8 +315,16 @@ class DatasetsController(BaseController):
                     abort(400, "'..' cannot be used in the path or as a filename")
                 target_path = filename
                 
-                #Check if the filename is manifest.rdf. if it is, extract triples and munge
-                if 'manifest.rdf' in filename:
+                if item.isfile(target_path):
+                    code = 204
+                elif item.isdir(target_path):
+                    response.status_int = 403
+                    return "Cannot POST a file on to an existing directory"
+                else:
+                    code = 201
+
+                if filename == "manifest.rdf":
+                    #Copy the uploaded file to a tmp area 
                     mani_file = os.path.join('/tmp', filename.lstrip(os.sep))
                     mani_file_obj = open(mani_file, 'w')
                     shutil.copyfileobj(upload.file, mani_file_obj)
@@ -314,38 +337,29 @@ class DatasetsController(BaseController):
                     if not test_rdf(manifest_str):
                         response.status_int = 400
                         return "Bad manifest file"
-                    #Get triples from the manifest file and remove the file
-                    triples = None
-                    ns = None
-                    ns, triples = munge_rdf(item.uri, mani_file)
-                    #item.add_namespace('owl', "http://www.w3.org/2002/07/owl#")
-                    if ns:
-                        for k, v in ns.iteritems():
-                            item.add_namespace(k, v)
-                    if triples:
-                        for (s, p, o) in triples:
-                            item.add_triple(s, p, o)
-                    item.sync()
-                    code = 200
+                    #munge rdf
+                    #TODO: Increment the version for manifest changes in the next version of databank, when version increment is by symlinks and not a copy
+                    #item.increment_version(clone_previous_version=True)
+                    munge_manifest(manifest_str, item)                        
                 else:
-                    if item.isfile(target_path):
-                        code = 200
-                    elif item.isdir(target_path):
-                        response.status_int = 403
-                        return "Cannot POST a file on to an existing directory"
-                    else:
-                        code = 201
+                    item.increment_version(clone_previous_version=True)
                     item.put_stream(target_path, upload.file)
                     upload.file.close()
+                item.del_triple(item.uri, u"dcterms:modified")
+                item.add_triple(item.uri, u"dcterms:modified", datetime.now())
+                item.del_triple(item.uri, u"oxds:currentVersion")
+                item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
+                item.sync()
                 
-                    if code == 201:
-                        ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
-                        response.status = "201 Created"
-                        #TODO: The uri here should be the target path, not the item uri
-                        #response.headers.add("Content-Location", item.uri)
-                    else:
-                        ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
-                        response.status = "200 OK"
+                if code == 201:
+                    ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
+                    response.status = "201 Created"
+                    target_url = str(item.uri).strip('/') + '/' + target_path.strip('/')
+                    #response.headers["Content-Location"] = target_url
+                    #response.headers.add("Content-Location", item.uri)
+                else:
+                    ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
+                    response.status = "204 Updated"
 
                 response.status_int = code
                 # conneg return
@@ -396,17 +410,27 @@ class DatasetsController(BaseController):
                     text = params['text']
                     if not test_rdf(text):
                         abort(406, "Not able to parse RDF/XML")
-                
-                item.put_stream(target_path, params['text'].encode("utf-8"))
+                    #TODO: Increment the version for manifest changes in the next version of databank, when version increment is by symlinks and not a copy
+                    #item.increment_version(clone_previous_version=True)
+                    munge_manifest(text, item)
+                else:
+                    item.increment_version(clone_previous_version=True)
+                    item.put_stream(target_path, params['text'].encode("utf-8"))
+                item.del_triple(item.uri, u"dcterms:modified")
+                item.add_triple(item.uri, u"dcterms:modified", datetime.now())
+                item.del_triple(item.uri, u"oxds:currentVersion")
+                item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
+                item.sync()
                 
                 if code == 201:
                     ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
                     response.status = "201 Created"
-                    #TODO: The uri here should be the target path, not the item uri
+                    target_url = str(item.uri).strip('/') + '/' + target_path.strip('/')
+                    #response.headers["Content-Location"] = target_url
                     #response.headers.add("Content-Location", item.uri)
                 else:
                     ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
-                    response.status = "200 OK"
+                    response.status = "204 Updated"
                 response.status_int = code
                 # conneg return
                 accept_list = None
@@ -446,6 +470,7 @@ class DatasetsController(BaseController):
                 ag.b.deletion(silo, id, ident=ident['repoze.who.userid'])
                 
                 response.status_int = 200
+                response.status = "200 OK"
                 return "{'ok':'true'}"   # required for the JQuery magic delete to succede.
             else:
                 abort(404)
@@ -540,16 +565,35 @@ class DatasetsController(BaseController):
                     return "Cannot PUT a file on to an existing directory"
                 else:
                     code = 201
-                
-                item.put_stream(path, content)
+
+                #Check if path is manifest.rdf - If, yes Munge
+                if "manifest.rdf" in path:
+                    #test content is valid rdf
+                    if not test_rdf(content):
+                        response.status_int = 400
+                        return "Bad manifest file"
+                    #munge rdf
+                    #TODO: Increment the version for manifest changes in the next version of databank, when version increment is by symlinks and not a copy
+                    #item.increment_version(clone_previous_version=True)
+                    munge_manifest(content, item)                        
+                else:
+                    item.increment_version(clone_previous_version=True)
+                    item.put_stream(path, content)
+                item.del_triple(item.uri, u"dcterms:modified")
+                item.add_triple(item.uri, u"dcterms:modified", datetime.now())
+                item.del_triple(item.uri, u"oxds:currentVersion")
+                item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
+                item.sync()
                 
                 if code == 201:
                     ag.b.creation(silo, id, path, ident=ident['repoze.who.userid'])
                     response.status = "201 Created"
-                    #TODO: The uri here should be the path, not the item uri
+                    target_url = str(item.uri).strip('/') + '/' + path.strip('/')
+                    #response.headers["Content-Location"] = target_url
                     #response.headers.add("Content-Location", item.uri)
                 else:
                     ag.b.change(silo, id, path, ident=ident['repoze.who.userid'])
+                    response.status = "204 Updated"
                 
                 response.status_int = code
                 return
@@ -584,16 +628,45 @@ class DatasetsController(BaseController):
                     return "Cannot POST a file on to an existing directory"
                 else:
                     code = 201
-                item.put_stream(target_path, upload.file)
-                upload.file.close()
+
+                if filename == "manifest.rdf":
+                    #Copy the uploaded file to a tmp area 
+                    mani_file = os.path.join('/tmp', filename.lstrip(os.sep))
+                    mani_file_obj = open(mani_file, 'w')
+                    shutil.copyfileobj(upload.file, mani_file_obj)
+                    upload.file.close()
+                    mani_file_obj.close()
+                    #test rdf file
+                    mani_file_obj = open(mani_file, 'r')
+                    manifest_str = mani_file_obj.read()
+                    mani_file_obj.close()
+                    if not test_rdf(manifest_str):
+                        response.status_int = 400
+                        return "Bad manifest file"
+                    #munge rdf
+                    #TODO: Increment the version for manifest changes in the next version of databank, when version increment is by symlinks and not a copy
+                    #item.increment_version(clone_previous_version=True)
+                    munge_manifest(manifest_str, item)                        
+                else:
+                    item.increment_version(clone_previous_version=True)
+                    item.put_stream(target_path, upload.file)
+                    upload.file.close()
+                item.del_triple(item.uri, u"dcterms:modified")
+                item.add_triple(item.uri, u"dcterms:modified", datetime.now())
+                item.del_triple(item.uri, u"oxds:currentVersion")
+                item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
+                item.sync()
                 
                 if code == 201:
                     ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
                     response.status = "201 Created"
                     #TODO: The uri here should be the target path, not the item uri
+                    target_url = urljoin(item.uri, target_path)
+                    #response.headers["Content-Location"] = target_url
                     #response.headers.add("Content-Location", item.uri)
                 else:
                     ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
+                    response.status = "204 Updated"
                 response.status_int = code
                 return
             else:
@@ -607,10 +680,16 @@ class DatasetsController(BaseController):
             if c.silo.exists(id):
                 item = c.silo.get_item(id)
                 if item.isfile(path):
+                    item.increment_version(clone_previous_version=True)
                     item.del_stream(path)
-                    
+                    item.del_triple(item.uri, u"dcterms:modified")
+                    item.add_triple(item.uri, u"dcterms:modified", datetime.now())
+                    item.del_triple(item.uri, u"oxds:currentVersion")
+                    item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
+                    item.sync()
                     ag.b.deletion(silo, id, path, ident=ident['repoze.who.userid'])
-                    response.status_int = 200
+                    response.status_int = 204
+                    response.status = "204 Updated"
                     return "{'ok':'true'}"   # required for the JQuery magic delete to succede.
                 elif item.isdir(path):
                     parts = item.list_parts(path)
@@ -619,12 +698,19 @@ class DatasetsController(BaseController):
                             # TODO implement proper recursive delete, with RDF aggregation
                             # updating
                             abort(400, "Directory is not empty of directories")
+                    item.increment_version(clone_previous_version=True)
+                    item.del_triple(item.uri, u"oxds:currentVersion")
+                    item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
                     for part in parts:
                         item.del_stream(os.path.join(path, part))
                         ag.b.deletion(silo, id, os.path.join(path, part), ident=ident['repoze.who.userid'])
                     item.del_stream(path)
+                    item.del_triple(item.uri, u"dcterms:modified")
+                    item.add_triple(item.uri, u"dcterms:modified", datetime.now())
+                    item.sync()
                     ag.b.deletion(silo, id, path, ident=ident['repoze.who.userid'])
-                    response.status_int = 200
+                    response.status_int = 204
+                    response.status = "204 Updated"
                     return "{'ok':'true'}"   # required for the JQuery magic delete to succede.
                 else:
                     abort(404)

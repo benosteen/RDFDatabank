@@ -81,6 +81,8 @@ def create_new(silo, id, creator, title=None, embargoed=True, embargoed_until=No
     item.add_triple(item.uri, u"dcterms:identifier", id)
     item.add_triple(item.uri, u"dcterms:creator", creator)   
     item.add_triple(item.uri, u"dcterms:created", datetime.now())
+    item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
+    
     #TODO: Add current version metadata
     if title:
         item.add_triple(item.uri, u"rdfs:label", title)
@@ -91,7 +93,7 @@ def get_readme_text(item, filename="README"):
     with item.get_stream(filename) as fn:
         text = fn.read().decode("utf-8")
     return u"%s\n\n%s" % (filename, text)
-    
+
 def test_rdf(text):
     try:
         mani = Manifest()
@@ -99,16 +101,26 @@ def test_rdf(text):
         return True
     except:
         return False
+        
+def munge_manifest(manifest_str, item):    
+    #Get triples from the manifest file and remove the file
+    triples = None
+    ns = None
+    ns, triples = read_manifest(item.uri, manifest_str)
+    #item.add_namespace('owl', "http://www.w3.org/2002/07/owl#")
+    if ns and triples:
+        for k, v in ns.iteritems():
+            item.add_namespace(k, v)
+        for (s, p, o) in triples:
+            item.add_triple(s, p, o)
+    item.sync()
+    return True
 
-def munge_rdf(target_dataset_uri, manifest_file):
+def read_manifest(target_dataset_uri, manifest_str):
     triples = []
     namespaces = {}
-    F = open(manifest_file, 'r')
-    manifest_str = F.read()
-    #if not test_rdf(manifest_str):
-    #    return False
     mani = Manifest()
-    mani.from_string(manifest_str)
+    mani.from_string(manifest_str)    
     namespaces = mani.namespaces   
     for s_uri in mani.items_rdfobjects:
         datasetType = False

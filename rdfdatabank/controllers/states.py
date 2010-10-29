@@ -1,12 +1,10 @@
 import logging
 
 from pylons import request, response, session, tmpl_context as c
-from pylons.controllers.util import abort, redirect_to
+from pylons.controllers.util import abort
 from pylons import app_globals as ag
-from rdfdatabank.lib.base import BaseController, render
-from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text, test_rdf, munge_rdf, serialisable_stat
-from rdfdatabank.lib.file_unpack import get_zipfiles_in_dataset
-from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
+from rdfdatabank.lib.base import BaseController
+from rdfdatabank.lib.utils import is_embargoed, serialisable_stat
 
 from datetime import datetime, timedelta
 from paste.fileapp import FileApp
