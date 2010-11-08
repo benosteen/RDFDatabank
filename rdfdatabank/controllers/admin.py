@@ -13,7 +13,7 @@ from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 
 log = logging.getLogger(__name__)
 
-accepted_params = ['title', 'description', 'notes', 'owners']
+accepted_params = ['title', 'description', 'notes', 'owners', 'disk_allocation']
 
 class AdminController(BaseController):
 
@@ -42,6 +42,8 @@ class AdminController(BaseController):
                     for term in accepted_params:
                         if term in params:
                             kw[term] = params[term]
+                    du = ag.granary.disk_usage_silo(silo_name)
+                    kw['disk_usage'] = du
                     ag.granary.describe_silo(silo_name, **kw)
                     ag.granary.sync()
                     # conneg return

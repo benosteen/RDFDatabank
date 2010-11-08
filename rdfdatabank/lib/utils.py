@@ -112,6 +112,8 @@ def munge_manifest(manifest_str, item):
         for k, v in ns.iteritems():
             item.add_namespace(k, v)
         for (s, p, o) in triples:
+            if str(p) == 'http://purl.org/dc/terms/title':
+                item.del_triple(item.uri, u"dcterms:title")    
             item.add_triple(s, p, o)
     item.sync()
     return True
@@ -134,12 +136,13 @@ def read_manifest(target_dataset_uri, manifest_str):
                 datasetType = True
         if datasetType:
             #Add to existing uri and add a sameAs triple with this uri
-            #for s,p,o in mani.items_rdfobjects[s_uri].list_triples():
-            #    triples.append((target_dataset_uri, p, o))
+            for s,p,o in mani.items_rdfobjects[s_uri].list_triples():
+                triples.append((target_dataset_uri, p, o))
             namespaces['owl'] = "http://www.w3.org/2002/07/owl#"
             triples.append((target_dataset_uri, 'owl:sameAs', s_uri))
-        for s,p,o in mani.items_rdfobjects[s_uri].list_triples():
-            triples.append((s, p, o))
+        else:
+            for s,p,o in mani.items_rdfobjects[s_uri].list_triples():
+                triples.append((s, p, o))
     return namespaces, triples
 
 def serialisable_stat(stat):

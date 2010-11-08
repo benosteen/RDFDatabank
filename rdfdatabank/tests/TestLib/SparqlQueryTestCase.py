@@ -220,6 +220,20 @@ class SparqlQueryTestCase(unittest.TestCase):
             expect_status=200, expect_reason="OK",
             expect_type=("application/JSON" if JSON else None))
 
+    def doHTTP_PUT(self, data, data_type="application/octet-strem",
+            endpointhost=None, endpointpath=None, resource=None,
+            expect_status=200, expect_reason="OK",
+            expect_type="*/*"):
+        reqheaders   = {
+            "Content-type": data_type,
+            "Accept":       expect_type
+            }
+        self.setRequestEndPoint(endpointhost, endpointpath)
+        (response, responsedata) = self.doRequest("PUT", resource,
+            reqdata=data, reqheaders=reqheaders,
+            expect_status=expect_status, expect_reason=expect_reason)
+        return response.status
+
     def doHTTP_DELETE(self,
             endpointhost=None, endpointpath=None, resource=None,
             expect_status=200, expect_reason="OK"):

@@ -1,0 +1,10 @@
+<rdf:RDF
+  xmlns:dcterms='http://purl.org/dc/terms/'
+  xmlns:oxds='http://vocab.ox.ac.uk/dataset/schema#'
+  xmlns:ore='http://www.openarchives.org/ore/terms/'
+  xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'
+>
+  <oxds:Grouping rdf:about="http://example.org/testrdf/">
+    <dcterms:title>Test dataset with updated and merged metadata</dcterms:title>
+  </oxds:Grouping>
+</rdf:RDF>

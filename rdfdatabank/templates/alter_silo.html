@@ -9,11 +9,13 @@
 <li><label for="description">Description:</label><input type="textbox" name="description"  value="${c.kw.get('description')}"/></li>
 <li><label for="notes">Notes:</label><input type="textbox" name="notes"  value="${c.kw.get('notes')}"/></li>
 <li><label for="owners">Owners (comma separated userids):</label><input type="textbox" name="owners"  value="${c.kw.get('owners')}"/></li>
+<li><label for="disk_allocation">Disk Allocation (in Kb):</label><input type="textbox" name="disk_allocation"  value="${c.kw.get('disk_allocation')}"/></li>
 % else:
 <li><label for="title">Title:</label><input type="text" name="title" /></li>
 <li><label for="description">Description:</label><input type="textbox" name="description" /></li>
 <li><label for="notes">Notes:</label><input type="textbox" name="notes" /></li>
 <li><label for="owners">Owners (comma separated userids):</label><input type="textbox" name="owners" /></li>
+<li><label for="disk_allocation">Disk Allocation (in Kb):</label><input type="textbox" name="disk_allocation" /></li>
 % endif
 <li><input type="submit" value="Alter silo metadata"/></li>
 </form>

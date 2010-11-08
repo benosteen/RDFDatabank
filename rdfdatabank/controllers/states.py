@@ -27,7 +27,8 @@ class StatesController(BaseController):
         c.silos = ag.authz(granary_list, ident)
         if silo not in c.silos:
             abort(403, "Forbidden")
-        
+        #TODO: Do I need to get information about the silo itself - silo name, title, description, notes, owners, disk allocation
+        #c.kw = ag.granary.describe_silo(silo_name)
         c.silo_name = silo
         c.silo = ag.granary.get_rdf_silo(silo)
         
