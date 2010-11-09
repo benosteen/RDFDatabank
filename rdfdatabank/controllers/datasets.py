@@ -4,7 +4,7 @@ from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
 from pylons import app_globals as ag
 from rdfdatabank.lib.base import BaseController, render
-from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text, test_rdf, munge_manifest, serialisable_stat
+from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text, test_rdf, munge_manifest, manifest_type, serialisable_stat
 from rdfdatabank.lib.file_unpack import get_zipfiles_in_dataset
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 
@@ -169,9 +169,12 @@ class DatasetsController(BaseController):
                 c.parts = []
                 if c.item.manifest:
                     state = c.item.manifest.state
-                    if state and "currentversion" in state and "files" in state and state["files"] :
-                        c_ver = state["currentversion"]
-                        c.parts = state["files"][c_ver]
+                    if state:
+                        if "currentversion" in state and  "files" in state and state["files"] :
+                            c_ver = state["currentversion"]
+                            c.parts = state["files"][c_ver]
+                        if "item_id" in state:
+                            c.item_id =  state["item_id"] 
                     
                 # View options
                 options = request.GET
@@ -339,7 +342,12 @@ class DatasetsController(BaseController):
                         return "Bad manifest file"
                     #munge rdf
                     item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
-                    munge_manifest(manifest_str, item)                        
+                    a = item.get_rdf_manifest()
+                    b = a.to_string()
+                    mtype = manifest_type(b)
+                    if not mtype:
+                        mtype = 'http://vocab.ox.ac.uk/dataset/schema#Grouping'
+                    munge_manifest(manifest_str, item, manifest_type=mtype)
                 else:
                     item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                     item.put_stream(target_path, upload.file)
@@ -410,7 +418,12 @@ class DatasetsController(BaseController):
                     if not test_rdf(text):
                         abort(406, "Not able to parse RDF/XML")
                     item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
-                    munge_manifest(text, item)
+                    a = item.get_rdf_manifest()
+                    b = a.to_string()
+                    mtype = manifest_type(b)
+                    if not mtype:
+                        mtype = 'http://vocab.ox.ac.uk/dataset/schema#Grouping'
+                    munge_manifest(text, item, manifest_type=mtype)
                 else:
                     item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                     item.put_stream(target_path, params['text'].encode("utf-8"))
@@ -572,7 +585,12 @@ class DatasetsController(BaseController):
                         return "Bad manifest file"
                     #munge rdf
                     item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
-                    munge_manifest(content, item)                        
+                    a = item.get_rdf_manifest()
+                    b = a.to_string()
+                    mtype = manifest_type(b)
+                    if not mtype:
+                        mtype = 'http://vocab.ox.ac.uk/dataset/schema#Grouping'
+                    munge_manifest(content, item, manifest_type=mtype)
                 else:
                     item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                     item.put_stream(path, content)
@@ -642,7 +660,12 @@ class DatasetsController(BaseController):
                         return "Bad manifest file"
                     #munge rdf
                     item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
-                    munge_manifest(manifest_str, item)                        
+                    a = item.get_rdf_manifest()
+                    b = a.to_string()
+                    mtype = manifest_type(b)
+                    if not mtype:
+                        mtype = 'http://vocab.ox.ac.uk/dataset/schema#Grouping'
+                    munge_manifest(manifest_str, item, manifest_type=mtype)
                 else:
                     item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                     
@@ -685,8 +708,8 @@ class DatasetsController(BaseController):
                     item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
                     item.sync()
                     ag.b.deletion(silo, id, path, ident=ident['repoze.who.userid'])
-                    response.status_int = 204
-                    response.status = "204 Updated"
+                    response.status_int = 200
+                    response.status = "200 OK"
                     return "{'ok':'true'}"   # required for the JQuery magic delete to succede.
                 elif item.isdir(path):
                     parts = item.list_parts(path)
@@ -706,8 +729,8 @@ class DatasetsController(BaseController):
                     item.add_triple(item.uri, u"dcterms:modified", datetime.now())
                     item.sync()
                     ag.b.deletion(silo, id, path, ident=ident['repoze.who.userid'])
-                    response.status_int = 204
-                    response.status = "204 Updated"
+                    response.status_int = 200
+                    response.status = "200 OK"
                     return "{'ok':'true'}"   # required for the JQuery magic delete to succede.
                 else:
                     abort(404)

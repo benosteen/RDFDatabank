@@ -4,7 +4,7 @@
   xmlns:ore='http://www.openarchives.org/ore/terms/'
   xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'
 >
-  <oxds:Grouping rdf:about="http://example.org/testrdf/">
+  <oxds:DataSet rdf:about="http://example.org/testrdf/">
     <dcterms:title>Test dataset with merged metadata</dcterms:title>
-  </oxds:Grouping>
+  </oxds:DataSet>
 </rdf:RDF>

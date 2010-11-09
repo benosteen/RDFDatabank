@@ -102,11 +102,11 @@ def test_rdf(text):
     except:
         return False
         
-def munge_manifest(manifest_str, item):    
+def munge_manifest(manifest_str, item, manifest_type='http://vocab.ox.ac.uk/dataset/schema#Grouping'):    
     #Get triples from the manifest file and remove the file
     triples = None
     ns = None
-    ns, triples = read_manifest(item.uri, manifest_str)
+    ns, triples = read_manifest(item.uri, manifest_str, manifest_type=manifest_type)
     #item.add_namespace('owl', "http://www.w3.org/2002/07/owl#")
     if ns and triples:
         for k, v in ns.iteritems():
@@ -118,7 +118,7 @@ def munge_manifest(manifest_str, item):
     item.sync()
     return True
 
-def read_manifest(target_dataset_uri, manifest_str):
+def read_manifest(target_dataset_uri, manifest_str, manifest_type='http://vocab.ox.ac.uk/dataset/schema#Grouping'):
     triples = []
     namespaces = {}
     mani = Manifest()
@@ -132,7 +132,7 @@ def read_manifest(target_dataset_uri, manifest_str):
         #print mani.items_rdfobjects[s_uri].list_triples()
         #print '----------------------------------------------'
         for t in mani.items_rdfobjects[s_uri].types:
-            if str(t) == 'http://vocab.ox.ac.uk/dataset/schema#Grouping':
+            if str(t) == manifest_type:
                 datasetType = True
         if datasetType:
             #Add to existing uri and add a sameAs triple with this uri
@@ -144,6 +144,19 @@ def read_manifest(target_dataset_uri, manifest_str):
             for s,p,o in mani.items_rdfobjects[s_uri].list_triples():
                 triples.append((s, p, o))
     return namespaces, triples
+
+def manifest_type(manifest_str):
+    mani_types = []
+    mani = Manifest()
+    mani.from_string(manifest_str)    
+    for s_uri in mani.items_rdfobjects:
+        for t in mani.items_rdfobjects[s_uri].types:
+            mani_types.append(str(t))
+    if "http://vocab.ox.ac.uk/dataset/schema#DataSet" in mani_types:
+        return "http://vocab.ox.ac.uk/dataset/schema#DataSet"
+    elif "http://vocab.ox.ac.uk/dataset/schema#Grouping" in mani_types:
+        return "http://vocab.ox.ac.uk/dataset/schema#Grouping"
+    return None
 
 def serialisable_stat(stat):
     stat_values = {}

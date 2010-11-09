@@ -18,6 +18,8 @@ class BadZipfile(Exception):
     """Cannot open zipfile using commandline tool 'unzip' to target directory"""
     
 def check_file_mimetype(real_filepath, mimetype):
+    if os.path.islink(real_filepath):
+        real_filepath = os.readlink(real_filepath)
     p = subprocess.Popen("file -ib %s" %(real_filepath), shell=True, stdout=subprocess.PIPE)
     output_file = p.stdout
     output_str = output_file.read()
@@ -35,6 +37,8 @@ def get_zipfiles_in_dataset(dataset):
         for file_uri in derivative.values()[0]:
             filepath = file_uri[len(dataset.uri)+1:]
             real_filepath = dataset.to_dirpath(filepath)
+            if os.path.islink(real_filepath):
+                real_filepath = os.readlink(real_filepath)
             #print "file_uri : ", file_uri
             #print "filepath : ", filepath
             #print "real_filepath : ", real_filepath
@@ -82,6 +86,8 @@ def get_items_in_dir(items_list, dirname, fnames):
 
 def unpack_zip_item(target_dataset, current_dataset, zip_item, silo, ident):
     filepath = current_dataset.to_dirpath(zip_item)
+    if os.path.islink(filepath):
+        filepath = os.readlink(filepath)
     unpacked_dir = unzip_file(filepath)
     file_uri = current_dataset.uri
     if not file_uri.endswith('/'):
@@ -129,7 +135,7 @@ def unpack_zip_item(target_dataset, current_dataset, zip_item, silo, ident):
     #Munge rdf
     #TODO: If manifest is not well formed rdf - inform user. Currently just ignored.
     if manifest_str and test_rdf(manifest_str):
-        munge_manifest(manifest_str, target_dataset)
+        munge_manifest(manifest_str, target_dataset, manifest_type='http://vocab.ox.ac.uk/dataset/schema#Grouping')
         
     current_dataset.add_triple("%s/%s" % (current_dataset.uri, zip_item.lstrip(os.sep)), "dcterms:hasVersion", target_dataset.uri)
     current_dataset.sync()
