@@ -649,7 +649,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['manifest.rdf'].keys()), 13, "File stats for manifest.rdf")
         self.assertEqual(len(parts['testdir.zip'].keys()), 13, "File stats for testdir.zip")
 
-    def testPutUpdateFile
+    def testPutUpdateFile(self):
 
     def testPutMetadataFile(self):
         pass
