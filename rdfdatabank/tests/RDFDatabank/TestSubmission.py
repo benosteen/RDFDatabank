@@ -590,7 +590,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Put zip file, check response
         fields = []
         zipdata = open("data/testdir.zip").read()       
-        doHTTP_PUT(zipdata, data_type="application/octet-strem",
+        self.doHTTP_PUT(zipdata, data_type="application/octet-strem",
             endpointpath="datasets/TestSubmission/testdir.zip", 
             expect_status=201, expect_reason="Created",
             expect_type="*/*")
