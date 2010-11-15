@@ -650,6 +650,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['testdir.zip'].keys()), 13, "File stats for testdir.zip")
 
     def testPutUpdateFile(self):
+        pass
 
     def testPutMetadataFile(self):
         pass
