@@ -588,12 +588,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Put zip file, check response
-        fields = []
         zipdata = open("data/testdir.zip").read()       
-        self.doHTTP_PUT(zipdata, data_type="application/octet-strem",
-            endpointpath="datasets/TestSubmission/testdir.zip", 
-            expect_status=201, expect_reason="Created",
-            expect_type="*/*")
+        self.doHTTP_PUT(zipdata, resource="datasets/TestSubmission/testdir.zip", 
+            expect_status=201, expect_reason="Created", expect_type="*/*")
         # Access and check list of contents
         rdfdata = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
