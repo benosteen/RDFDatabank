@@ -166,3 +166,8 @@ def serialisable_stat(stat):
         except AttributeError:
             pass
     return stat_values
+
+def special_match(strg):
+    search=re.compile(r'%s'%ag.naming_rule).search
+    return not bool(search(strg))
+

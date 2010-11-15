@@ -40,3 +40,6 @@ class Globals(object):
         if config.has_key("broadcast.to"):
             if config['broadcast.to'] == "redis":
                 self.b = BroadcastToRedis(config['redis.host'], config['broadcast.queue'])
+
+        if config.has_key("naming_rule"):
+            self.naming_rule = config['naming_rule']

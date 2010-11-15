@@ -4,7 +4,7 @@ from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
 from pylons import app_globals as ag
 from rdfdatabank.lib.base import BaseController, render
-from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text, test_rdf, munge_manifest, manifest_type, serialisable_stat
+from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text, test_rdf, munge_manifest, manifest_type, serialisable_stat, special_match
 from rdfdatabank.lib.file_unpack import get_zipfiles_in_dataset
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 
@@ -75,6 +75,11 @@ class DatasetsController(BaseController):
                     # Supported params:
                     # id, title, embargoed, embargoed_until, embargo_days_from_now
                     id = params['id']
+                    if not special_match(id):
+                        response.content_type = "text/plain"
+                        response.status_int = 403
+                        response.status = "403 Forbidden: Dataset name can contain only the following characters - %s"%ag.naming_rule
+                        return "Dataset name can contain only the following characters - %s"%ag.naming_rule
                     del params['id']
                     item = create_new(c.silo, id, ident['repoze.who.userid'], **params)
                     
@@ -232,6 +237,12 @@ class DatasetsController(BaseController):
         elif http_method == "POST" and c.editor:
             params = request.POST
             if not c.silo.exists(id):
+                if not special_match(id):
+                    response.content_type = "text/plain"
+                    response.status_int = 403
+                    response.status = "403 Forbidden: Dataset name can contain only the following characters - %s"%ag.naming_rule
+                    return "Dataset name can contain only the following characters - %s"%ag.naming_rule
+
                 if 'id' in params.keys():
                     del params['id']
                 item = create_new(c.silo, id, ident['repoze.who.userid'], **params)
