@@ -255,11 +255,10 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
     def testFileUpload(self):
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
-        #Access state information and check
+        #Access state information
         data = self.doHTTP_GET(
             resource="states/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
-        state = data['state']
         # Upload zip file, check response
         zipdata = self.uploadTestSubmissionZipfile()
         # Access and check list of contents
@@ -303,7 +302,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(state['currentversion'], '2', "Current version == 2")
         self.assertEqual(state['rdffileformat'], 'xml', "RDF file type")
         self.assertEqual(state['rdffilename'], 'manifest.rdf', "RDF file name")
-        #TODO: The files of versio 1 are lso being updated - correct this
+        #TODO: The files of version 1 are also being updated - correct this
         #self.assertEqual(state['files']['1'], ['manifest.rdf'], "List should contain just manifest.rdf")
         self.assertEqual(state['files']['2'], ['manifest.rdf','testdir.zip'], "List should contain manifest.rdf and testdir.zip")
         self.assertEqual(len(state['metadata_files']['1']), 0, "metadata_files of version 1")
