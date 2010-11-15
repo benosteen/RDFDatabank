@@ -700,6 +700,10 @@ class DatasetsController(BaseController):
             if c.silo.exists(id):
                 item = c.silo.get_item(id)
                 if item.isfile(path):
+                    if 'manifest.rdf' in path:
+                        response.status_int = 403
+                        response.status = "403 Forbidden"
+                        return "Cannot delete the manifest"
                     item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                     item.del_stream(path)
                     item.del_triple(item.uri, u"dcterms:modified")
