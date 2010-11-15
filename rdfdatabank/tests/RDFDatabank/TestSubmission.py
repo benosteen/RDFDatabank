@@ -672,7 +672,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Put zip file again, check response
         zipdata = open("data/testdir2.zip").read()       
         self.doHTTP_PUT(zipdata, resource="datasets/TestSubmission/testdir.zip", 
-            expect_status=200, expect_reason="Ok", expect_type="*/*")
+            expect_status=204, expect_reason="Updated", expect_type="*/*")
         # Access and check list of contents
         rdfdata = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
@@ -741,7 +741,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Access and check list of contents
         rdfdata = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
-            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+            expect_status=204, expect_reason="Updated", expect_type="application/rdf+xml")
         rdfgraph = Graph()
         rdfstream = StringIO(rdfdata)
         rdfgraph.parse(rdfstream) 
@@ -766,7 +766,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Update metadata file, check response
         zipdata = open("data/manifest2.rdf").read()       
         self.doHTTP_PUT(zipdata, resource="datasets/TestSubmission/manifest.rdf", 
-            expect_status=200, expect_reason="Ok", expect_type="*/*")
+            expect_status=204, expect_reason="Updated", expect_type="*/*")
         # Access and check list of contents
         rdfdata = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
