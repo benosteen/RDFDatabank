@@ -280,8 +280,8 @@ class DatasetsController(BaseController):
                 response.status = "201 Created"
                 return "Created"
             elif params.has_key('embargo_change'):
-                item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                 item = c.silo.get_item(id)
+                item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                 if params.has_key('embargoed'):
                     if params.has_key('embargoed_until') and params['embargoed_until']:
                         embargoed_until_date = params['embargoed_until']
