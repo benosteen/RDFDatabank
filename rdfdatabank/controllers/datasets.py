@@ -79,7 +79,7 @@ class DatasetsController(BaseController):
                         response.content_type = "text/plain"
                         response.status_int = 403
                         #response.status = "Forbidden Dataset name can contain only the following characters - %s"%ag.naming_rule
-                        return "Dataset name can contain only the following characters - %s"%ag.naming_rule
+                        return "Dataset name can contain only the following characters - %s and has to be more than 1 character"%ag.naming_rule
                     
                     del params['id']
                     item = create_new(c.silo, id, ident['repoze.who.userid'], **params)
@@ -242,7 +242,7 @@ class DatasetsController(BaseController):
                     response.content_type = "text/plain"
                     response.status_int = 403
                     #response.status = "Forbidden"
-                    return "Dataset name can contain only the following characters - %s"%ag.naming_rule
+                    return "Dataset name can contain only the following characters - %s and has to be more than 1 character"%ag.naming_rule
                 if 'id' in params.keys():
                     del params['id']
                 item = create_new(c.silo, id, ident['repoze.who.userid'], **params)

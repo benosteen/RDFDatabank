@@ -41,6 +41,8 @@ def allowable_id(identifier):
         return identifier
 
 def allowable_id2(strg):
+    if len(strg) < 2 or ' ' in strg:
+        return False
     search=re.compile(r'%s'%ag.naming_rule).search
     return not bool(search(strg))
 
