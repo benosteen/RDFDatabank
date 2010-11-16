@@ -113,6 +113,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
 
     # Actual tests follow
     def testListSilos(self):
+        """List all silos your account has access to - GET /silo"""
         #Write a test to list all the silos. Test to see if it returns 200 OK and the list of silos is not empty
         # Access list silos, check response
         data = self.doHTTP_GET(
@@ -123,6 +124,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless(len(data)>0, "No silos returned")
    
     def testListDatasets(self):
+        """List all datasets in a silo - GET /silo_name/datasets"""
         # Access list of datasets in the silo, check response
         data = self.doHTTP_GET(
             resource="datasets/", 
@@ -162,7 +164,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         for ds in newlist: self.failUnless(ds in datasetlist, "Datset "+ds+" in new list, not in original list")
 
     def testSiloState(self):
-        #Write a test to get the state information of a silo. Test to see if it returns 200 OK and the state info in correct
+        """Get state informaton of a silo - GET /silo_name/states"""
         # Access state information of silo, check response
         data = self.doHTTP_GET(
             resource="states/", 
@@ -202,9 +204,11 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         for ds in newlist: self.failUnless(ds in datasetlist, "Datset "+ds+" in new list, not in original list")
 
     def testDatasetNotPresent(self):
+        """Verify dataset is not present - GET /silo_name/dataset_name"""
         self.doHTTP_GET(resource="TestSubmission", expect_status=404, expect_reason="Not Found")
 
     def testDatasetCreation(self):
+        """Create dataset - POST id to /silo_name"""
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Access dataset, check response
@@ -228,6 +232,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
 
     def testDatasetCreation2(self):
+        """Create dataset - POST to /silo_name/dataset_name"""
         # Create a new dataset, check response
         fields = []
         files =[]
@@ -257,6 +262,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
 
     def testDatasetRecreation(self):
+        """Create dataset - POST existing id to /silo_name"""
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Access dataset, check response
@@ -295,6 +301,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(rdfgraph),7,'Graph length %i' %len(rdfgraph))
 
     def testDeleteDataset(self):
+        """Delete dataset - DELETE /silo_name/dataset_name"""
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Access dataset, check response
@@ -311,6 +318,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             expect_status=404, expect_reason="Not Found")
 
     def testDatasetNaming(self):
+        """Create dataset - POST to /silo_name/dataset_name. If name is valid, return 201, else return 403"""
         names = [("TestSubmission-1", 201, "Created")
             ,("TestSubmission_2", 201, "Created")
             ,("TestSubmission:3", 201, "Created")
@@ -356,6 +364,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
                 expect_status=200, expect_reason="OK")
 
     def testDatasetStateInformation(self):
+        """Get state information of dataset - GET /silo_name/states/dataset_name."""
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Access state info
@@ -382,6 +391,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['manifest.rdf'].keys()), 13, "File stats for manifest.rdf")
 
     def testFileUpload(self):
+        """Upload file to dataset - POST file to /silo_name/datasets/dataset_name"""
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         #Access state information
@@ -446,6 +456,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['testdir.zip'].keys()), 13, "File stats for testdir.zip")
 
     def testFileDelete(self):
+        """Delete file in dataset - DELETE /silo_name/datasets/dataset_name/file_name"""
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Upload zip file, check response
@@ -482,7 +493,6 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         rdfstream = StringIO(rdfdata)
         rdfgraph.parse(rdfstream) 
         subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
-        #base = self.getRequestUri("datasets/TestSubmission/")
         dcterms = "http://purl.org/dc/terms/"
         ore  = "http://www.openarchives.org/ore/terms/"
         oxds = "http://vocab.ox.ac.uk/dataset/schema#"
@@ -490,7 +500,6 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(rdfgraph),8,'Graph length %i' %len(rdfgraph))
         self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
         self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
-        #self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testdir.zip")) in rdfgraph)
         self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
@@ -511,7 +520,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(state['currentversion'], '3', "Current version == 3")
         self.assertEqual(state['rdffileformat'], 'xml', "RDF file type")
         self.assertEqual(state['rdffilename'], 'manifest.rdf', "RDF file name")
-        #self.assertEqual(state['files']['1'], ['manifest.rdf'], "List should contain just manifest.rdf")
+        self.assertEqual(len(state['files']['1']), 1, "List should contain just manifest.rdf")
         self.assertEqual(len(state['files']['2']), 2, "List should contain manifest.rdf and testdir.zip")
         self.assertEqual(len(state['files']['3']), 1, "List should contain just manifest.rdf")
         self.assertEqual(len(state['metadata_files']['1']), 0, "metadata_files of version 1")
@@ -527,6 +536,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['manifest.rdf'].keys()), 13, "File stats for manifest.rdf")
 
     def testFileUpdate(self):
+        """POST file to dataset twice - POST file to /silo_name/datasets/dataset_name"""
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Upload zip file, check response (uploads the file testdir.zip)
@@ -591,7 +601,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(state['currentversion'], '3', "Current version == 3")
         self.assertEqual(state['rdffileformat'], 'xml', "RDF file type")
         self.assertEqual(state['rdffilename'], 'manifest.rdf', "RDF file name")
-        #self.assertEqual(state['files']['1'], ['manifest.rdf'], "List should contain just manifest.rdf")
+        self.assertEqual(len(state['files']['1']), 1, "List should contain just manifest.rdf")
         self.assertEqual(len(state['files']['2']), 2, "List should contain manifest.rdf and testdir.zip")
         self.assertEqual(len(state['files']['3']), 2, "List should contain manifest.rdf and testdir.zip")
         self.assertEqual(len(state['metadata_files']['1']), 0, "metadata_files of version 1")
@@ -608,6 +618,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['testdir.zip'].keys()), 13, "File stats for testdir.zip")
 
     def testMetadataFileUpdate(self):
+        """POST manifest to dataset - POST manifest.rdf to /silo_name/datasets/dataset_name"""
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Upload metadata file, check response
@@ -687,6 +698,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['manifest.rdf'].keys()), 13, "File stats for manifest.rdf")
 
     def testMetadataFileDelete(self):
+        """Delete manifest in dataset - DELETE /silo_name/datasets/dataset_name/manifest.rdf"""
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Delete metadata file, check response
@@ -714,6 +726,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
 
     def testPutCreateFile(self):
+        """PUT file contents to new filename - PUT file contents to /silo_name/datasets/dataset_name/file_name"""
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Put zip file, check response
@@ -776,6 +789,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['testdir.zip'].keys()), 13, "File stats for testdir.zip")
 
     def testPutUpdateFile(self):
+        """PUT file contents to existing filename - PUT file contents to /silo_name/datasets/dataset_name/file_name"""
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Put zip file, check response
@@ -861,6 +875,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['testdir.zip'].keys()), 13, "File stats for testdir.zip")
 
     def testPutMetadataFile(self):
+        """Add metadata to manifest - PUT metadata to /silo_name/datasets/dataset_name/manifest.rdf"""
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Put manifest file, check response
@@ -944,6 +959,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['manifest.rdf'].keys()), 13, "File stats for manifest.rdf")
 
     def testDeleteEmbargo(self):
+        """Delete embargo information - POST embargo_change to /silo_name/datasets/dataset_name"""
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         #Access dataset and check content
@@ -999,6 +1015,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(state['metadata']['embargoed_until'], "", "Should have no date for embargoed_until")
         
     def testChangeEmbargo(self):
+        """Modify embargo information - POST embargo_change, embargo, embargo_until to /silo_name/datasets/dataset_name"""
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         #Access dataset and check content
@@ -1061,6 +1078,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(state['metadata']['embargoed_until'], d2, "embargoed_until?")
 
     def testFileUnpack(self):
+        """Unpack zip file to a new dataset - POST zip filename to /silo_name/items/dataset_name"""
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Upload zip file, check response
@@ -1168,6 +1186,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             expect_status="*", expect_reason="*")
 
     def testSymlinkFileUnpack(self):
+        """Unpack zip file uploaded in a previous version to a new dataset - POST zip filename to /silo_name/items/dataset_name"""
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Upload zip file testdir.zip, check response
@@ -1277,6 +1296,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             expect_status="*", expect_reason="*")
 
     def testFileUploadToUnpackedDataset(self):
+        """Upload a file to an unpacked dataset - POST filename to /silo_name/datasets/dataset_name"""
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Upload zip file, check response
@@ -1409,6 +1429,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             expect_status="*", expect_reason="*")
 
     def testUpdateUnpackedDataset(self):
+        """Unpack zip file to an existing dataset - POST zip filename to /silo_name/items/dataset_name"""
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Upload zip file, check response
@@ -1568,8 +1589,8 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             expect_status="*", expect_reason="*")
 
     def testMetadataMerging(self):
-        #Test to create a dataset, upload a zip file, unpack it. The zipfile contains a manifest.rdf. 
-        #     The metadata in this file needs to be munged with the system geenrated metadata
+        """Unpack zip file to a dataset - POST zip filename to /silo_name/items/dataset_name
+        manifest.rdf in zipfile is munged with datsets existing manifest"""
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Submit ZIP file data/testrdf.zip, check response
@@ -1660,9 +1681,8 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             expect_status="*", expect_reason="*")
 
     def testMetadataInDirectoryMerging(self):
-        #Test to create a dataset, upload a zip file, unpack it. 
-        #     The zipfile contains a folder containing a manifest.rdf and other file and directory. 
-        #     The metadata in this file needs to be munged with the system geenrated metadata
+        """Unpack zip file to a dataset - POST zip filename to /silo_name/items/dataset_name
+        manifest.rdf from within a folder in unpacked zipfile is munged with datsets existing manifest"""
 
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
@@ -1733,8 +1753,6 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(owl+"sameAs"),URIRef("http://example.org/testrdf/")) in rdfgraph, 'owl:sameAs')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         self.failUnless((subj,URIRef(dcterms+"isVersionOf"),None) in rdfgraph, 'dcterms:isVersionOf')
-        #self.failUnless((URIRef("http://example.org/testrdf/"),URIRef(dcterms+"title"),"Test dataset with merged metadata") in rdfgraph, 'dcterms:title')
-        #self.failUnless((URIRef("http://example.org/testrdf/"),RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
         self.failUnless((subj,URIRef(dcterms+"title"),"Test dataset with merged metadata") in rdfgraph, 'dcterms:title')
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf2")) in rdfgraph)
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf2/directory")) in rdfgraph)
@@ -1742,7 +1760,6 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf2/directory/file1.b")) in rdfgraph)
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf2/directory/file2.a")) in rdfgraph)
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf2/test-csv.csv")) in rdfgraph)
-        #self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf/manifest.rdf")) in rdfgraph)
         self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
@@ -1766,6 +1783,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         assert (True)
 
     def testPending(self):
+        #Need to return location headers for 201
+        #Need to fix bug - state information of the previous verison is updated on file upload
+        #Need to have performance tests and analyse performance
         assert (False), "Pending tests follow"
 
 # Assemble test suite
