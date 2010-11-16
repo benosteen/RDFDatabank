@@ -78,8 +78,9 @@ class DatasetsController(BaseController):
                     if not allowable_id2(id):
                         response.content_type = "text/plain"
                         response.status_int = 403
-                        response.status = "403 Forbidden: Dataset name can contain only the following characters - %s"%ag.naming_rule
+                        #response.status = "Forbidden Dataset name can contain only the following characters - %s"%ag.naming_rule
                         return "Dataset name can contain only the following characters - %s"%ag.naming_rule
+                    
                     del params['id']
                     item = create_new(c.silo, id, ident['repoze.who.userid'], **params)
                     
@@ -240,7 +241,7 @@ class DatasetsController(BaseController):
                 if not allowable_id2(id):
                     response.content_type = "text/plain"
                     response.status_int = 403
-                    response.status = "403 Forbidden: Dataset name can contain only the following characters - %s"%ag.naming_rule
+                    #response.status = "Forbidden"
                     return "Dataset name can contain only the following characters - %s"%ag.naming_rule
                 if 'id' in params.keys():
                     del params['id']
@@ -480,8 +481,9 @@ class DatasetsController(BaseController):
                 ## 1 - store posted CS docs in 'version' "___cs"
                 ## 2 - apply changeset to RDF manifest
                 ## 3 - update state to reflect latest CS applied
-                response.status_int = 204
-                return
+                response.status_int = 403
+                #response.status = "Forbidden"
+                return "403 Forbidden"
             
         elif http_method == "DELETE" and c.editor:
             if c.silo.exists(id):
@@ -712,8 +714,8 @@ class DatasetsController(BaseController):
                 if item.isfile(path):
                     if 'manifest.rdf' in path:
                         response.status_int = 403
-                        response.status = "403 Forbidden"
-                        return "Cannot delete the manifest"
+                        #response.status = "403 Forbidden"
+                        return "Forbidden - Cannot delete the manifest"
                     item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                     item.del_stream(path)
                     item.del_triple(item.uri, u"dcterms:modified")

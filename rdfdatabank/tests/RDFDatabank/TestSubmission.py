@@ -226,6 +226,134 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
 
+    def testDatasetCreation2(self):
+        # Create a new dataset, check response
+        fields = []
+        files =[]
+        (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
+        self.doHTTP_POST(
+            reqdata, reqtype, 
+            resource="datasets/TestSubmission", 
+            expect_status=201, expect_reason="Created")
+        # Access dataset, check response
+        rdfdata = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),7,'Graph length %i' %len(rdfgraph))
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        dcterms = "http://purl.org/dc/terms/"
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        stype = URIRef(oxds+"DataSet")
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
+        self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
+        self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
+        self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
+
+    def testDatasetRecreation(self):
+        # Create a new dataset, check response
+        self.createTestSubmissionDataset()
+        # Access dataset, check response
+        rdfdata = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),7,'Graph length %i' %len(rdfgraph))
+        #Recreate the dataset, check response
+        fields = \
+            [ ("id", "TestSubmission")
+            ]
+        files =[]
+        (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
+        self.doHTTP_POST(
+            reqdata, reqtype, 
+            resource="datasets",
+            expect_status=409, expect_reason="Conflict: Dataset Already Exists")
+        #Recreate the dataset, check response
+        fields = []
+        files =[]
+        (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
+        self.doHTTP_POST(
+            reqdata, reqtype, 
+            resource="datasets/TestSubmission", 
+            expect_status=403, expect_reason="Forbidden")
+        # Access dataset, check response
+        rdfdata = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),7,'Graph length %i' %len(rdfgraph))
+
+    def testDeleteDataset(self):
+        # Create a new dataset, check response
+        self.createTestSubmissionDataset()
+        # Access dataset, check response
+        data = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        # Delete dataset, check response
+        self.doHTTP_DELETE(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK")
+        # Access dataset, test response indicating non-existent
+        data = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=404, expect_reason="Not Found")
+
+    def testDatasetNaming(self):
+        names = [("TestSubmission-1", 201, "Created")
+            ,("TestSubmission_2", 201, "Created")
+            ,("TestSubmission:3", 201, "Created")
+            ,("TestSubmission*4", 403, "Forbidden")
+            ,("TestSubmission/5", 404, "Not Found")
+            ,("TestSubmission\6", 403, "Forbidden")
+            ,("TestSubmission,7", 403, "Forbidden")
+            ,("TestSubmission&8", 403, "Forbidden")
+            ,("TestSubmission.9", 403, "Forbidden")
+            ,("""Test"Submission""", 403, "Forbidden")
+            ,("Test'Submission", 403, "Forbidden")
+            #,("Test Submission", 403, "Forbidden")
+            ,("TestSubmission$", 403, "Forbidden")
+        ]
+        fields = []
+        files =[]
+        (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
+        for name, status, reason in names:
+            #Create a new dataset, check response
+            self.doHTTP_POST(
+                reqdata, reqtype, 
+                resource="datasets/%s"%name, 
+                expect_status=status, expect_reason=reason)
+            # Access dataset, check response
+            if status == 201:
+                rdfdata = self.doHTTP_GET(
+                    resource="datasets/%s"%name, 
+                    expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+                rdfgraph = Graph()
+                rdfstream = StringIO(rdfdata)
+                rdfgraph.parse(rdfstream) 
+                self.assertEqual(len(rdfgraph),7,'Graph length %i' %len(rdfgraph))
+            elif status == 403:
+                rdfdata = self.doHTTP_GET(
+                    resource="datasets/%s"%name, 
+                    expect_status=404, expect_reason="Not Found")
+        #Delete Datasets
+        for name, status, reason in names:
+            if not status == 201:
+                continue
+            self.doHTTP_DELETE(
+                resource="datasets/%s"%name, 
+                expect_status=200, expect_reason="OK")
+
     def testDatasetStateInformation(self):
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
@@ -1087,6 +1215,10 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.doHTTP_DELETE(
             resource="datasets/TestSubmission-testdir", 
             expect_status="*", expect_reason="*")
+        # Delete the dataset TestSubmission
+        self.doHTTP_DELETE(
+            resource="datasets/TestSubmission", 
+            expect_status="*", expect_reason="*")
 
     def testUpdateUnpackedDataset(self):
         # Create a new dataset, check response
@@ -1213,6 +1345,10 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Delete the dataset TestSubmission-testdir
         self.doHTTP_DELETE(
             resource="datasets/TestSubmission-testdir", 
+            expect_status="*", expect_reason="*")
+        # Delete the dataset TestSubmission
+        self.doHTTP_DELETE(
+            resource="datasets/TestSubmission", 
             expect_status="*", expect_reason="*")
 
     def testMetadataMerging(self):
@@ -1402,22 +1538,6 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             resource="datasets/TestSubmission-testrdf2", 
             expect_status="*", expect_reason="*")
 
-    def testDeleteDataset(self):
-        # Create a new dataset, check response
-        self.createTestSubmissionDataset()
-        # Access dataset, check response
-        data = self.doHTTP_GET(
-            resource="datasets/TestSubmission", 
-            expect_status=200, expect_reason="OK", expect_type="application/json")
-        # Delete dataset, check response
-        self.doHTTP_DELETE(
-            resource="datasets/TestSubmission", 
-            expect_status=200, expect_reason="OK")
-        # Access dataset, test response indicating non-existent
-        data = self.doHTTP_GET(
-            resource="datasets/TestSubmission", 
-            expect_status=404, expect_reason="Not Found")
-
     # Sentinel/placeholder tests
 
     def testUnits(self):
@@ -1453,6 +1573,10 @@ def getTestSuite(select="unit"):
             , "testSiloState"
             , "testDatasetNotPresent"
             , "testDatasetCreation"
+            , "testDatasetCreation2"
+            , "testDatasetRecreation"
+            , "testDeleteDataset"
+            , "testDatasetNaming"
             , "testDatasetStateInformation"
             , "testFileUpload"
             , "testFileDelete"
@@ -1468,7 +1592,6 @@ def getTestSuite(select="unit"):
             , "testMetadataInDirectoryMerging"
             , "testFileUploadToUnpackedDataset"
             , "testUpdateUnpackedDataset"
-            , "testDeleteDataset"
             ],
         "component":
             [ "testComponents"
