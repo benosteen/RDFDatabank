@@ -10,7 +10,6 @@ from rdflib import StringInputSource
 from rdflib import Namespace, RDF, RDFS, URIRef
 
 from uuid import uuid4
-
 import re
 
 ID_PATTERN = re.compile(r"^[0-9A-z\-\:]+$")
@@ -116,8 +115,8 @@ def munge_manifest(manifest_str, item, manifest_type='http://vocab.ox.ac.uk/data
     #Get triples from the manifest file and remove the file
     triples = None
     ns = None
+    seeAlsoFiles = None
     ns, triples, seeAlsoFiles = read_manifest(item.uri, manifest_str, manifest_type=manifest_type, isstring=isstring)
-    #item.add_namespace('owl', "http://www.w3.org/2002/07/owl#")
     if ns and triples:
         for k, v in ns.iteritems():
             item.add_namespace(k, v)
@@ -126,14 +125,21 @@ def munge_manifest(manifest_str, item, manifest_type='http://vocab.ox.ac.uk/data
                 item.del_triple(item.uri, u"dcterms:title")    
             item.add_triple(s, p, o)
     item.sync()
-    #if seeAlsoFiles:
-    #    for filename in seeAlsoFiles:
-    #        #get path to filename
-    #        filepath = None
-    #        if item.isfile(filepath):
-    #            with item.get_stream(filepath) as fn:
-    #                text = fn.read()
-    #            self.munge_manifest(text, item, manifest_type=manifest_type)
+    if seeAlsoFiles:
+        tmp_m = item.get_rdf_manifest()
+        for filename in seeAlsoFiles:
+            fullfilepath = None
+            #get path to filename
+            for (s, p, o) in tmp_m.get_graph():
+                if str(p) == 'http://www.openarchives.org/ore/terms/aggregates' and filename in str(o):
+                    filepath = str(o).replace(item.uri, '').strip().lstrip('/')
+                    fullfilepath = item.to_dirpath(filepath=filepath)
+                    break
+            if fullfilepath and item.isfile(fullfilepath):
+                with item.get_stream(filepath) as fn:
+                    text = fn.read()
+                if test_rdf(text):
+                    munge_manifest(text, item, manifest_type=manifest_type)
     return True
 
 def read_manifest(target_dataset_uri, manifest_str, manifest_type='http://vocab.ox.ac.uk/dataset/schema#Grouping', isstring=True):
@@ -155,8 +161,6 @@ def read_manifest(target_dataset_uri, manifest_str, manifest_type='http://vocab.
                 triples.append((target_dataset_uri, 'owl:sameAs', s))
         elif str(o) in oxdsClasses and not s.startswith('http'):
             gparsed.remove((s, p, o))
-    #for s,p,o in gparsed.triples((None, RDFS.seeAlso, None)):
-    #    seeAlsoFiles.append(str(o))
     for s,p,o in gparsed.triples((None, None, None)):
         if str(p) == 'http://www.w3.org/2000/01/rdf-schema#seeAlso' and str(o):
             seeAlsoFiles.append(str(o))
