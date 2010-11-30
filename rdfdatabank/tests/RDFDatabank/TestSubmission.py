@@ -330,8 +330,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             ,("TestSubmission.9", 403, "Forbidden")
             ,("""Test"Submission""", 403, "Forbidden")
             ,("Test'Submission", 403, "Forbidden")
-            #,("Test Submission", 403, "Forbidden") #This is being posted as 'Test' - Why?
+            #,("""Test Submission""", 403, "Forbidden") #The name is truncated to Test and dataset is created. This does not happen when using the form
             ,("TestSubmission$", 403, "Forbidden")
+            ,("T", 403, "Forbidden")
         ]
         fields = []
         files =[]
@@ -1788,6 +1789,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         #Need to return location headers for 201
         #Need to fix bug - state information of the previous verison is updated on file upload / delete
         #Need to have performance tests and analyse performance
+        #Need to set the permission of file being uploaded
         assert (False), "Pending tests follow"
 
 # Assemble test suite
