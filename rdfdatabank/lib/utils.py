@@ -7,7 +7,7 @@ from pylons import app_globals as ag
 
 from rdflib import ConjunctiveGraph
 from rdflib import StringInputSource
-from rdflib import Namespace, RDF, RDFS
+from rdflib import Namespace, RDF, RDFS, URIRef
 
 from uuid import uuid4
 
@@ -140,26 +140,27 @@ def read_manifest(target_dataset_uri, manifest_str, manifest_type='http://vocab.
     triples = []
     namespaces = {}
     seeAlsoFiles = []
+    oxdsClasses = ['http://vocab.ox.ac.uk/dataset/schema#Grouping', 'http://vocab.ox.ac.uk/dataset/schema#DataSet']
     if isstring:
         manifest_str = StringInputSource(manifest_str)
     g = ConjunctiveGraph()
     gparsed = g.parse(manifest_str, format='xml')
-    namespaces = dict(g.namespaces())    
+    namespaces = dict(g.namespaces())
     datasetType = False
     for s,p,o in gparsed.triples((None, RDF.type, None)):
-        if str(p) == manifest_type:
+        if str(o) == manifest_type:
             datasetType = True
-            if not s.startswith('file'):
+            if s.startswith('http'):
                 namespaces['owl'] = URIRef("http://www.w3.org/2002/07/owl#")
                 triples.append((target_dataset_uri, 'owl:sameAs', s))
-            continue
+        elif str(o) in oxdsClasses and not s.startswith('http'):
+            gparsed.remove((s, p, o))
     #for s,p,o in gparsed.triples((None, RDFS.seeAlso, None)):
     #    seeAlsoFiles.append(str(o))
     for s,p,o in gparsed.triples((None, None, None)):
         if str(p) == 'http://www.w3.org/2000/01/rdf-schema#seeAlso' and str(o):
             seeAlsoFiles.append(str(o))
-            continue
-        if datasetType or s.startswith('file'):
+        elif datasetType or not s.startswith('http'):
             triples.append((target_dataset_uri, p, o))
         else:
             triples.append((s, p, o))
@@ -172,7 +173,7 @@ def manifest_type(manifest_str, isstring=True):
     g = ConjunctiveGraph()
     gparsed = g.parse(manifest_str, format='xml')
     for s,p,o in gparsed.triples((None, RDF.type, None)):
-        mani_types.append(str(p))
+        mani_types.append(str(o))
     if "http://vocab.ox.ac.uk/dataset/schema#DataSet" in mani_types:
         return "http://vocab.ox.ac.uk/dataset/schema#DataSet"
     elif "http://vocab.ox.ac.uk/dataset/schema#Grouping" in mani_types:
