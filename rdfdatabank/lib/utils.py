@@ -5,7 +5,9 @@ import simplejson
 
 from pylons import app_globals as ag
 
-from rdfobject.constructs import Manifest
+from rdflib import ConjunctiveGraph
+from rdflib import StringInputSource
+from rdflib import Namespace, RDF, RDFS
 
 from uuid import uuid4
 
@@ -100,19 +102,21 @@ def get_readme_text(item, filename="README"):
         text = fn.read().decode("utf-8")
     return u"%s\n\n%s" % (filename, text)
 
-def test_rdf(text):
+def test_rdf(text, isstring=True):
+    g = ConjunctiveGraph()
+    if isstring:
+        text = StringInputSource(text)
     try:
-        mani = Manifest()
-        mani.from_string(text)
+        g = g.parse(text, format='xml')
         return True
     except:
         return False
-        
-def munge_manifest(manifest_str, item, manifest_type='http://vocab.ox.ac.uk/dataset/schema#Grouping'):    
+
+def munge_manifest(manifest_str, item, manifest_type='http://vocab.ox.ac.uk/dataset/schema#Grouping', isstring=True):    
     #Get triples from the manifest file and remove the file
     triples = None
     ns = None
-    ns, triples = read_manifest(item.uri, manifest_str, manifest_type=manifest_type)
+    ns, triples, seeAlsoFiles = read_manifest(item.uri, manifest_str, manifest_type=manifest_type, isstring=isstring)
     #item.add_namespace('owl', "http://www.w3.org/2002/07/owl#")
     if ns and triples:
         for k, v in ns.iteritems():
@@ -122,42 +126,53 @@ def munge_manifest(manifest_str, item, manifest_type='http://vocab.ox.ac.uk/data
                 item.del_triple(item.uri, u"dcterms:title")    
             item.add_triple(s, p, o)
     item.sync()
+    #if seeAlsoFiles:
+    #    for filename in seeAlsoFiles:
+    #        #get path to filename
+    #        filepath = None
+    #        if item.isfile(filepath):
+    #            with item.get_stream(filepath) as fn:
+    #                text = fn.read()
+    #            self.munge_manifest(text, item, manifest_type=manifest_type)
     return True
 
-def read_manifest(target_dataset_uri, manifest_str, manifest_type='http://vocab.ox.ac.uk/dataset/schema#Grouping'):
+def read_manifest(target_dataset_uri, manifest_str, manifest_type='http://vocab.ox.ac.uk/dataset/schema#Grouping', isstring=True):
     triples = []
     namespaces = {}
-    mani = Manifest()
-    mani.from_string(manifest_str)    
-    namespaces = mani.namespaces   
-    for s_uri in mani.items_rdfobjects:
-        datasetType = False
-        #print '------------------ types ---------------------'
-        #print mani.items_rdfobjects[s_uri].types
-        #print '----------------  triples --------------------'
-        #print mani.items_rdfobjects[s_uri].list_triples()
-        #print '----------------------------------------------'
-        for t in mani.items_rdfobjects[s_uri].types:
-            if str(t) == manifest_type:
-                datasetType = True
-        if datasetType:
-            #Add to existing uri and add a sameAs triple with this uri
-            for s,p,o in mani.items_rdfobjects[s_uri].list_triples():
-                triples.append((target_dataset_uri, p, o))
-            namespaces['owl'] = "http://www.w3.org/2002/07/owl#"
-            triples.append((target_dataset_uri, 'owl:sameAs', s_uri))
+    seeAlsoFiles = []
+    if isstring:
+        manifest_str = StringInputSource(manifest_str)
+    g = ConjunctiveGraph()
+    gparsed = g.parse(manifest_str, format='xml')
+    namespaces = dict(g.namespaces())    
+    datasetType = False
+    for s,p,o in gparsed.triples((None, RDF.type, None)):
+        if str(p) == manifest_type:
+            datasetType = True
+            if not s.startswith('file'):
+                namespaces['owl'] = URIRef("http://www.w3.org/2002/07/owl#")
+                triples.append((target_dataset_uri, 'owl:sameAs', s))
+            continue
+    #for s,p,o in gparsed.triples((None, RDFS.seeAlso, None)):
+    #    seeAlsoFiles.append(str(o))
+    for s,p,o in gparsed.triples((None, None, None)):
+        if str(p) == 'http://www.w3.org/2000/01/rdf-schema#seeAlso' and str(o):
+            seeAlsoFiles.append(str(o))
+            continue
+        if datasetType or s.startswith('file'):
+            triples.append((target_dataset_uri, p, o))
         else:
-            for s,p,o in mani.items_rdfobjects[s_uri].list_triples():
-                triples.append((s, p, o))
-    return namespaces, triples
+            triples.append((s, p, o))
+    return namespaces, triples, seeAlsoFiles
 
-def manifest_type(manifest_str):
+def manifest_type(manifest_str, isstring=True):
     mani_types = []
-    mani = Manifest()
-    mani.from_string(manifest_str)    
-    for s_uri in mani.items_rdfobjects:
-        for t in mani.items_rdfobjects[s_uri].types:
-            mani_types.append(str(t))
+    if isstring:
+        manifest_str = StringInputSource(manifest_str)
+    g = ConjunctiveGraph()
+    gparsed = g.parse(manifest_str, format='xml')
+    for s,p,o in gparsed.triples((None, RDF.type, None)):
+        mani_types.append(str(p))
     if "http://vocab.ox.ac.uk/dataset/schema#DataSet" in mani_types:
         return "http://vocab.ox.ac.uk/dataset/schema#DataSet"
     elif "http://vocab.ox.ac.uk/dataset/schema#Grouping" in mani_types:
