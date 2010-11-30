@@ -537,7 +537,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['manifest.rdf'].keys()), 13, "File stats for manifest.rdf")
 
     def testFileUpdate(self):
-        """POST file to dataset twice - POST file to /silo_name/datasets/dataset_name"""
+        """Update file in dataset - POST file to /silo_name/datasets/dataset_name (x 2)"""
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Upload zip file, check response (uploads the file testdir.zip)
