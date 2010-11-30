@@ -40,6 +40,12 @@ def allowable_id(identifier):
     if ID_PATTERN.match(identifier):
         return identifier
 
+def allowable_id2(strg):
+    if len(strg) < 2 or ' ' in strg:
+        return False
+    search=re.compile(r'%s'%ag.naming_rule).search
+    return not bool(search(strg))
+
 def is_embargoed(silo, id, refresh=False):
     # TODO evaluate r.expire settings for these keys - popularity resets ttl or increases it?
     r = Redis()
@@ -167,7 +173,4 @@ def serialisable_stat(stat):
             pass
     return stat_values
 
-def special_match(strg):
-    search=re.compile(r'%s'%ag.naming_rule).search
-    return not bool(search(strg))
 
