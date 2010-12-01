@@ -4,9 +4,8 @@
   xmlns:oxds='http://vocab.ox.ac.uk/dataset/schema#'
   xmlns:dc='http://purl.org/dc/elements/1.1/'
 >
-  <oxds:item rdf:about="1a.rdf">
-    <dcterms:title>Test item 1a</dcterms:title>
-    <dc:description>This is a archived test item 1a </dc:description>
-  </oxds:item>
+  <oxds:Grouping>
+    <dc:description>file1.a is another file</dc:description>
+  </oxds:Grouping>
 </rdf:RDF>
 

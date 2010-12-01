@@ -5,7 +5,7 @@
   xmlns:oxds='http://vocab.ox.ac.uk/dataset/schema#'
 >
   <oxds:Grouping rdf:about="http://example.org/testrdf/">
-    <dcterms:title>Test dataset 3 with updated and merged metadata</dcterms:title>
+    <dcterms:title>Test dataset 4 with updated and merged metadata</dcterms:title>
     <rdfs:seeAlso rdf:resource="directory/1a.rdf"/>
     <rdfs:seeAlso rdf:resource="directory/1b.rdf"/>
   </oxds:Grouping>
