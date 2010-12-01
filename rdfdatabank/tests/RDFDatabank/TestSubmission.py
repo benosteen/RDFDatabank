@@ -1592,8 +1592,8 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             expect_status="*", expect_reason="*")
 
     def testMetadataMerging(self):
-        """Unpack zip file to a dataset - POST zip filename to /silo_name/items/dataset_name
-        manifest.rdf in zipfile is munged with datsets existing manifest"""
+        """POST zipfile to /silo_name/items/dataset_name. Unpack zip file to a dataset.
+        manifest.rdf located in unpacked zipfile is munged with existing manifest of the dataset."""
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Submit ZIP file data/testrdf.zip, check response
@@ -1684,8 +1684,8 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             expect_status="*", expect_reason="*")
 
     def testMetadataInDirectoryMerging(self):
-        """Unpack zip file to a dataset - POST zip filename to /silo_name/items/dataset_name
-        manifest.rdf from within a folder in unpacked zipfile is munged with datsets existing manifest"""
+        """POST zipfile to /silo_name/items/dataset_name. Unpack zip file to a dataset.
+        manifest.rdf located within a folder in unpacked zipfile is munged with datsets existing manifest"""
 
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
@@ -1774,6 +1774,215 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             resource="datasets/TestSubmission-testrdf2", 
             expect_status="*", expect_reason="*")
 
+    def testReferencedMetadataMerging(self):
+        """POST zipfile to /silo_name/items/dataset_name. Unpack zip file to a dataset.
+        manifest.rdf located within the unpacked zipfile is munged with datsets existing manifest.
+        Also, manifest.rdf in the unpacked zipfile, references other metadata files, using the property rdfs:seeAlso.
+        The metadata from these files are munged."""
+
+        # Create a new dataset, check response
+        self.createTestSubmissionDataset()
+        # Submit ZIP file data/testrdf3.zip, check response
+        fields = []
+        zipdata = open("data/testrdf3.zip").read()
+        files = \
+            [ ("file", "testrdf3.zip", zipdata, "application/zip") 
+            ]
+        (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
+        self.doHTTP_POST(
+            reqdata, reqtype, 
+            resource="datasets/TestSubmission/", 
+            expect_status=201, expect_reason="Created")
+        #TODO: TEST FOR LOCATION HEADER
+        # Unpack ZIP file into a new dataset, check response
+        fields = \
+            [ ("filename", "testrdf3.zip")
+            ]
+        files = []
+        (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
+        self.doHTTP_POST(
+            reqdata, reqtype, 
+            resource="items/TestSubmission", 
+            expect_status=201, expect_reason="Created")
+        #TODO: TEST FOR LOCATION HEADER
+        # Access parent dataset, check response
+        data = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        # Access and check list of contents in parent dataset - TestSubmission
+        rdfdata = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        base = self.getRequestUri("datasets/TestSubmission/")
+        dcterms = "http://purl.org/dc/terms/"
+        ore  = "http://www.openarchives.org/ore/terms/"
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        stype = URIRef(oxds+"DataSet")
+        self.assertEqual(len(rdfgraph),10,'Graph length %i' %len(rdfgraph))
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
+        self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf3.zip")) in rdfgraph)
+        self.failUnless((URIRef(base+"testrdf3.zip"),URIRef(dcterms+"hasVersion"),None) in rdfgraph, 'dcterms:hasVersion')
+        self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
+        self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
+        self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
+        # Access and check list of contents in child dataset - TestSubmission-testrdf3
+        rdfdata = self.doHTTP_GET(
+            resource="datasets/TestSubmission-testrdf3", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission-testrdf3"))
+        base = self.getRequestUri("datasets/TestSubmission-testrdf3/")
+        dc = "http://purl.org/dc/elements/1.1/"
+        stype = URIRef(oxds+"Grouping")
+        self.assertEqual(len(rdfgraph),20,'Graph length %i' %len(rdfgraph))
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
+        self.failUnless((subj,URIRef(dcterms+"isVersionOf"),None) in rdfgraph, 'dcterms:isVersionOf')
+        self.failUnless((subj,URIRef(dcterms+"title"),"Test dataset 3 with updated and merged metadata") in rdfgraph, 'dcterms:title')
+        self.failUnless((subj,URIRef(dc+"description"),"file1.a is another file") in rdfgraph, 'dc:description')
+        self.failUnless((subj,URIRef(dc+"description"),"file1.b is a text file") in rdfgraph, 'dc:description')
+        self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf3")) in rdfgraph)
+        self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf3/directory")) in rdfgraph)
+        self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf3/directory/file1.a")) in rdfgraph)
+        self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf3/directory/file1.b")) in rdfgraph)
+        self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf3/directory/file2.a")) in rdfgraph)
+        self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf3/directory/1a.rdf")) in rdfgraph)
+        self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf3/directory/1b.rdf")) in rdfgraph)
+        self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf3/test-csv.csv")) in rdfgraph)
+        self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
+        self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
+        self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        # Delete the dataset TestSubmission-testrdf3
+        self.doHTTP_DELETE(
+            resource="datasets/TestSubmission-testrdf3", 
+            expect_status="*", expect_reason="*")
+
+    def testReferencedMetadataMerging2(self):
+        """POST zipfile to /silo_name/items/dataset_name. Unpack zip file to a dataset.
+        manifest.rdf located within the unpacked zipfile is munged with datsets existing manifest.
+        Also, manifest.rdf in the unpacked zipfile, references other metadata files, using the property rdfs:seeAlso.
+        The metadata from these files are munged. One of the referenced files, references other files, which if they exists are also munged."""
+
+        # Create a new dataset, check response
+        self.createTestSubmissionDataset()
+        # Submit ZIP file data/testrdf3.zip, check response
+        fields = []
+        zipdata = open("data/testrdf4.zip").read()
+        files = \
+            [ ("file", "testrdf4.zip", zipdata, "application/zip") 
+            ]
+        (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
+        self.doHTTP_POST(
+            reqdata, reqtype, 
+            resource="datasets/TestSubmission/", 
+            expect_status=201, expect_reason="Created")
+        #TODO: TEST FOR LOCATION HEADER
+        # Unpack ZIP file into a new dataset, check response
+        fields = \
+            [ ("filename", "testrdf4.zip")
+            ]
+        files = []
+        (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
+        self.doHTTP_POST(
+            reqdata, reqtype, 
+            resource="items/TestSubmission", 
+            expect_status=201, expect_reason="Created")
+        #TODO: TEST FOR LOCATION HEADER
+        # Access parent dataset, check response
+        data = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        # Access and check list of contents in parent dataset - TestSubmission
+        rdfdata = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        base = self.getRequestUri("datasets/TestSubmission/")
+        dcterms = "http://purl.org/dc/terms/"
+        ore  = "http://www.openarchives.org/ore/terms/"
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        stype = URIRef(oxds+"DataSet")
+        self.assertEqual(len(rdfgraph),10,'Graph length %i' %len(rdfgraph))
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
+        self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf4.zip")) in rdfgraph)
+        self.failUnless((URIRef(base+"testrdf4.zip"),URIRef(dcterms+"hasVersion"),None) in rdfgraph, 'dcterms:hasVersion')
+        self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
+        self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
+        self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
+        # Access and check list of contents in child dataset - TestSubmission-testrdf3
+        rdfdata = self.doHTTP_GET(
+            resource="datasets/TestSubmission-testrdf4", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        subj = URIRef(self.getRequestUri("datasets/TestSubmission-testrdf4"))
+        subj2 = URIRef("http://163.1.127.173/sandbox/datasets/test_munging-testrdf4/directory/1a.rdf")
+        subj3 = URIRef("http://163.1.127.173/sandbox/datasets/test_munging-testrdf4/directory/1b.rdf")
+        subj4 = URIRef("http://163.1.127.173/sandbox/datasets/test_munging-testrdf4/directory/2a.rdf")
+        base = self.getRequestUri("datasets/TestSubmission-testrdf4/")
+        owl = "http://www.w3.org/2002/07/owl#"
+        dc = "http://purl.org/dc/elements/1.1/"
+        stype = URIRef(oxds+"Grouping")
+        stype2 = URIRef(oxds+"item")
+        self.assertEqual(len(rdfgraph),28,'Graph length %i' %len(rdfgraph))
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(owl+"sameAs"),URIRef("http://example.org/testrdf/")) in rdfgraph, 'owl:sameAs')
+        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
+        self.failUnless((subj,URIRef(dcterms+"isVersionOf"),None) in rdfgraph, 'dcterms:isVersionOf')
+        self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf4")) in rdfgraph)
+        self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf4/directory")) in rdfgraph)
+        self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf4/directory/file1.a")) in rdfgraph)
+        self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf4/directory/file1.b")) in rdfgraph)
+        self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf4/directory/file2.a")) in rdfgraph)
+        self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf4/directory/1a.rdf")) in rdfgraph)
+        self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf4/directory/1b.rdf")) in rdfgraph)
+        self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf4/directory/2a.rdf")) in rdfgraph)
+        self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf4/test-csv.csv")) in rdfgraph)
+        self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
+        self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
+        self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        
+        self.failUnless((subj2,RDF.type,stype2) in rdfgraph, 'Testing submission type: '+subj2+", "+stype2)
+        self.failUnless((subj2,URIRef(dc+"description"),"This is a archived test item 1a ") in rdfgraph, 'dc:description')
+        self.failUnless((subj2,URIRef(dcterms+"title"),"Test item 1a") in rdfgraph, 'dcterms:title')
+        
+        self.failUnless((subj3,RDF.type,stype2) in rdfgraph, 'Testing submission type: '+subj3+", "+stype2)
+        self.failUnless((subj3,URIRef(dc+"description"),"This is test item 1b of type file") in rdfgraph, 'dc:description')
+        self.failUnless((subj3,URIRef(dcterms+"title"),"Test item 1b") in rdfgraph, 'dcterms:title')
+
+        self.failUnless((subj4,RDF.type,stype2) in rdfgraph, 'Testing submission type: '+subj4+", "+stype2)
+        self.failUnless((subj4,URIRef(dc+"description"),"This is a archived test item 2a ") in rdfgraph, 'dc:description')
+        self.failUnless((subj4,URIRef(dcterms+"title"),"Test item 2a") in rdfgraph, 'dcterms:title')
+        
+        # Delete the dataset TestSubmission-testrdf3
+        self.doHTTP_DELETE(
+            resource="datasets/TestSubmission-testrdf3", 
+            expect_status="*", expect_reason="*")
+
     # Sentinel/placeholder tests
 
     def testUnits(self):
@@ -1834,6 +2043,8 @@ def getTestSuite(select="unit"):
             , "testMetadataInDirectoryMerging"
             , "testFileUploadToUnpackedDataset"
             , "testUpdateUnpackedDataset"
+            , "testReferencedMetadataMerging"
+            , "testReferencedMetadataMerging2"
             ],
         "component":
             [ "testComponents"
