@@ -1980,7 +1980,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         
         # Delete the dataset TestSubmission-testrdf3
         self.doHTTP_DELETE(
-            resource="datasets/TestSubmission-testrdf3", 
+            resource="datasets/TestSubmission-testrdf4", 
             expect_status="*", expect_reason="*")
 
     # Sentinel/placeholder tests
