@@ -1978,9 +1978,14 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj4,URIRef(dc+"description"),"This is a archived test item 2a ") in rdfgraph, 'dc:description')
         self.failUnless((subj4,URIRef(dcterms+"title"),"Test item 2a") in rdfgraph, 'dcterms:title')
         
-        # Delete the dataset TestSubmission-testrdf3
+        # Delete the dataset TestSubmission-testrdf4
         self.doHTTP_DELETE(
             resource="datasets/TestSubmission-testrdf4", 
+            expect_status="*", expect_reason="*")
+
+        # Delete the dataset TestSubmission
+        self.doHTTP_DELETE(
+            resource="datasets/TestSubmission", 
             expect_status="*", expect_reason="*")
 
     # Sentinel/placeholder tests
