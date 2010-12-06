@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
 <%inherit file="/base.html" />
 <%def name="head_tags()">
-  <title> List of Data Archives </title>
+  <title> List of Datasets </title>
 </%def>
+% if c.silo_name:
+<h1>List of Datasets in Silo ${c.silo_name}</h1>
+% else:
+<h1>List of Datasets in Silo</h1>
+% endif
 <p><%include file="list_of_datasets.html"/></p>
 
 <h3> Create new empty dataset: </h3>

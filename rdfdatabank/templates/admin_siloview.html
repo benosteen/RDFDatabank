@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 <%inherit file="/base.html" />
 <%def name="head_tags()">
-  <title> List of Data Archives </title>
+  <title>Admin Interface - c.silo_name </title>
 </%def>
+<h1>Admin Interface - c.silo_name</h1>
 % if c.silo_name:
-<h3> Admin Archive ${c.silo_name}</h3>
+<h3> Admin ${c.silo_name}</h3>
 % if c.message:
 <p><span style="color:red;">${c.message}</span></p>
 % endif

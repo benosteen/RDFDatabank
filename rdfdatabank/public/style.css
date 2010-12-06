@@ -1,0 +1,68 @@
+body {
+    font-size: 80%;
+    font-family: droid, helvetica, verdana, sans-serif;
+}
+
+/* Layout */
+#wrapper {
+    width: 72em;
+    max-width: 100%;
+    margin: 0 auto;
+    text-align: left;
+}
+
+#header {
+    max-width: 100%;
+    height: 85px;
+}
+
+#leftcol {
+    width: 18em;
+    max-width: 23%;
+    float: left;
+    /* debug color 
+    background: #ddd;*/
+}
+
+#content {
+    width: 52em;
+    max-width: 75%;
+    float: right;
+    /* debug color 
+    background: #efefef;*/
+    padding: 0.5em;
+}
+
+#widecontent {
+    max-width: 100%;
+    padding: 0.5em;
+}
+
+#footer {
+    clear: both;
+    max-width: 100%;
+    /* debug color 
+    background: #69d;*/
+}
+
+/* Float ruler */
+.clearfloats {
+    clear: both;
+    height: 0em;
+}
+
+/* Header */
+#branding {
+}
+
+#logo {
+    float: left;
+}
+
+#search_form {
+    text-align: right;
+}
+
+.readme {
+    font-size: 0.9em;
+}

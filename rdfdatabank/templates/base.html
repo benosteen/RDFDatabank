@@ -3,10 +3,9 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
   <head>  
-  <script type="application/javascript" src="http://www.google.com/jsapi"></script>
-  <script type="application/javascript">
-  google.load("jquery", "1.3.2");
-  </script>
+  ${ h.stylesheet_link( '/style.css' ) }
+  ${ h.javascript_link( '/jquery.js' ) }
+  ${self.head_tags()}
   <script type="text/javascript">
   $(document).ready( function() {
 
@@ -27,20 +26,22 @@
       });
     return false;
   });
-
 });
   </script>
-    ${self.head_tags()}
   </head>
   <body>
+    <div id="wrapper">
+      <div id="header">
+      <%include file="/header.html"/>
 % if c.silo_name:
-<!-- <h1> <a href="/silos">Archives</a> - <a href="/search/raw">Search API</a>: <a href="/${c.silo_name}/datasets">${c.silo_name}</a> - <small><small>${c.silo_name} <a href="/${c.silo_name}/packages">package upload</a> </small></small></h1> -->
-<h1> <a href="/silos">Archives</a> - <a href="/search/raw">Search API</a>: <a href="/${c.silo_name}/datasets">${c.silo_name}</a> </h1>
+<h1> <a href="/silos">Silos</a> - <a href="/${c.silo_name}/datasets">${c.silo_name}</a> </h1>
 % else:
-<h1> <a href="/silos">Archives</a> - <a href="/search/raw">Search API</a></h1>
+<h1> <a href="/silos">Silos</a> </h1>
 % endif
+      </div>
+      <div id="widecontent">      
 % if c.ident and c.ident['role'] == "admin":
-<div style="float:right;">
+<div id="admin">
 <p><a href="/admin">Admin pages</a>
 %   if c.silo_name:
 <a href="/admin/${c.silo_name}">Admin ${c.silo_name}</a>
@@ -57,8 +58,10 @@
 %   endif
 % endif
     ${self.body()}
-   <hr/>
-   <p><a href="/datasets_api.html"> /Datasets API list </a></p>
+      </div>
+      <div id="footer">
+      <%include file="/footer.html"/>
+      </div>
+    </div>
   </body>
 </html>
-

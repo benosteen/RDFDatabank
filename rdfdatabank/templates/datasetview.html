@@ -3,8 +3,9 @@
 <%def name="head_tags()">
   <link rel="meta" type="application/rdf+xml" title="RDF Manifest"
                href="/${c.silo_name}/datasets/${c.id}/manifest.rdf"/>
-  <title> View of item ${c.item.uri} </title>
+  <title> Dataset ${c.id} </title>
 </%def>
+<h1>Dataset ${c.id}</h1>
 % if c.editor:
 <p>View as <a href="/${c.silo_name}/datasets/${c.id}?view=editor"> Editor </a>, or <a href="/${c.silo_name}/datasets/${c.id}?view=user">User</a></p>
 % endif

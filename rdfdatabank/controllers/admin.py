@@ -7,8 +7,6 @@ from rdfdatabank.lib.base import BaseController, render
 
 import re, os
 
-from rdfdatabank.lib.unpack import store_zipfile, unpack_zip_item, BadZipfile
-
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 
 log = logging.getLogger(__name__)
