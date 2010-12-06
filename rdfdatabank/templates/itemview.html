@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 <%inherit file="/base.html" />
 <%def name="head_tags()">
-  <title> View of item ${c.item.uri} </title>
+  <title>Item View</title>
 </%def>
-<h1>Item ${c.item.uri}</h1>
 % if c.readme_text:
 <%include file="/readme_section.html"/>
 % endif
