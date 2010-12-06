@@ -59,6 +59,11 @@ body {
     float: left;
 }
 
+#search {
+    float: right;
+    margin-right: 10px
+}
+
 #search_form {
     text-align: right;
 }
