@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 <%inherit file="/base.html" />
 <%def name="head_tags()">
-  <title>Admin Interface - c.silo_name </title>
+  <title>Admin Interface - ${c.silo_name} </title>
 </%def>
-<h1>Admin Interface - c.silo_name</h1>
+<h1>Admin Interface - ${c.silo_name}</h1>
 % if c.silo_name:
 <h3> Admin ${c.silo_name}</h3>
 % if c.message:
