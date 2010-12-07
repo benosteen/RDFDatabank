@@ -930,8 +930,8 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'3') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
-        self.failUnless((subj,URIRef(dcterms+"title"),'Test dataset with updated and merged metadata') in rdfgraph, 'dcterms:title')
         self.failUnless((subj,URIRef(owl+"sameAs"),URIRef("http://example.org/testrdf/")) in rdfgraph, 'owl:sameAs')
+        self.failUnless((subj,URIRef(dcterms+"title"),'Test dataset with updated and merged metadata') in rdfgraph, 'dcterms:title')
         #Access state information and check
         data = self.doHTTP_GET(
             resource="states/TestSubmission", 
@@ -1878,7 +1878,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
 
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
-        # Submit ZIP file data/testrdf3.zip, check response
+        # Submit ZIP file data/testrdf4.zip, check response
         fields = []
         zipdata = open("data/testrdf4.zip").read()
         files = \
@@ -1937,17 +1937,16 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         rdfstream = StringIO(rdfdata)
         rdfgraph.parse(rdfstream) 
         subj = URIRef(self.getRequestUri("datasets/TestSubmission-testrdf4"))
-        subj2 = URIRef("http://163.1.127.173/sandbox/datasets/test_munging-testrdf4/directory/1a.rdf")
-        subj3 = URIRef("http://163.1.127.173/sandbox/datasets/test_munging-testrdf4/directory/1b.rdf")
-        subj4 = URIRef("http://163.1.127.173/sandbox/datasets/test_munging-testrdf4/directory/2a.rdf")
+        subj2 = URIRef(self.getRequestUri("datasets/TestSubmission-testrdf4/testrdf4/directory/file1.a"))
+        subj3 = URIRef(self.getRequestUri("datasets/TestSubmission-testrdf4/testrdf4/directory/file1.b")) 
+        subj4 = URIRef("2aFiles")
         base = self.getRequestUri("datasets/TestSubmission-testrdf4/")
         owl = "http://www.w3.org/2002/07/owl#"
         dc = "http://purl.org/dc/elements/1.1/"
         stype = URIRef(oxds+"Grouping")
         stype2 = URIRef(oxds+"item")
-        self.assertEqual(len(rdfgraph),28,'Graph length %i' %len(rdfgraph))
+        self.assertEqual(len(rdfgraph),27,'Graph length %i' %len(rdfgraph))
         self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
-        self.failUnless((subj,URIRef(owl+"sameAs"),URIRef("http://example.org/testrdf/")) in rdfgraph, 'owl:sameAs')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         self.failUnless((subj,URIRef(dcterms+"isVersionOf"),None) in rdfgraph, 'dcterms:isVersionOf')
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testrdf4")) in rdfgraph)

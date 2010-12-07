@@ -101,22 +101,20 @@ def get_readme_text(item, filename="README"):
         text = fn.read().decode("utf-8")
     return u"%s\n\n%s" % (filename, text)
 
-def test_rdf(text, isstring=True):
+def test_rdf(text):
     g = ConjunctiveGraph()
-    if isstring:
-        text = StringInputSource(text)
     try:
-        g = g.parse(text, format='xml')
+        g = g.parse(StringInputSource(text), format='xml')
         return True
     except:
         return False
 
-def munge_manifest(manifest_str, item, manifest_type='http://vocab.ox.ac.uk/dataset/schema#Grouping', isstring=True):    
+def munge_manifest(manifest_str, item, manifest_type='http://vocab.ox.ac.uk/dataset/schema#Grouping'):    
     #Get triples from the manifest file and remove the file
     triples = None
     ns = None
     seeAlsoFiles = None
-    ns, triples, seeAlsoFiles = read_manifest(item.uri, manifest_str, manifest_type=manifest_type, isstring=isstring)
+    ns, triples, seeAlsoFiles = read_manifest(item, manifest_str, manifest_type=manifest_type)
     if ns and triples:
         for k, v in ns.iteritems():
             item.add_namespace(k, v)
@@ -126,15 +124,10 @@ def munge_manifest(manifest_str, item, manifest_type='http://vocab.ox.ac.uk/data
             item.add_triple(s, p, o)
     item.sync()
     if seeAlsoFiles:
-        tmp_m = item.get_rdf_manifest()
-        for filename in seeAlsoFiles:
+        for fileuri in seeAlsoFiles:
             fullfilepath = None
-            #get path to filename
-            for (s, p, o) in tmp_m.get_graph():
-                if str(p) == 'http://www.openarchives.org/ore/terms/aggregates' and filename in str(o):
-                    filepath = str(o).replace(item.uri, '').strip().lstrip('/')
-                    fullfilepath = item.to_dirpath(filepath=filepath)
-                    break
+            filepath = fileuri.replace(item.uri, '').strip().lstrip('/')
+            fullfilepath = item.to_dirpath(filepath=filepath)
             if fullfilepath and item.isfile(fullfilepath):
                 with item.get_stream(filepath) as fn:
                     text = fn.read()
@@ -142,40 +135,64 @@ def munge_manifest(manifest_str, item, manifest_type='http://vocab.ox.ac.uk/data
                     munge_manifest(text, item, manifest_type=manifest_type)
     return True
 
-def read_manifest(target_dataset_uri, manifest_str, manifest_type='http://vocab.ox.ac.uk/dataset/schema#Grouping', isstring=True):
+def read_manifest(item, manifest_str, manifest_type='http://vocab.ox.ac.uk/dataset/schema#Grouping'):
     triples = []
     namespaces = {}
     seeAlsoFiles = []
     oxdsClasses = ['http://vocab.ox.ac.uk/dataset/schema#Grouping', 'http://vocab.ox.ac.uk/dataset/schema#DataSet']
-    if isstring:
-        manifest_str = StringInputSource(manifest_str)
+
+    aggregates = item.list_rdf_objects(item.uri, "ore:aggregates")
+    
     g = ConjunctiveGraph()
-    gparsed = g.parse(manifest_str, format='xml')
+    gparsed = g.parse(StringInputSource(manifest_str), format='xml')
     namespaces = dict(g.namespaces())
+    
+    #Get the subjects
+    subjects = {}
+    for s in gparsed.subjects():
+        if s in subjects:
+            continue
+        if type(s).__name__ == 'BNode' or (type(s).__name__ == 'URIRef' and len(s) == 0):
+            subjects[s] = item.uri
+        else:
+            for o in aggregates:
+                if str(s) in str(o):
+                    subjects[s] = o
+                    break
+            if not s in subjects:
+                subjects[s] = s
+
+    #Get the dataset type
     datasetType = False
     for s,p,o in gparsed.triples((None, RDF.type, None)):
         if str(o) == manifest_type:
             datasetType = True
-            if s.startswith('http'):
+            if str(subjects[s]) != str(item.uri) :
                 namespaces['owl'] = URIRef("http://www.w3.org/2002/07/owl#")
-                triples.append((target_dataset_uri, 'owl:sameAs', s))
-        elif str(o) in oxdsClasses and not s.startswith('http'):
+                triples.append((item.uri, 'owl:sameAs', subjects[s]))
+                triples.append((item.uri, RDF.type, URIRef(manifest_type)))    
+        elif str(o) in oxdsClasses and str(subjects[s]) == str(item.uri):
             gparsed.remove((s, p, o))
+
+    #Get the uri for the see also files
+    for s,p,o in gparsed.triples((None, URIRef('http://www.w3.org/2000/01/rdf-schema#seeAlso'), None)):
+        for objs in aggregates:
+            if str(o) in str(objs):
+                seeAlsoFiles.append(str(objs))
+        gparsed.remove((s, p, o))
+
+    #Add remaining triples
     for s,p,o in gparsed.triples((None, None, None)):
-        if str(p) == 'http://www.w3.org/2000/01/rdf-schema#seeAlso' and str(o):
-            seeAlsoFiles.append(str(o))
-        elif datasetType or not s.startswith('http'):
-            triples.append((target_dataset_uri, p, o))
+        if datasetType:
+            triples.append((item.uri, p, o))
         else:
-            triples.append((s, p, o))
+            triples.append((subjects[s], p, o))
     return namespaces, triples, seeAlsoFiles
 
-def manifest_type(manifest_str, isstring=True):
+def manifest_type(manifest_str):
     mani_types = []
-    if isstring:
-        manifest_str = StringInputSource(manifest_str)
     g = ConjunctiveGraph()
-    gparsed = g.parse(manifest_str, format='xml')
+    gparsed = g.parse(StringInputSource(manifest_str), format='xml')
     for s,p,o in gparsed.triples((None, RDF.type, None)):
         mani_types.append(str(o))
     if "http://vocab.ox.ac.uk/dataset/schema#DataSet" in mani_types:

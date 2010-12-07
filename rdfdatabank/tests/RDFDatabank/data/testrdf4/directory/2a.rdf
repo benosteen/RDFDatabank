@@ -5,7 +5,7 @@
   xmlns:oxds='http://vocab.ox.ac.uk/dataset/schema#'
   xmlns:dc='http://purl.org/dc/elements/1.1/'
 >
-  <oxds:item rdf:about="http://163.1.127.173/sandbox/datasets/test_munging-testrdf4/directory/2a.rdf">
+  <oxds:item rdf:about="2aFiles">
     <dcterms:title>Test item 2a</dcterms:title>
     <dc:description>This is a archived test item 2a </dc:description>
     <rdfs:seeAlso rdf:resource="directory/3a.rdf"/>
