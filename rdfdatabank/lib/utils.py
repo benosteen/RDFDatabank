@@ -148,30 +148,30 @@ def read_manifest(item, manifest_str, manifest_type='http://vocab.ox.ac.uk/datas
     namespaces = dict(g.namespaces())
     
     #Get the subjects
-    subjects = {}
-    for s in gparsed.subjects():
-        if s in subjects:
-            continue
-        if type(s).__name__ == 'BNode' or (type(s).__name__ == 'URIRef' and len(s) == 0):
-            subjects[s] = item.uri
-        else:
-            for o in aggregates:
-                if str(s) in str(o):
-                    subjects[s] = o
-                    break
-            if not s in subjects:
-                subjects[s] = s
+    #subjects = {}
+    #for s in gparsed.subjects():
+    #    if s in subjects:
+    #        continue
+    #    if type(s).__name__ == 'BNode' or (type(s).__name__ == 'URIRef' and len(s) == 0):
+    #        subjects[s] = item.uri
+    #    else:
+    #        for o in aggregates:
+    #            if str(s) in str(o):
+    #                subjects[s] = o
+    #                break
+    #        if not s in subjects:
+    #            subjects[s] = s
 
     #Get the dataset type
     datasetType = False
     for s,p,o in gparsed.triples((None, RDF.type, None)):
         if str(o) == manifest_type:
             datasetType = True
-            if str(subjects[s]) != str(item.uri) :
+            if type(s).__name__ == 'URIRef' and len(s) > 0 and str(s) != str(item.uri):
                 namespaces['owl'] = URIRef("http://www.w3.org/2002/07/owl#")
-                triples.append((item.uri, 'owl:sameAs', subjects[s]))
+                triples.append((item.uri, 'owl:sameAs', s))
                 triples.append((item.uri, RDF.type, URIRef(manifest_type)))    
-        elif str(o) in oxdsClasses and str(subjects[s]) == str(item.uri):
+        elif str(o) in oxdsClasses and type(s).__name__ == 'URIRef' and str(s) == str(item.uri):
             gparsed.remove((s, p, o))
 
     #Get the uri for the see also files
@@ -183,10 +183,10 @@ def read_manifest(item, manifest_str, manifest_type='http://vocab.ox.ac.uk/datas
 
     #Add remaining triples
     for s,p,o in gparsed.triples((None, None, None)):
-        if datasetType:
+        if datasetType or type(s).__name__ == 'BNode' or (type(s).__name__ == 'URIRef' and len(s) == 0):
             triples.append((item.uri, p, o))
         else:
-            triples.append((subjects[s], p, o))
+            triples.append((s, p, o))
     return namespaces, triples, seeAlsoFiles
 
 def manifest_type(manifest_str):
