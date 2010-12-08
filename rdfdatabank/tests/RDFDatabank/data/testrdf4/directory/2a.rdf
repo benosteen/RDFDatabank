@@ -5,10 +5,10 @@
   xmlns:oxds='http://vocab.ox.ac.uk/dataset/schema#'
   xmlns:dc='http://purl.org/dc/elements/1.1/'
 >
-  <oxds:item rdf:about="2aFiles">
+  <oxds:Grouping rdf:about="2aFiles">
     <dcterms:title>Test item 2a</dcterms:title>
     <dc:description>This is a archived test item 2a </dc:description>
     <rdfs:seeAlso rdf:resource="directory/3a.rdf"/>
-  </oxds:item>
+  </oxds:Grouping>
 </rdf:RDF>
 

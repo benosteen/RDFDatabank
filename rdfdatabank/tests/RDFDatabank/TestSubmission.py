@@ -1937,9 +1937,8 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         rdfstream = StringIO(rdfdata)
         rdfgraph.parse(rdfstream) 
         subj = URIRef(self.getRequestUri("datasets/TestSubmission-testrdf4"))
-        subj2 = URIRef(self.getRequestUri("datasets/TestSubmission-testrdf4/testrdf4/directory/file1.a"))
-        subj3 = URIRef(self.getRequestUri("datasets/TestSubmission-testrdf4/testrdf4/directory/file1.b")) 
-        subj4 = URIRef("2aFiles")
+        subj2 = URIRef("directory/file1.a")
+        subj3 = URIRef("directory/file1.b") 
         base = self.getRequestUri("datasets/TestSubmission-testrdf4/")
         owl = "http://www.w3.org/2002/07/owl#"
         dc = "http://purl.org/dc/elements/1.1/"
@@ -1964,6 +1963,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
         self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(dc+"description"),"This is a archived test item 2a ") in rdfgraph, 'dc:description')
+        self.failUnless((subj,URIRef(dcterms+"title"),"Test item 2a") in rdfgraph, 'dcterms:title')
+        self.failUnless((subj,URIRef(owl+"sameAs"),URIRef("2aFiles")) in rdfgraph, 'dcterms:title')
         
         self.failUnless((subj2,RDF.type,stype2) in rdfgraph, 'Testing submission type: '+subj2+", "+stype2)
         self.failUnless((subj2,URIRef(dc+"description"),"This is a archived test item 1a ") in rdfgraph, 'dc:description')
@@ -1972,10 +1974,6 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj3,RDF.type,stype2) in rdfgraph, 'Testing submission type: '+subj3+", "+stype2)
         self.failUnless((subj3,URIRef(dc+"description"),"This is test item 1b of type file") in rdfgraph, 'dc:description')
         self.failUnless((subj3,URIRef(dcterms+"title"),"Test item 1b") in rdfgraph, 'dcterms:title')
-
-        self.failUnless((subj4,RDF.type,stype2) in rdfgraph, 'Testing submission type: '+subj4+", "+stype2)
-        self.failUnless((subj4,URIRef(dc+"description"),"This is a archived test item 2a ") in rdfgraph, 'dc:description')
-        self.failUnless((subj4,URIRef(dcterms+"title"),"Test item 2a") in rdfgraph, 'dcterms:title')
         
         # Delete the dataset TestSubmission-testrdf4
         self.doHTTP_DELETE(

@@ -120,7 +120,10 @@ def munge_manifest(manifest_str, item, manifest_type='http://vocab.ox.ac.uk/data
             item.add_namespace(k, v)
         for (s, p, o) in triples:
             if str(p) == 'http://purl.org/dc/terms/title':
-                item.del_triple(item.uri, u"dcterms:title")    
+                try:
+                    item.del_triple(URIRef(s), u"dcterms:title")
+                except:
+                    pass    
             item.add_triple(s, p, o)
     item.sync()
     if seeAlsoFiles:
