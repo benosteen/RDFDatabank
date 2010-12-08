@@ -83,10 +83,7 @@ class SilosController(BaseController):
                 response.content_type = 'application/json; charset="UTF-8"'
                 response.status_int = 200
                 response.status = "200 OK"
-                list_of_datasets = []
-                for dataset_id in c.items:
-                    list_of_datasets.append(dataset_id)
-                return simplejson.dumps(list_of_datasets)
+                return simplejson.dumps(list(c.items))
             try:
                 mimetype = accept_list.pop(0)
             except IndexError:

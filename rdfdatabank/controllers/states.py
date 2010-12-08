@@ -27,11 +27,9 @@ class StatesController(BaseController):
         c.silos = ag.authz(granary_list, ident)
         if silo not in c.silos:
             abort(403, "Forbidden")
-        #TODO: Do I need to get information about the silo itself - silo name, title, description, notes, owners, disk allocation
-        #c.kw = ag.granary.describe_silo(silo_name)
-        c.silo_name = silo
+
         c.silo = ag.granary.get_rdf_silo(silo)
-        
+        state_info = ag.granary.describe_silo(silo)
         c.embargos = {}
         for item in c.silo.list_items():
             c.embargos[item] = is_embargoed(c.silo, item)
@@ -45,17 +43,12 @@ class StatesController(BaseController):
         for item_id in c.items:
             items[item_id] = {}
             items[item_id]['embargo_info'] = c.embargos[item_id]
-        state_info = {}
-        state_info['silo'] = c.silo_name
+        #state_info = {}
+        state_info['silo'] = silo
         state_info['uri_base'] = ''
         if c.silo.state and c.silo.state['uri_base']:
             state_info['uri_base'] = c.silo.state['uri_base']
         state_info['datasets'] = items
-        #print '================================\n'
-        #print dir(c.silo)
-        #print c.silo.state
-        #print c.silo.keys()
-        #print '================================\n'
         return simplejson.dumps(state_info)
  
     def datasetview(self, silo, id):       

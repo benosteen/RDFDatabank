@@ -1,12 +1,7 @@
 # -*- coding: utf-8 -*-
 % if c.silo_name:
+<h3>Datasets:</h3>
 <ul>
-% for key in ['title', 'description','owner']:
-% if c.silo.state.has_key(key):
-<li><big><big>${key.capitalize()} - </big> ${c.silo.state[key]}</big></li>
-% endif
-% endfor
-<li> <big>Datasets:</big> <ul>
 % for item in sorted(c.items):
 <li id="${"_".join(c.silo_name.split("."))}_${"_".join(item.split(":"))}"> 
 <a href="/${c.silo_name}/datasets/${item}"> ${item}</a>
@@ -19,6 +14,5 @@ c.current = item
 </li>
 % endfor
 </ul>
-</li>
-<ul>
 % endif
+                                                                                      
