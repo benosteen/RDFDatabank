@@ -174,7 +174,7 @@ def read_manifest(item, manifest_str, manifest_type='http://vocab.ox.ac.uk/datas
                 namespaces['owl'] = URIRef("http://www.w3.org/2002/07/owl#")
                 triples.append((item.uri, 'owl:sameAs', s))
                 triples.append((item.uri, RDF.type, URIRef(manifest_type)))    
-        elif str(o) in oxdsClasses and type(s).__name__ == 'URIRef' and str(s) == str(item.uri):
+        elif str(o) in oxdsClasses and type(s).__name__ == 'URIRef' and (len(s) == 0 or str(s) == str(item.uri)):
             gparsed.remove((s, p, o))
 
     #Get the uri for the see also files
