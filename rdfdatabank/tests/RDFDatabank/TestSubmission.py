@@ -442,8 +442,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(state['currentversion'], '2', "Current version == 2")
         self.assertEqual(state['rdffileformat'], 'xml', "RDF file type")
         self.assertEqual(state['rdffilename'], 'manifest.rdf', "RDF file name")
-        #TODO: The files of version 1 are also being updated - correct this
-        #self.assertEqual(state['files']['1'], ['manifest.rdf'], "List should contain just manifest.rdf")
+        self.assertEqual(state['files']['1'], ['manifest.rdf'], "List should contain just manifest.rdf")
         self.assertEqual(len(state['files']['2']), 2, "List should contain manifest.rdf and testdir.zip")
         self.assertEqual(len(state['metadata_files']['1']), 0, "metadata_files of version 1")
         self.assertEqual(len(state['metadata_files']['2']), 0, "metadata_files of version 2")
@@ -521,8 +520,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(state['currentversion'], '3', "Current version == 3")
         self.assertEqual(state['rdffileformat'], 'xml', "RDF file type")
         self.assertEqual(state['rdffilename'], 'manifest.rdf', "RDF file name")
-        #Need to fix bug - state information of the previous verison is updated on file delete
-        #self.assertEqual(len(state['files']['1']), 1, "List should contain just manifest.rdf")
+        self.assertEqual(len(state['files']['1']), 1, "List should contain just manifest.rdf")
         self.assertEqual(len(state['files']['2']), 2, "List should contain manifest.rdf and testdir.zip")
         self.assertEqual(len(state['files']['3']), 1, "List should contain just manifest.rdf")
         self.assertEqual(len(state['metadata_files']['1']), 0, "metadata_files of version 1")
@@ -603,8 +601,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(state['currentversion'], '3', "Current version == 3")
         self.assertEqual(state['rdffileformat'], 'xml', "RDF file type")
         self.assertEqual(state['rdffilename'], 'manifest.rdf', "RDF file name")
-        #Need to fix bug - state information of the previous verison is updated on file upload
-        #self.assertEqual(len(state['files']['1']), 1, "List should contain just manifest.rdf")
+        self.assertEqual(len(state['files']['1']), 1, "List should contain just manifest.rdf")
         self.assertEqual(len(state['files']['2']), 2, "List should contain manifest.rdf and testdir.zip")
         self.assertEqual(len(state['files']['3']), 2, "List should contain manifest.rdf and testdir.zip")
         self.assertEqual(len(state['metadata_files']['1']), 0, "metadata_files of version 1")
@@ -777,8 +774,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(state['currentversion'], '2', "Current version == 2")
         self.assertEqual(state['rdffileformat'], 'xml', "RDF file type")
         self.assertEqual(state['rdffilename'], 'manifest.rdf', "RDF file name")
-        #TODO: The files of version 1 are also being updated - correct this
-        #self.assertEqual(state['files']['1'], ['manifest.rdf'], "List should contain just manifest.rdf")
+        self.assertEqual(state['files']['1'], ['manifest.rdf'], "List should contain just manifest.rdf")
         self.assertEqual(len(state['files']['2']), 2, "List should contain manifest.rdf and testdir.zip")
         self.assertEqual(len(state['metadata_files']['1']), 0, "metadata_files of version 1")
         self.assertEqual(len(state['metadata_files']['2']), 0, "metadata_files of version 2")
@@ -861,7 +857,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(state['currentversion'], '3', "Current version == 3")
         self.assertEqual(state['rdffileformat'], 'xml', "RDF file type")
         self.assertEqual(state['rdffilename'], 'manifest.rdf', "RDF file name")
-        #self.assertEqual(state['files']['1'], ['manifest.rdf'], "List should contain just manifest.rdf")
+        self.assertEqual(state['files']['1'], ['manifest.rdf'], "List should contain just manifest.rdf")
         self.assertEqual(len(state['files']['2']), 2, "List should contain manifest.rdf and testdir.zip")
         self.assertEqual(len(state['files']['3']), 2, "List should contain manifest.rdf and testdir.zip")
         self.assertEqual(len(state['metadata_files']['1']), 0, "metadata_files of version 1")
@@ -1405,8 +1401,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(state['rdffileformat'], 'xml', "RDF file type")
         self.assertEqual(state['rdffilename'], 'manifest.rdf', "RDF file name")
         self.assertEqual(len(state['files']['1']), 1, "List should contain just manifest.rdf")
-        #TODO: Uploading a file also changes the file information for the previous version - correct this
-        #self.assertEqual(len(state['files']['2']), 3, "List should contain manifest.rdf, test-csv.csv and directory")
+        self.assertEqual(len(state['files']['2']), 3, "List should contain manifest.rdf, test-csv.csv and directory")
         self.assertEqual(len(state['files']['3']), 4, "List should contain manifest.rdf, test-csv.csv, directory and testdir2.zip")
         self.assertEqual(len(state['metadata_files']['1']), 0, "metadata_files of version 1")
         self.assertEqual(len(state['metadata_files']['2']), 0, "metadata_files of version 2")
@@ -1998,7 +1993,6 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
 
     def testPending(self):
         #Need to return location headers for 201
-        #Need to fix bug - state information of the previous verison is updated on file upload / delete
         #Need to have performance tests and analyse performance
         #Need to set the permission of file being uploaded
         assert (False), "Pending tests follow"
