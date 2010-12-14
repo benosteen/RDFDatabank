@@ -75,3 +75,7 @@ body {
 .readme {
     font-size: 0.9em;
 }
+
+.unpack_endpoints li {
+    height: 2em; 
+}

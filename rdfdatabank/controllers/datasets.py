@@ -130,9 +130,9 @@ class DatasetsController(BaseController):
         http_method = request.environ['REQUEST_METHOD']
         
         c.editor = False
+        c.version = None
         
-        #if not (http_method == "GET" and not c.embargoed):
-        if (http_method == "GET" and c.embargoed) or (http_method != "GET"):
+        if not (http_method == "GET"):
             #identity management of item 
             if not request.environ.get('repoze.who.identity'):
                 abort(401, "Not Authorised")
@@ -155,7 +155,7 @@ class DatasetsController(BaseController):
                 if ident:
                     c.silos = ag.authz(granary_list, ident)
                     c.editor = silo in c.silos
-
+        
         # Method determination
         if http_method == "GET":
             if c.silo.exists(id):
@@ -472,12 +472,7 @@ class DatasetsController(BaseController):
                 response.content_type = "text/plain"
                 return "Added file %s to item %s" % (filename, id)
             else:
-                ## TODO apply changeset handling
-                ## 1 - store posted CS docs in 'version' "___cs"
-                ## 2 - apply changeset to RDF manifest
-                ## 3 - update state to reflect latest CS applied
                 response.status_int = 403
-                #response.status = "Forbidden"
                 return "403 Forbidden"
             
         elif http_method == "DELETE" and c.editor:
@@ -493,24 +488,115 @@ class DatasetsController(BaseController):
             else:
                 abort(404)
 
+    def datasetview_vnum(self, silo, id, vnum):       
+        c.silo_name = silo
+        c.id = id
+        c.silo = ag.granary.get_rdf_silo(silo)
+        
+        if not c.silo.exists(id):
+            response.status_int = 404
+            return "Dataset %s doesn't exist" % id
+
+        # Check to see if embargo is on:        
+        c.embargoed = False
+        c.item = c.silo.get_item(id)
+        vnum = str(vnum)
+        if not vnum in c.item.manifest['versions']:
+            abort(404)
+        c.item.set_version_cursor(vnum)
+        c.version = vnum           
+        if c.item.metadata.get('embargoed') not in ["false", 0, False]:
+            c.embargoed = True
+        c.embargos = {}
+        c.embargos[id] = is_embargoed(c.silo, id)
+
+        c.editor = False       
+        if request.environ.get('repoze.who.identity'):
+            ident = request.environ.get('repoze.who.identity')  
+            c.ident = ident
+            granary_list = ag.granary.silos
+            if ident:
+                c.silos = ag.authz(granary_list, ident)
+                c.editor = silo in c.silos
+
+        # Method determination
+        if c.item.isfile("README"):
+            c.readme_text = get_readme_text(c.item)
+        c.parts = []
+        if c.item.manifest:
+            state = c.item.manifest.state
+            if state:
+                if "files" in state and state["files"] :
+                    c.parts = state["files"][vnum]
+                if "item_id" in state:
+                    c.item_id =  state["item_id"] 
+                 
+        accept_list = None
+        if 'HTTP_ACCEPT' in request.environ:
+            accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+        if not accept_list:
+            accept_list= [MT("text", "html")]
+        mimetype = accept_list.pop(0)
+        
+        while(mimetype):
+            if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                if c.editor:
+                    c.zipfiles = get_zipfiles_in_dataset(c.item)                      
+                return render('/datasetview_version.html')
+            elif str(mimetype).lower() in ["text/plain", "application/json"]:
+                response.content_type = 'application/json; charset="UTF-8"'
+                items = {}
+                items['parts'] = c.parts
+                if c.readme_text:
+                    items['readme_text'] = c.readme_text
+                if c.item.manifest:
+                    items['state'] = state
+                return simplejson.dumps(items)
+            elif str(mimetype).lower() in ["application/rdf+xml", "text/xml"]:
+                response.content_type = 'application/rdf+xml; charset="UTF-8"'
+                return c.item.rdf_to_string(format="pretty-xml")
+            elif str(mimetype).lower() == "text/rdf+n3":
+                response.content_type = 'text/rdf+n3; charset="UTF-8"'
+                return c.item.rdf_to_string(format="n3")
+            elif str(mimetype).lower() == "application/x-turtle":
+                response.content_type = 'application/x-turtle; charset="UTF-8"'
+                return c.item.rdf_to_string(format="turtle")
+            elif str(mimetype).lower() in ["text/rdf+ntriples", "text/rdf+nt"]:
+                response.content_type = 'text/rdf+ntriples; charset="UTF-8"'
+                return c.item.rdf_to_string(format="nt")
+            # Whoops - nothing satisfies
+            try:
+                mimetype = accept_list.pop(0)
+            except IndexError:
+                mimetype = None
+                #Whoops - nothing staisfies - default to text/html
+                return render('/datasetview_version.html')
+
     def itemview(self, silo, id, path):
         # Check to see if embargo is on:
         c.silo_name = silo
         c.id = id
         c.silo = ag.granary.get_rdf_silo(silo)
         
-        embargoed = False
-        if c.silo.exists(id):
-            c.item = c.silo.get_item(id)
+        if not c.silo.exists(id):
+            # dataset doesn't exist yet...
+            # DECISION FOR POST / PUT : Auto-instantiate dataset and then put file there?
+            #           or error out with perhaps a 404?
+            # Going with error out...
+            response.status_int = 404
+            return "Dataset %s doesn't exist" % id
         
-            if c.item.metadata.get('embargoed') not in ["false", 0, False]:
-                embargoed = True
+        embargoed = False
+        c.item = c.silo.get_item(id)        
+        if c.item.metadata.get('embargoed') not in ["false", 0, False]:
+            embargoed = True
         
         http_method = request.environ['REQUEST_METHOD']
         
         c.editor = False
-        
-        if not (http_method == "GET" and not embargoed):
+        c.version = None
+
+        if not (http_method == "GET"):
             #identity management if item 
             if not request.environ.get('repoze.who.identity'):
                 abort(401, "Not Authorised")
@@ -525,225 +611,283 @@ class DatasetsController(BaseController):
                 abort(403, "Forbidden")
         
             c.editor = silo in c.silos
+        else:
+            if request.environ.get('repoze.who.identity'):
+                ident = request.environ.get('repoze.who.identity')  
+                c.ident = ident
+                granary_list = ag.granary.silos
+                if ident:
+                    c.silos = ag.authz(granary_list, ident)
+                    c.editor = silo in c.silos
         
         c.path = path
         
-        http_method = request.environ['REQUEST_METHOD']
-        
         if http_method == "GET":
-            if c.silo.exists(id):
-                if c.item.isfile(path):
-                    fileserve_app = FileApp(c.item.to_dirpath(path))
-                    return fileserve_app(request.environ, self.start_response)
-                elif c.item.isdir(path):
-                    c.parts = c.item.list_parts(path, detailed=False)
-                    if "README" in c.parts:
-                        c.readme_text = get_readme_text(c.item, "%s/README" % path)
+            if c.item.isfile(path):
+                fileserve_app = FileApp(c.item.to_dirpath(path))
+                return fileserve_app(request.environ, self.start_response)
+            elif c.item.isdir(path):
+                c.parts = c.item.list_parts(path, detailed=False)
+                if "README" in c.parts:
+                    c.readme_text = get_readme_text(c.item, "%s/README" % path)
                     
-                    accept_list = None
-                    if 'HTTP_ACCEPT' in request.environ:
-                        accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
-                    if not accept_list:
-                        accept_list= [MT("text", "html")]
-                    mimetype = accept_list.pop(0)
-                    while(mimetype):
-                        if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                            return render("/itemview.html")
-                        elif str(mimetype).lower() in ["text/plain", "application/json"]:
-                            response.content_type = "text/plain"
-                            items = {}
-                            items['parts'] = c.parts
-                            if c.readme_text:
-                                items['readme_text'] = c.readme_text
-                            return simplejson.dumps(items)
-                        try:
-                            mimetype = accept_list.pop(0)
-                        except IndexError:
-                            mimetype = None
-                    #Whoops - nothing satisfies - return text/html
-                    return render("/itemview.html")
-                else:
-                    abort(404)
-        elif http_method == "PUT" and c.editor:
-            if c.silo.exists(id):
-                # Pylons loads the request body into request.body...
-                # This is not going to work for large files... ah well
-                # POST will handle large files as they are pushed to disc,
-                # but this won't
-                content = request.body
-                item = c.silo.get_item(id)
-                
-                if JAILBREAK.search(path) != None:
-                    abort(400, "'..' cannot be used in the path")
-                    
-                if item.isfile(path):
-                    code = 204
-                elif item.isdir(path):
-                    response.status_int = 403
-                    return "Cannot PUT a file on to an existing directory"
-                else:
-                    code = 201
-
-                #Check if path is manifest.rdf - If, yes Munge
-                if "manifest.rdf" in path:
-                    #test content is valid rdf
-                    if not test_rdf(content):
-                        response.status_int = 400
-                        return "Bad manifest file"
-                    #munge rdf
-                    item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
-                    a = item.get_rdf_manifest()
-                    b = a.to_string()
-                    mtype = manifest_type(b)
-                    if not mtype:
-                        mtype = 'http://vocab.ox.ac.uk/dataset/schema#Grouping'
-                    munge_manifest(content, item, manifest_type=mtype)
-                else:
-                    item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
-                    item.put_stream(path, content)
-                item.del_triple(item.uri, u"dcterms:modified")
-                item.add_triple(item.uri, u"dcterms:modified", datetime.now())
-                item.del_triple(item.uri, u"oxds:currentVersion")
-                item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
-                item.sync()
-                
-                if code == 201:
-                    ag.b.creation(silo, id, path, ident=ident['repoze.who.userid'])
-                    response.status = "201 Created"
-                    target_url = str(item.uri).strip('/') + '/' + path.strip('/')
-                    #response.headers["Content-Location"] = target_url
-                    #response.headers.add("Content-Location", item.uri)
-                else:
-                    ag.b.change(silo, id, path, ident=ident['repoze.who.userid'])
-                    response.status = "204 Updated"
-                
-                response.status_int = code
-                return
-            else:
-                # dataset in which to store file doesn't exist yet...
-                # DECISION: Auto-instantiate dataset and then put file there?
-                #           or error out with perhaps a 404?
-                # Going with error out...
-                response.status_int = 404
-                return "Dataset %s doesn't exist" % id
-        elif http_method == "POST" and c.editor:
-            if c.silo.exists(id):
-                # POST... differences from PUT:
-                # path = filepath that this acts on, should be dir, or non-existant
-                # if path is a file, this will revert to PUT's functionality and
-                # overwrite the file, if there is a multipart file uploaded
-                # Expected params: filename, file (uploaded file)
-                params = request.POST
-                item = c.silo.get_item(id)
-                filename = params.get('filename')
-                upload = params.get('file')
-                if JAILBREAK.search(filename) != None:
-                    abort(400, "'..' cannot be used in the path or as a filename")
-                target_path = path
-                if item.isdir(path) and filename:
-                    target_path = os.path.join(path, filename)
-                
-                if item.isfile(target_path):
-                    code = 204
-                elif item.isdir(target_path):
-                    response.status_int = 403
-                    return "Cannot POST a file on to an existing directory"
-                else:
-                    code = 201
-
-                if filename == "manifest.rdf":
-                    #Copy the uploaded file to a tmp area 
-                    mani_file = os.path.join('/tmp', filename.lstrip(os.sep))
-                    mani_file_obj = open(mani_file, 'w')
-                    shutil.copyfileobj(upload.file, mani_file_obj)
-                    upload.file.close()
-                    mani_file_obj.close()
-                    #test rdf file
-                    mani_file_obj = open(mani_file, 'r')
-                    manifest_str = mani_file_obj.read()
-                    mani_file_obj.close()
-                    if not test_rdf(manifest_str):
-                        response.status_int = 400
-                        return "Bad manifest file"
-                    #munge rdf
-                    item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
-                    a = item.get_rdf_manifest()
-                    b = a.to_string()
-                    mtype = manifest_type(b)
-                    if not mtype:
-                        mtype = 'http://vocab.ox.ac.uk/dataset/schema#Grouping'
-                    munge_manifest(manifest_str, item, manifest_type=mtype)
-                else:
-                    item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
-                    
-                    item.put_stream(target_path, upload.file)
-                    upload.file.close()
-                item.del_triple(item.uri, u"dcterms:modified")
-                item.add_triple(item.uri, u"dcterms:modified", datetime.now())
-                item.del_triple(item.uri, u"oxds:currentVersion")
-                item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
-                item.sync()
-                
-                if code == 201:
-                    ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
-                    response.status = "201 Created"
-                    #TODO: The uri here should be the target path, not the item uri
-                    target_url = urljoin(item.uri, target_path)
-                    #response.headers["Content-Location"] = target_url
-                    #response.headers.add("Content-Location", item.uri)
-                else:
-                    ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
-                    response.status = "204 Updated"
-                response.status_int = code
-                return
-            else:
-                # dataset doesn't exist yet...
-                # DECISION: Auto-instantiate dataset and then put file there?
-                #           or error out with perhaps a 404?
-                # Going with error out...
-                response.status_int = 404
-                return "Dataset %s doesn't exist" % id
-        elif http_method == "DELETE" and c.editor:
-            if c.silo.exists(id):
-                item = c.silo.get_item(id)
-                if item.isfile(path):
-                    if 'manifest.rdf' in path:
-                        response.status_int = 403
-                        #response.status = "403 Forbidden"
-                        return "Forbidden - Cannot delete the manifest"
-                    item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
-                    item.del_stream(path)
-                    item.del_triple(item.uri, u"dcterms:modified")
-                    item.add_triple(item.uri, u"dcterms:modified", datetime.now())
-                    item.del_triple(item.uri, u"oxds:currentVersion")
-                    item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
-                    item.sync()
-                    ag.b.deletion(silo, id, path, ident=ident['repoze.who.userid'])
-                    response.status_int = 200
-                    response.status = "200 OK"
-                    return "{'ok':'true'}"   # required for the JQuery magic delete to succede.
-                elif item.isdir(path):
-                    parts = item.list_parts(path)
-                    for part in parts:
-                        if item.isdir(os.path.join(path, part)):
-                            # TODO implement proper recursive delete, with RDF aggregation
-                            # updating
-                            abort(400, "Directory is not empty of directories")
-                    item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
-                    item.del_triple(item.uri, u"oxds:currentVersion")
-                    item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
-                    for part in parts:
-                        item.del_stream(os.path.join(path, part))
-                        ag.b.deletion(silo, id, os.path.join(path, part), ident=ident['repoze.who.userid'])
-                    item.del_stream(path)
-                    item.del_triple(item.uri, u"dcterms:modified")
-                    item.add_triple(item.uri, u"dcterms:modified", datetime.now())
-                    item.sync()
-                    ag.b.deletion(silo, id, path, ident=ident['repoze.who.userid'])
-                    response.status_int = 200
-                    response.status = "200 OK"
-                    return "{'ok':'true'}"   # required for the JQuery magic delete to succede.
-                else:
-                    abort(404)
+                accept_list = None
+                if 'HTTP_ACCEPT' in request.environ:
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                if not accept_list:
+                    accept_list= [MT("text", "html")]
+                mimetype = accept_list.pop(0)
+                while(mimetype):
+                    if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                        return render("/itemview.html")
+                    elif str(mimetype).lower() in ["text/plain", "application/json"]:
+                        response.content_type = "text/plain"
+                        items = {}
+                        items['parts'] = c.parts
+                        if c.readme_text:
+                            items['readme_text'] = c.readme_text
+                        return simplejson.dumps(items)
+                    try:
+                        mimetype = accept_list.pop(0)
+                    except IndexError:
+                        mimetype = None
+                #Whoops - nothing satisfies - return text/html
+                return render("/itemview.html")
             else:
                 abort(404)
+        elif http_method == "PUT" and c.editor:
+            # Pylons loads the request body into request.body...
+            # This is not going to work for large files... ah well
+            # POST will handle large files as they are pushed to disc,
+            # but this won't
+            content = request.body
+            item = c.silo.get_item(id)
+                
+            if JAILBREAK.search(path) != None:
+                abort(400, "'..' cannot be used in the path")
+                    
+            if item.isfile(path):
+                code = 204
+            elif item.isdir(path):
+                response.status_int = 403
+                return "Cannot PUT a file on to an existing directory"
+            else:
+                code = 201
+
+            #Check if path is manifest.rdf - If, yes Munge
+            if "manifest.rdf" in path:
+                #test content is valid rdf
+                if not test_rdf(content):
+                    response.status_int = 400
+                    return "Bad manifest file"
+                #munge rdf
+                item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
+                a = item.get_rdf_manifest()
+                b = a.to_string()
+                mtype = manifest_type(b)
+                if not mtype:
+                    mtype = 'http://vocab.ox.ac.uk/dataset/schema#Grouping'
+                munge_manifest(content, item, manifest_type=mtype)
+            else:
+                item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
+                item.put_stream(path, content)
+            item.del_triple(item.uri, u"dcterms:modified")
+            item.add_triple(item.uri, u"dcterms:modified", datetime.now())
+            item.del_triple(item.uri, u"oxds:currentVersion")
+            item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
+            item.sync()
+                
+            if code == 201:
+                ag.b.creation(silo, id, path, ident=ident['repoze.who.userid'])
+                response.status = "201 Created"
+                target_url = str(item.uri).strip('/') + '/' + path.strip('/')
+                #response.headers["Content-Location"] = target_url
+                #response.headers.add("Content-Location", item.uri)
+            else:
+                ag.b.change(silo, id, path, ident=ident['repoze.who.userid'])
+                response.status = "204 Updated"
+                
+            response.status_int = code
+            return
+        elif http_method == "POST" and c.editor:
+            # POST... differences from PUT:
+            # path = filepath that this acts on, should be dir, or non-existant
+            # if path is a file, this will revert to PUT's functionality and
+            # overwrite the file, if there is a multipart file uploaded
+            # Expected params: filename, file (uploaded file)
+            params = request.POST
+            item = c.silo.get_item(id)
+            filename = params.get('filename')
+            upload = params.get('file')
+            if JAILBREAK.search(filename) != None:
+                abort(400, "'..' cannot be used in the path or as a filename")
+            target_path = path
+            if item.isdir(path) and filename:
+                target_path = os.path.join(path, filename)
+                
+            if item.isfile(target_path):
+                code = 204
+            elif item.isdir(target_path):
+                response.status_int = 403
+                return "Cannot POST a file on to an existing directory"
+            else:
+                code = 201
+
+            if filename == "manifest.rdf":
+                #Copy the uploaded file to a tmp area 
+                mani_file = os.path.join('/tmp', filename.lstrip(os.sep))
+                mani_file_obj = open(mani_file, 'w')
+                shutil.copyfileobj(upload.file, mani_file_obj)
+                upload.file.close()
+                mani_file_obj.close()
+                #test rdf file
+                mani_file_obj = open(mani_file, 'r')
+                manifest_str = mani_file_obj.read()
+                mani_file_obj.close()
+                if not test_rdf(manifest_str):
+                    response.status_int = 400
+                    return "Bad manifest file"
+                #munge rdf
+                item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
+                a = item.get_rdf_manifest()
+                b = a.to_string()
+                mtype = manifest_type(b)
+                if not mtype:
+                    mtype = 'http://vocab.ox.ac.uk/dataset/schema#Grouping'
+                munge_manifest(manifest_str, item, manifest_type=mtype)
+            else:
+                item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])                
+                item.put_stream(target_path, upload.file)
+                upload.file.close()
+            item.del_triple(item.uri, u"dcterms:modified")
+            item.add_triple(item.uri, u"dcterms:modified", datetime.now())
+            item.del_triple(item.uri, u"oxds:currentVersion")
+            item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
+            item.sync()
+                
+            if code == 201:
+                ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
+                response.status = "201 Created"
+                #TODO: The uri here should be the target path, not the item uri
+                target_url = urljoin(item.uri, target_path)
+                #response.headers["Content-Location"] = target_url
+                #response.headers.add("Content-Location", item.uri)
+            else:
+                ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
+                response.status = "204 Updated"
+            response.status_int = code
+            return
+        elif http_method == "DELETE" and c.editor:
+            item = c.silo.get_item(id)
+            if item.isfile(path):
+                if 'manifest.rdf' in path:
+                    response.status_int = 403
+                    #response.status = "403 Forbidden"
+                    return "Forbidden - Cannot delete the manifest"
+                item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
+                item.del_stream(path)
+                item.del_triple(item.uri, u"dcterms:modified")
+                item.add_triple(item.uri, u"dcterms:modified", datetime.now())
+                item.del_triple(item.uri, u"oxds:currentVersion")
+                item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
+                item.sync()
+                ag.b.deletion(silo, id, path, ident=ident['repoze.who.userid'])
+                response.status_int = 200
+                response.status = "200 OK"
+                return "{'ok':'true'}"   # required for the JQuery magic delete to succede.
+            elif item.isdir(path):
+                parts = item.list_parts(path)
+                for part in parts:
+                    if item.isdir(os.path.join(path, part)):
+                        # TODO implement proper recursive delete, with RDF aggregation
+                        # updating
+                        abort(400, "Directory is not empty of directories")
+                item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
+                item.del_triple(item.uri, u"oxds:currentVersion")
+                item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
+                for part in parts:
+                    item.del_stream(os.path.join(path, part))
+                    ag.b.deletion(silo, id, os.path.join(path, part), ident=ident['repoze.who.userid'])
+                item.del_stream(path)
+                item.del_triple(item.uri, u"dcterms:modified")
+                item.add_triple(item.uri, u"dcterms:modified", datetime.now())
+                item.sync()
+                ag.b.deletion(silo, id, path, ident=ident['repoze.who.userid'])
+                response.status_int = 200
+                response.status = "200 OK"
+                return "{'ok':'true'}"   # required for the JQuery magic delete to succede.
+            else:
+                abort(404)
+
+    def itemview_vnum(self, silo, id, path, vnum):
+        # Check to see if embargo is on:
+        c.silo_name = silo
+        c.id = id
+        c.silo = ag.granary.get_rdf_silo(silo)
+
+        if not c.silo.exists(id):
+            # dataset doesn't exist
+            response.status_int = 404
+            return "Dataset %s doesn't exist" % id
+        
+        embargoed = False
+        c.item = c.silo.get_item(id)
+        vnum = str(vnum)
+        if not vnum in c.item.manifest['versions']:
+            abort(404)
+        c.item.set_version_cursor(vnum)
+        c.version = vnum 
+        if c.item.metadata.get('embargoed') not in ["false", 0, False]:
+            embargoed = True
+        
+        c.editor = False
+        
+        if embargoed:
+            #identity management if item 
+            if not request.environ.get('repoze.who.identity'):
+                abort(401, "Not Authorised")
+            ident = request.environ.get('repoze.who.identity')  
+            c.ident = ident
+            granary_list = ag.granary.silos
+            if ident:
+                c.silos = ag.authz(granary_list, ident)      
+                if silo not in c.silos:
+                    abort(403, "Forbidden")
+            else:
+                abort(403, "Forbidden")
+            c.editor = silo in c.silos
+        
+        c.path = path
+        
+        if c.item.isfile(path):
+            fileserve_app = FileApp(c.item.to_dirpath(path))
+            return fileserve_app(request.environ, self.start_response)
+        elif c.item.isdir(path):
+            c.parts = c.item.list_parts(path, detailed=False)
+            if "README" in c.parts:
+                c.readme_text = get_readme_text(c.item, "%s/README" % path)
+                    
+            accept_list = None
+            if 'HTTP_ACCEPT' in request.environ:
+                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+            if not accept_list:
+                accept_list= [MT("text", "html")]
+            mimetype = accept_list.pop(0)
+            while(mimetype):
+                if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                    return render("/itemview_version.html")
+                elif str(mimetype).lower() in ["text/plain", "application/json"]:
+                    response.content_type = "text/plain"
+                    items = {}
+                    items['parts'] = c.parts
+                    if c.readme_text:
+                        items['readme_text'] = c.readme_text
+                    return simplejson.dumps(items)
+                try:
+                    mimetype = accept_list.pop(0)
+                except IndexError:
+                    mimetype = None
+            #Whoops - nothing satisfies - return text/html
+            return render("/itemview_version.html")
+        else:
+            abort(404)

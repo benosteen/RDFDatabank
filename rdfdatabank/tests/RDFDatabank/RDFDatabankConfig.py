@@ -21,7 +21,7 @@ class RDFDatabankConfig:
     endpointpass="admiral"
 
     #Access to local dev VM
-    #endpointhost="192.168.13.128"
+    #endpointhost="192.168.23.129:3000"
     #endpointhost="127.0.0.1:5000"
     endpointpath="/sandbox/"
     

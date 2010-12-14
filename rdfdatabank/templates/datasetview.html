@@ -5,52 +5,95 @@
                href="/${c.silo_name}/datasets/${c.id}/manifest.rdf"/>
   <title> Dataset ${c.id} </title>
 </%def>
-<h1>Dataset ${c.id}</h1>
-% if c.editor:
-<p>View as <a href="/${c.silo_name}/datasets/${c.id}?view=editor"> Editor </a>, or <a href="/${c.silo_name}/datasets/${c.id}?view=user">User</a></p>
-% endif
-% if c.readme_text:
-<%include file="/readme_section.html"/>
-% endif
-<%include file="/part_list.html"/>
-% if c.item and c.view == "editor":
-<div id="editor_metadata_view">
-<p> Detailed view (As Editor)
-<p><b><a href="/${c.silo_name}/states/${c.id}">View state information</a></b></p>
-<dl>
-<!--
- <dt>Item's JSON state (Accept: application/json):</dt>
-<dd>${repr(c.item)}</dd> 
--->
-<dt><b>Item's Embargo state</b></dt>
-<dd>
+
 <%
 c.current = c.id
 %>
-<p><%include file="/embargo_form.html"/></p>
-<p><small>Embargo state: True - only those logged in and with edit rights can see item. False - Anyone can GET the item and it's files.</small></p>
-<p><small>Embargo date: Aim is for ISO8601 dates to provide embargo trigger events. Currently unused, unvalidated and unparsed.</small></p></dd>
+
+<h1>Dataset ${c.id}</h1>
+
+<div id="editor_metadata_view">
+<!-- View Information -->
+% if c.editor:
+%   if c.view == 'editor':
+<p> Editor view &nbsp;&nbsp&nbsp;&nbsp
+%   else:
+<p> User view &nbsp;&nbsp&nbsp;&nbsp
+%   endif
+%   if c.version: 
+Change view : <a href="/${c.silo_name}/datasets/${c.id}/version${c.version}?view=editor">Editor</a> | <a href="/${c.silo_name}/datasets/${c.id}/version${c.version}?view=user">User</a></p>
+%   else:
+Change view : as <a href="/${c.silo_name}/datasets/${c.id}?view=editor">Editor</a> | <a href="/${c.silo_name}/datasets/${c.id}?view=user">User</a></p>
+%   endif
+%endif
+
+<!--
+<dl>
+ <dt>Item's JSON state (Accept: application/json):</dt>
+<dd>${repr(c.item)}</dd> 
+-->
+
+<!-- List of Files -->
+% if c.editor: 
+<%include file="/part_list.html"/>
+% elif c.embargos[c.current][0] in ['False', 'false', 0, False]:
+<%include file="/part_list_display.html"/>
+% endif
+
+<!-- Read Me Information -->
+% if c.readme_text:
+<%include file="/readme_section.html"/>
+% endif
+
+<!-- Embargo Information -->
+<dl>
+% if c.embargos:
+<dt><b>Embargo Information</b></dt>
+%   if c.embargos[c.current][0] not in ['False', 'false', 0, False]:
+<dd>Embargoed: True</dd>
+<dd>Embargoed until: ${c.embargos[c.current][1]}</dd>
+%   else:
+<dd>Embargoed: False</dd>
+%   endif
+% endif
+</dl>
+
+<!-- RDF Manifest -->
 <dt><b>Item's RDF Manifest (Accept: most RDF mimetypes):</b></dt>
 <dd><pre>${c.item.rdf_to_string(format="pretty-xml")}</pre></dd>
 
+<!-- DISPLAYED FOR EDITOR ONLY -->
+<!-- State Information -->
+% if c.editor:
+<p><b><a href="/${c.silo_name}/states/${c.id}">View state information</a></b></p>
+<!-- Change Embargo Information -->
+% if c.view == 'editor':
+<dl>
+<dt><b>Change Embargo</b></dt>
+<dd>
+<%include file="/embargo_form.html"/>
+<p><small>Embargo state: True - only those logged in and with edit rights can see item. False - Anyone can GET the item and it's files.</small></p>
+<p><small>Embargo date: Aim is for ISO8601 dates to provide embargo trigger events. Currently unused, unvalidated and unparsed.</small></p>
+</dd>
+<!-- Change RDF Manifest -->
 <dt><b>Change RDF Manifest:</b></dt>
 <dd><%include file="/rdf_manifest_form.html"/></dd>
 </dl>
-</div>
+<!-- Upload File -->
 <%include file="/file_upload.html"/>
-% if c.zipfiles:
+<!-- Unpack zipfiles -->
+%   if c.zipfiles:
 <h3> List of item unpack endpoints:</h3>
-<ul>
-% for zf in c.zipfiles:
+<ul class="unpack_endpoints">
+%     for zf in c.zipfiles:
 <%
 c.zipfile = zf
 c.newid = c.zipfiles[zf]
 %>
-<li><p><a href="/${c.silo_name}/datasets/${c.item_id}/${zf}">${zf}</a> :
-<%include file="/files_unpack.html"/></p>
-</li>
-% endfor
+<li><%include file="/files_unpack.html"/></li>
+%     endfor
 </ul>
+%   endif
 % endif
-
 % endif
+</div>
