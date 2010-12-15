@@ -1220,7 +1220,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         # Put zip file, check response
-        zipdata2 = open("data/testdir.zip").read()       
+        zipdata2 = open("data/testrdf3.zip").read()       
         self.doHTTP_PUT(zipdata, resource="datasets/TestSubmission/testrdf3.zip", 
             expect_status=201, expect_reason="Created", expect_type="*/*")
         # Access and check list of contents
