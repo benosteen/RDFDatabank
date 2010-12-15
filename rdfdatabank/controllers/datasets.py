@@ -355,7 +355,10 @@ class DatasetsController(BaseController):
                         mtype = 'http://vocab.ox.ac.uk/dataset/schema#Grouping'
                     munge_manifest(manifest_str, item, manifest_type=mtype)
                 else:
-                    item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
+                    if code == 204:
+                        item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf', filename])
+                    else:
+                        item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                     item.put_stream(target_path, upload.file)
                     upload.file.close()
                 item.del_triple(item.uri, u"dcterms:modified")
@@ -431,7 +434,10 @@ class DatasetsController(BaseController):
                         mtype = 'http://vocab.ox.ac.uk/dataset/schema#Grouping'
                     munge_manifest(text, item, manifest_type=mtype)
                 else:
-                    item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
+                    if code == 204:
+                        item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf', filename])
+                    else:
+                        item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                     item.put_stream(target_path, params['text'].encode("utf-8"))
                 item.del_triple(item.uri, u"dcterms:modified")
                 item.add_triple(item.uri, u"dcterms:modified", datetime.now())
@@ -689,7 +695,10 @@ class DatasetsController(BaseController):
                     mtype = 'http://vocab.ox.ac.uk/dataset/schema#Grouping'
                 munge_manifest(content, item, manifest_type=mtype)
             else:
-                item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
+                if code == 204:
+                    item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf', path])
+                else:
+                    item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                 item.put_stream(path, content)
             item.del_triple(item.uri, u"dcterms:modified")
             item.add_triple(item.uri, u"dcterms:modified", datetime.now())
@@ -756,7 +765,10 @@ class DatasetsController(BaseController):
                     mtype = 'http://vocab.ox.ac.uk/dataset/schema#Grouping'
                 munge_manifest(manifest_str, item, manifest_type=mtype)
             else:
-                item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])                
+                if code == 204:
+                    item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf', filename])
+                else:
+                    item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])                
                 item.put_stream(target_path, upload.file)
                 upload.file.close()
             item.del_triple(item.uri, u"dcterms:modified")
