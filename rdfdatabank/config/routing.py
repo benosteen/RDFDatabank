@@ -45,6 +45,7 @@ def make_map():
     
     map.connect('/{silo}/states', controller='states', action='siloview')
     map.connect('/{silo}/states/{id}', controller='states', action='datasetview')
+    map.connect('/{silo}/states/{id}/version{vnum}', controller='states', action='datasetview_vnum')
 
     map.connect('/{controller}')
     map.connect('/{controller}/{action}')
