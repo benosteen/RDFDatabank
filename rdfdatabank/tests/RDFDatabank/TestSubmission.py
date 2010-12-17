@@ -229,7 +229,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'0') in rdfgraph, 'oxds:currentVersion')
 
     def testDatasetCreation2(self):
         """Create dataset - POST to /silo_name/dataset_name"""
@@ -259,7 +259,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'0') in rdfgraph, 'oxds:currentVersion')
 
     def testDatasetRecreation(self):
         """Create dataset - POST existing id to /silo_name"""
@@ -377,13 +377,13 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(state.keys()), 11, "States")
         self.assertEqual(state['item_id'], "TestSubmission", "Submission item identifier")
         self.assertEqual(len(state['versions']), 1, "Initially one version")
-        self.assertEqual(state['versions'][0], '1', "Version 1")
-        self.assertEqual(state['currentversion'], '1', "Current version == 1")
+        self.assertEqual(state['versions'][0], '0', "Version 0")
+        self.assertEqual(state['currentversion'], '0', "Current version == 0")
         self.assertEqual(state['rdffileformat'], 'xml', "RDF file type")
         self.assertEqual(state['rdffilename'], 'manifest.rdf', "RDF file name")
-        self.assertEqual(state['files']['1'], ['manifest.rdf'], "List should contain just manifest.rdf")
-        self.assertEqual(len(state['metadata_files']['1']), 0, "metadata_files of version 1")
-        self.assertEqual(len(state['subdir']['1']), 0,   "Subdirectory count for version 1")
+        self.assertEqual(state['files']['0'], ['manifest.rdf'], "List should contain just manifest.rdf")
+        self.assertEqual(len(state['metadata_files']['0']), 0, "metadata_files of version 0")
+        self.assertEqual(len(state['subdir']['0']), 0,   "Subdirectory count for version 0")
         self.assertEqual(state['metadata']['createdby'], RDFDatabankConfig.endpointuser, "Created by")
         self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
         # date
@@ -423,7 +423,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access and check zip file content
         zipfile = self.doHTTP_GET(
@@ -439,17 +439,17 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(state.keys()), 11, "States")
         self.assertEqual(state['item_id'], "TestSubmission", "Submission item identifier")
         self.assertEqual(len(state['versions']), 2, "Two versions")
-        self.assertEqual(state['versions'][0], '1', "Version 1")
-        self.assertEqual(state['versions'][1], '2', "Version 2")
-        self.assertEqual(state['currentversion'], '2', "Current version == 2")
+        self.assertEqual(state['versions'][0], '0', "Version 0")
+        self.assertEqual(state['versions'][1], '1', "Version 1")
+        self.assertEqual(state['currentversion'], '1', "Current version == 1")
         self.assertEqual(state['rdffileformat'], 'xml', "RDF file type")
         self.assertEqual(state['rdffilename'], 'manifest.rdf', "RDF file name")
-        self.assertEqual(state['files']['1'], ['manifest.rdf'], "List should contain just manifest.rdf")
-        self.assertEqual(len(state['files']['2']), 2, "List should contain manifest.rdf and testdir.zip")
+        self.assertEqual(state['files']['0'], ['manifest.rdf'], "List should contain just manifest.rdf")
+        self.assertEqual(len(state['files']['1']), 2, "List should contain manifest.rdf and testdir.zip")
+        self.assertEqual(len(state['metadata_files']['0']), 0, "metadata_files of version 0")
         self.assertEqual(len(state['metadata_files']['1']), 0, "metadata_files of version 1")
-        self.assertEqual(len(state['metadata_files']['2']), 0, "metadata_files of version 2")
+        self.assertEqual(len(state['subdir']['0']), 0,   "Subdirectory count for version 0")
         self.assertEqual(len(state['subdir']['1']), 0,   "Subdirectory count for version 1")
-        self.assertEqual(len(state['subdir']['2']), 0,   "Subdirectory count for version 2")
         self.assertEqual(state['metadata']['createdby'], RDFDatabankConfig.endpointuser, "Created by")
         self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
         self.assertEqual(len(parts.keys()), 4, "Parts")
@@ -473,7 +473,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
         oxds = "http://vocab.ox.ac.uk/dataset/schema#"
         self.assertEqual(len(rdfgraph),9,'Graph length %i' %len(rdfgraph))
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),"2") in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),"1") in rdfgraph, 'oxds:currentVersion')
         # Access and check zip file content and version
         zipfile = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip",
@@ -506,7 +506,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'3') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         #Access state information and check
         data = self.doHTTP_GET(
@@ -517,21 +517,21 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(state.keys()), 11, "States")
         self.assertEqual(state['item_id'], "TestSubmission", "Submission item identifier")
         self.assertEqual(len(state['versions']), 3, "Three versions")
-        self.assertEqual(state['versions'][0], '1', "Version 1")
-        self.assertEqual(state['versions'][1], '2', "Version 2")
-        self.assertEqual(state['versions'][2], '3', "Version 3")
-        self.assertEqual(state['currentversion'], '3', "Current version == 3")
+        self.assertEqual(state['versions'][0], '0', "Version 0")
+        self.assertEqual(state['versions'][1], '1', "Version 1")
+        self.assertEqual(state['versions'][2], '2', "Version 2")
+        self.assertEqual(state['currentversion'], '2', "Current version == 2")
         self.assertEqual(state['rdffileformat'], 'xml', "RDF file type")
         self.assertEqual(state['rdffilename'], 'manifest.rdf', "RDF file name")
-        self.assertEqual(len(state['files']['1']), 1, "List should contain just manifest.rdf")
-        self.assertEqual(len(state['files']['2']), 2, "List should contain manifest.rdf and testdir.zip")
-        self.assertEqual(len(state['files']['3']), 1, "List should contain just manifest.rdf")
+        self.assertEqual(len(state['files']['0']), 1, "List should contain just manifest.rdf")
+        self.assertEqual(len(state['files']['1']), 2, "List should contain manifest.rdf and testdir.zip")
+        self.assertEqual(len(state['files']['2']), 1, "List should contain just manifest.rdf")
+        self.assertEqual(len(state['metadata_files']['0']), 0, "metadata_files of version 0")
         self.assertEqual(len(state['metadata_files']['1']), 0, "metadata_files of version 1")
         self.assertEqual(len(state['metadata_files']['2']), 0, "metadata_files of version 2")
-        self.assertEqual(len(state['metadata_files']['3']), 0, "metadata_files of version 3")
+        self.assertEqual(len(state['subdir']['0']), 0,   "Subdirectory count for version 0")
         self.assertEqual(len(state['subdir']['1']), 0,   "Subdirectory count for version 1")
         self.assertEqual(len(state['subdir']['2']), 0,   "Subdirectory count for version 2")
-        self.assertEqual(len(state['subdir']['3']), 0,   "Subdirectory count for version 3")
         self.assertEqual(state['metadata']['createdby'], RDFDatabankConfig.endpointuser, "Created by")
         self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
         self.assertEqual(len(parts.keys()), 3, "Parts")
@@ -554,7 +554,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         subj  = URIRef(self.getRequestUri("datasets/TestSubmission")) 
         oxds = "http://vocab.ox.ac.uk/dataset/schema#"
         self.assertEqual(len(rdfgraph),9,'Graph length %i' %len(rdfgraph))
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         # Access and check zip file content and version
         zipfile = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip",
@@ -583,7 +583,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'3') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')  
         # Access and check zip file content
         zipfile = self.doHTTP_GET(
@@ -599,21 +599,21 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(state.keys()), 11, "States")
         self.assertEqual(state['item_id'], "TestSubmission", "Submission item identifier")
         self.assertEqual(len(state['versions']), 3, "Three versions")
-        self.assertEqual(state['versions'][0], '1', "Version 1")
-        self.assertEqual(state['versions'][1], '2', "Version 2")
-        self.assertEqual(state['versions'][2], '3', "Version 3")
-        self.assertEqual(state['currentversion'], '3', "Current version == 3")
+        self.assertEqual(state['versions'][0], '0', "Version 0")
+        self.assertEqual(state['versions'][1], '1', "Version 1")
+        self.assertEqual(state['versions'][2], '2', "Version 2")
+        self.assertEqual(state['currentversion'], '2', "Current version == 2")
         self.assertEqual(state['rdffileformat'], 'xml', "RDF file type")
         self.assertEqual(state['rdffilename'], 'manifest.rdf', "RDF file name")
-        self.assertEqual(len(state['files']['1']), 1, "List should contain just manifest.rdf")
+        self.assertEqual(len(state['files']['0']), 1, "List should contain just manifest.rdf")
+        self.assertEqual(len(state['files']['1']), 2, "List should contain manifest.rdf and testdir.zip")
         self.assertEqual(len(state['files']['2']), 2, "List should contain manifest.rdf and testdir.zip")
-        self.assertEqual(len(state['files']['3']), 2, "List should contain manifest.rdf and testdir.zip")
+        self.assertEqual(len(state['metadata_files']['0']), 0, "metadata_files of version 0")
         self.assertEqual(len(state['metadata_files']['1']), 0, "metadata_files of version 1")
         self.assertEqual(len(state['metadata_files']['2']), 0, "metadata_files of version 2")
-        self.assertEqual(len(state['metadata_files']['3']), 0, "metadata_files of version 3")
+        self.assertEqual(len(state['subdir']['0']), 0,   "Subdirectory count for version 0")
         self.assertEqual(len(state['subdir']['1']), 0,   "Subdirectory count for version 1")
         self.assertEqual(len(state['subdir']['2']), 0,   "Subdirectory count for version 2")
-        self.assertEqual(len(state['subdir']['3']), 0,   "Subdirectory count for version 3")
         self.assertEqual(state['metadata']['createdby'], RDFDatabankConfig.endpointuser, "Created by")
         self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
         self.assertEqual(len(parts.keys()), 4, "Parts")
@@ -630,7 +630,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         ore  = "http://www.openarchives.org/ore/terms/"
         oxds = "http://vocab.ox.ac.uk/dataset/schema#"
         stype = URIRef(oxds+"DataSet")
-        #---------Version 1
+        #---------Version 0
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Access and check list of contents
@@ -649,7 +649,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         parts = data['parts']
         self.assertEqual(len(state.keys()), 11, "States")
         self.assertEqual(len(parts.keys()), 3, "Parts")
-        #---------Version 2
+        #---------Version 1
         # Upload zip file, check response
         zipdata = self.uploadTestSubmissionZipfile()
         # Access and check list of contents
@@ -673,15 +673,15 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         parts = data['parts']
         self.assertEqual(len(state.keys()), 11, "States")
         self.assertEqual(len(parts.keys()), 4, "Parts")
-        # Access and check list of contents of version 1
+        # Access and check list of contents of version 0
         rdfdata = self.doHTTP_GET(
-            resource="datasets/TestSubmission/version1", 
+            resource="datasets/TestSubmission/version0", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
         rdfstream = StringIO(rdfdata)
         rdfgraph.parse(rdfstream) 
         self.assertEqual(len(rdfgraph),7,'Graph length %i' %len(rdfgraph))
-        #---------Version 3
+        #---------Version 2
         # Upload zip file, check response
         zipdata2 = self.uploadTestSubmissionZipfile(file_to_upload="testdir2.zip")
         # Access and check list of contents
@@ -709,7 +709,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         parts = data['parts']
         self.assertEqual(len(state.keys()), 11, "States")
         self.assertEqual(len(parts.keys()), 5, "Parts")
-        #---------Version 4
+        #---------Version 3
         # Delete file, check response
         self.doHTTP_DELETE(
             resource="datasets/TestSubmission/testdir.zip", 
@@ -738,7 +738,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         parts = data['parts']
         self.assertEqual(len(state.keys()), 11, "States")
         self.assertEqual(len(parts.keys()), 4, "Parts")
-        #---------Version 5
+        #---------Version 4
         # Update zip file, check response
         zipdata3 = self.updateTestSubmissionZipfile(file_to_upload="testrdf4.zip", filename="testdir2.zip")
         # Access and check list of contents
@@ -766,10 +766,10 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(state.keys()), 11, "States")
         self.assertEqual(len(parts.keys()), 4, "Parts")
         #=========Access each of the versions
-        #---------Version 1
-        # Access and check list of contents of version 1
+        #---------Version 0
+        # Access and check list of contents of version 0
         rdfdata = self.doHTTP_GET(
-            resource="datasets/TestSubmission/version1", 
+            resource="datasets/TestSubmission/version0", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
         rdfstream = StringIO(rdfdata)
@@ -781,10 +781,10 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'0') in rdfgraph, 'oxds:currentVersion')
         #Access state information and check
         data = self.doHTTP_GET(
-            resource="states/TestSubmission/version1", 
+            resource="states/TestSubmission/version0", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
         parts = data['parts']
@@ -792,10 +792,10 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts.keys()), 3, "Parts")
         self.assertEqual(len(parts['4=TestSubmission'].keys()), 13, "File stats for 4=TestSubmission")
         self.assertEqual(len(parts['manifest.rdf'].keys()), 13, "File stats for manifest.rdf")
-        #---------Version 2
-        # Access and check list of contents of version 2
+        #---------Version 1
+        # Access and check list of contents of version 1
         rdfdata = self.doHTTP_GET(
-            resource="datasets/TestSubmission/version2", 
+            resource="datasets/TestSubmission/version1", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
         rdfstream = StringIO(rdfdata)
@@ -808,16 +808,16 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access and check zip file content
         zipfile = self.doHTTP_GET(
-            resource="datasets/TestSubmission/testdir.zip/version2",
+            resource="datasets/TestSubmission/testdir.zip/version1",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
-        self.assertEqual(zipdata, zipfile, "Difference between local and remote zipfile - Version 2!")
+        self.assertEqual(zipdata, zipfile, "Difference between local and remote zipfile - Version 1!")
         #Access state information and check
         data = self.doHTTP_GET(
-            resource="states/TestSubmission/version2", 
+            resource="states/TestSubmission/version1", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
         parts = data['parts']
@@ -826,10 +826,10 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['4=TestSubmission'].keys()), 13, "File stats for 4=TestSubmission")
         self.assertEqual(len(parts['manifest.rdf'].keys()), 13, "File stats for manifest.rdf")
         self.assertEqual(len(parts['testdir.zip'].keys()), 13, "File stats for testdir.zip")
-        #---------Version 3
-        # Access and check list of contents of version 3
+        #---------Version 2
+        # Access and check list of contents of version 2
         rdfdata = self.doHTTP_GET(
-            resource="datasets/TestSubmission/version3", 
+            resource="datasets/TestSubmission/version2", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
         rdfstream = StringIO(rdfdata)
@@ -843,20 +843,20 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'3') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access and check zip file content
         zipfile = self.doHTTP_GET(
-            resource="datasets/TestSubmission/testdir.zip/version3",
+            resource="datasets/TestSubmission/testdir.zip/version2",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
-        self.assertEqual(zipdata, zipfile, "Difference between local and remote zipfile - Version 3!")
+        self.assertEqual(zipdata, zipfile, "Difference between local and remote zipfile - Version 2!")
         zipfile2 = self.doHTTP_GET(
-            resource="datasets/TestSubmission/testdir2.zip/version3",
+            resource="datasets/TestSubmission/testdir2.zip/version2",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
-        self.assertEqual(zipdata2, zipfile2, "Difference between local and remote zipfile - Version 3!")
+        self.assertEqual(zipdata2, zipfile2, "Difference between local and remote zipfile - Version 2!")
         #Access state information and check
         data = self.doHTTP_GET(
-            resource="states/TestSubmission/version3", 
+            resource="states/TestSubmission/version2", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
         parts = data['parts']
@@ -865,6 +865,43 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['4=TestSubmission'].keys()), 13, "File stats for 4=TestSubmission")
         self.assertEqual(len(parts['manifest.rdf'].keys()), 13, "File stats for manifest.rdf")
         self.assertEqual(len(parts['testdir.zip'].keys()), 13, "File stats for testdir.zip")
+        self.assertEqual(len(parts['testdir2.zip'].keys()), 13, "File stats for testdir2.zip")
+        #---------Version 3
+        # Access and check list of contents of version 3
+        rdfdata = self.doHTTP_GET(
+            resource="datasets/TestSubmission/version3", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),9,'Graph length %i' %len(rdfgraph))
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
+        self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testdir2.zip")) in rdfgraph)
+        self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
+        self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
+        self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'3') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
+        # Access and check zip file content
+        zipfile = self.doHTTP_GET(
+            resource="datasets/TestSubmission/testdir2.zip/version3",
+            expect_status=200, expect_reason="OK", expect_type="application/zip")
+        self.assertEqual(zipdata2, zipfile, "Difference between local and remote zipfile - Version 3!")
+        zipfile = self.doHTTP_GET(
+            resource="datasets/TestSubmission/testdir.zip/version3",
+            expect_status=404, expect_reason="Not Found")
+        #Access state information and check
+        data = self.doHTTP_GET(
+            resource="states/TestSubmission/version3", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        state = data['state']
+        parts = data['parts']
+        self.assertEqual(len(state.keys()), 11, "States")
+        self.assertEqual(len(parts.keys()), 4, "Parts")
+        self.assertEqual(len(parts['4=TestSubmission'].keys()), 13, "File stats for 4=TestSubmission")
+        self.assertEqual(len(parts['manifest.rdf'].keys()), 13, "File stats for manifest.rdf")
         self.assertEqual(len(parts['testdir2.zip'].keys()), 13, "File stats for testdir2.zip")
         #---------Version 4
         # Access and check list of contents of version 4
@@ -888,7 +925,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         zipfile = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir2.zip/version4",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
-        self.assertEqual(zipdata2, zipfile, "Difference between local and remote zipfile - Version 4!")
+        self.assertEqual(zipdata3, zipfile, "Difference between local and remote zipfile - Version 4!")
         zipfile = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip/version4",
             expect_status=404, expect_reason="Not Found")
@@ -900,75 +937,38 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         parts = data['parts']
         self.assertEqual(len(state.keys()), 11, "States")
         self.assertEqual(len(parts.keys()), 4, "Parts")
-        self.assertEqual(len(parts['4=TestSubmission'].keys()), 13, "File stats for 4=TestSubmission")
-        self.assertEqual(len(parts['manifest.rdf'].keys()), 13, "File stats for manifest.rdf")
-        self.assertEqual(len(parts['testdir2.zip'].keys()), 13, "File stats for testdir2.zip")
-        #---------Version 5
-        # Access and check list of contents of version 5
-        rdfdata = self.doHTTP_GET(
-            resource="datasets/TestSubmission/version5", 
-            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
-        rdfgraph = Graph()
-        rdfstream = StringIO(rdfdata)
-        rdfgraph.parse(rdfstream) 
-        self.assertEqual(len(rdfgraph),9,'Graph length %i' %len(rdfgraph))
-        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
-        self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
-        self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testdir2.zip")) in rdfgraph)
-        self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
-        self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
-        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
-        self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'5') in rdfgraph, 'oxds:currentVersion')
-        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
-        # Access and check zip file content
-        zipfile = self.doHTTP_GET(
-            resource="datasets/TestSubmission/testdir2.zip/version5",
-            expect_status=200, expect_reason="OK", expect_type="application/zip")
-        self.assertEqual(zipdata3, zipfile, "Difference between local and remote zipfile - Version 5!")
-        zipfile = self.doHTTP_GET(
-            resource="datasets/TestSubmission/testdir.zip/version5",
-            expect_status=404, expect_reason="Not Found")
-        #Access state information and check
-        data = self.doHTTP_GET(
-            resource="states/TestSubmission/version5", 
-            expect_status=200, expect_reason="OK", expect_type="application/json")
-        state = data['state']
-        parts = data['parts']
-        self.assertEqual(len(state.keys()), 11, "States")
-        self.assertEqual(len(parts.keys()), 4, "Parts")
         self.assertEqual(state['item_id'], "TestSubmission", "Submission item identifier")
         self.assertEqual(len(state['versions']), 5, "Five versions")
-        self.assertEqual(state['versions'],['1', '2', '3', '4', '5'], "Versions")
-        self.assertEqual(state['currentversion'], '5', "Current version == 5")
+        self.assertEqual(state['versions'],['0', '1', '2', '3', '4'], "Versions")
+        self.assertEqual(state['currentversion'], '4', "Current version == 4")
         self.assertEqual(state['rdffileformat'], 'xml', "RDF file type")
         self.assertEqual(state['rdffilename'], 'manifest.rdf', "RDF file name")
-        self.assertEqual(state['files']['1'], ['manifest.rdf'], "List should contain just manifest.rdf")
-        self.assertEqual(len(state['files']['2']), 2, "List should contain manifest.rdf and testdir.zip")
-        self.assertEqual(len(state['files']['3']), 3, "List should contain manifest.rdf, testdir.zip and testdir2.zip")
+        self.assertEqual(state['files']['0'], ['manifest.rdf'], "List should contain just manifest.rdf")
+        self.assertEqual(len(state['files']['1']), 2, "List should contain manifest.rdf and testdir.zip")
+        self.assertEqual(len(state['files']['2']), 3, "List should contain manifest.rdf, testdir.zip and testdir2.zip")
+        self.assertEqual(len(state['files']['3']), 2, "List should contain manifest.rdf and testdir2.zip")
         self.assertEqual(len(state['files']['4']), 2, "List should contain manifest.rdf and testdir2.zip")
-        self.assertEqual(len(state['files']['5']), 2, "List should contain manifest.rdf and testdir2.zip")
+        self.assertEqual(len(state['metadata_files']['0']), 0, "metadata_files of version 0")
         self.assertEqual(len(state['metadata_files']['1']), 0, "metadata_files of version 1")
         self.assertEqual(len(state['metadata_files']['2']), 0, "metadata_files of version 2")
         self.assertEqual(len(state['metadata_files']['3']), 0, "metadata_files of version 3")
         self.assertEqual(len(state['metadata_files']['4']), 0, "metadata_files of version 4")
-        self.assertEqual(len(state['metadata_files']['5']), 0, "metadata_files of version 5")
+        self.assertEqual(len(state['subdir']['0']), 0,   "Subdirectory count for version 0")
         self.assertEqual(len(state['subdir']['1']), 0,   "Subdirectory count for version 1")
         self.assertEqual(len(state['subdir']['2']), 0,   "Subdirectory count for version 2")
         self.assertEqual(len(state['subdir']['3']), 0,   "Subdirectory count for version 3")
         self.assertEqual(len(state['subdir']['4']), 0,   "Subdirectory count for version 4")
-        self.assertEqual(len(state['subdir']['5']), 0,   "Subdirectory count for version 5")
         self.assertEqual(state['metadata']['createdby'], RDFDatabankConfig.endpointuser, "Created by")
         self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
         self.assertEqual(len(parts['4=TestSubmission'].keys()), 13, "File stats for 4=TestSubmission")
         self.assertEqual(len(parts['manifest.rdf'].keys()), 13, "File stats for manifest.rdf")
         self.assertEqual(len(parts['testdir2.zip'].keys()), 13, "File stats for testdir2.zip")
-        # Access and check list of contents of version 6
+        # Access and check list of contents of version 5
         rdfdata = self.doHTTP_GET(
-            resource="datasets/TestSubmission/version6", 
+            resource="datasets/TestSubmission/version5", 
             expect_status=404, expect_reason="Not Found")
         zipfile = self.doHTTP_GET(
-            resource="datasets/TestSubmission/testdir2.zip/version6",
+            resource="datasets/TestSubmission/testdir2.zip/version5",
             expect_status=404, expect_reason="Not Found")
 
     def testMetadataFileUpdate(self):
@@ -998,7 +998,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         self.failUnless((subj,URIRef(dcterms+"title"),"Test dataset with merged metadata") in rdfgraph, 'dcterms:title')
         self.failUnless((subj,URIRef(owl+"sameAs"),URIRef("http://example.org/testrdf/")) in rdfgraph, 'owl:sameAs')
@@ -1018,7 +1018,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'3') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         self.failUnless((subj,URIRef(dcterms+"title"),'Test dataset with updated and merged metadata') in rdfgraph, 'dcterms:title')
         self.failUnless((subj,URIRef(owl+"sameAs"),URIRef("http://example.org/testrdf/")) in rdfgraph, 'owl:sameAs')
@@ -1031,21 +1031,21 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(state.keys()), 11, "States")
         self.assertEqual(state['item_id'], "TestSubmission", "Submission item identifier")
         self.assertEqual(len(state['versions']), 3, "Three versions")
-        self.assertEqual(state['versions'][0], '1', "Version 1")
-        self.assertEqual(state['versions'][1], '2', "Version 2")
-        self.assertEqual(state['versions'][2], '3', "Version 3")
-        self.assertEqual(state['currentversion'], '3', "Current version == 3")
+        self.assertEqual(state['versions'][0], '0', "Version 0")
+        self.assertEqual(state['versions'][1], '1', "Version 1")
+        self.assertEqual(state['versions'][2], '2', "Version 2")
+        self.assertEqual(state['currentversion'], '2', "Current version == 2")
         self.assertEqual(state['rdffileformat'], 'xml', "RDF file type")
         self.assertEqual(state['rdffilename'], 'manifest.rdf', "RDF file name")
+        self.assertEqual(len(state['files']['0']), 1, "List should contain just manifest.rdf")
         self.assertEqual(len(state['files']['1']), 1, "List should contain just manifest.rdf")
         self.assertEqual(len(state['files']['2']), 1, "List should contain just manifest.rdf")
-        self.assertEqual(len(state['files']['3']), 1, "List should contain just manifest.rdf")
+        self.assertEqual(len(state['metadata_files']['0']), 0, "metadata_files of version 0")
         self.assertEqual(len(state['metadata_files']['1']), 0, "metadata_files of version 1")
         self.assertEqual(len(state['metadata_files']['2']), 0, "metadata_files of version 2")
-        self.assertEqual(len(state['metadata_files']['3']), 0, "metadata_files of version 3")
+        self.assertEqual(len(state['subdir']['0']), 0,   "Subdirectory count for version 0")
         self.assertEqual(len(state['subdir']['1']), 0,   "Subdirectory count for version 1")
         self.assertEqual(len(state['subdir']['2']), 0,   "Subdirectory count for version 2")
-        self.assertEqual(len(state['subdir']['3']), 0,   "Subdirectory count for version 3")
         self.assertEqual(state['metadata']['createdby'], RDFDatabankConfig.endpointuser, "Created by")
         self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
         self.assertEqual(len(parts.keys()), 3, "Parts")
@@ -1078,7 +1078,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'0') in rdfgraph, 'oxds:currentVersion')
 
     def testPutCreateFile(self):
         """PUT file contents to new filename - PUT file contents to /silo_name/datasets/dataset_name/file_name"""
@@ -1109,7 +1109,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access and check zip file content
         zipfile = self.doHTTP_GET(
@@ -1125,17 +1125,17 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(state.keys()), 11, "States")
         self.assertEqual(state['item_id'], "TestSubmission", "Submission item identifier")
         self.assertEqual(len(state['versions']), 2, "Two versions")
-        self.assertEqual(state['versions'][0], '1', "Version 1")
-        self.assertEqual(state['versions'][1], '2', "Version 2")
-        self.assertEqual(state['currentversion'], '2', "Current version == 2")
+        self.assertEqual(state['versions'][0], '0', "Version 0")
+        self.assertEqual(state['versions'][1], '1', "Version 1")
+        self.assertEqual(state['currentversion'], '1', "Current version == 1")
         self.assertEqual(state['rdffileformat'], 'xml', "RDF file type")
         self.assertEqual(state['rdffilename'], 'manifest.rdf', "RDF file name")
-        self.assertEqual(state['files']['1'], ['manifest.rdf'], "List should contain just manifest.rdf")
-        self.assertEqual(len(state['files']['2']), 2, "List should contain manifest.rdf and testdir.zip")
+        self.assertEqual(state['files']['0'], ['manifest.rdf'], "List should contain just manifest.rdf")
+        self.assertEqual(len(state['files']['1']), 2, "List should contain manifest.rdf and testdir.zip")
+        self.assertEqual(len(state['metadata_files']['0']), 0, "metadata_files of version 0")
         self.assertEqual(len(state['metadata_files']['1']), 0, "metadata_files of version 1")
-        self.assertEqual(len(state['metadata_files']['2']), 0, "metadata_files of version 2")
+        self.assertEqual(len(state['subdir']['0']), 0,   "Subdirectory count for version 0")
         self.assertEqual(len(state['subdir']['1']), 0,   "Subdirectory count for version 1")
-        self.assertEqual(len(state['subdir']['2']), 0,   "Subdirectory count for version 2")
         self.assertEqual(state['metadata']['createdby'], RDFDatabankConfig.endpointuser, "Created by")
         self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
         self.assertEqual(len(parts.keys()), 4, "Parts")
@@ -1167,7 +1167,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         subj  = URIRef(self.getRequestUri("datasets/TestSubmission")) 
         oxds = "http://vocab.ox.ac.uk/dataset/schema#"
         self.assertEqual(len(rdfgraph),10,'Graph length %i' %len(rdfgraph))
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'3') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
         # Access and check zip file content and version
         zipfile = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip",
@@ -1203,7 +1203,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'4') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'3') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')  
         # Access and check zip file content
         zipfile = self.doHTTP_GET(
@@ -1223,25 +1223,25 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(state.keys()), 11, "States")
         self.assertEqual(state['item_id'], "TestSubmission", "Submission item identifier")
         self.assertEqual(len(state['versions']), 4, "Four versions")
-        self.assertEqual(state['versions'][0], '1', "Version 1")
-        self.assertEqual(state['versions'][1], '2', "Version 2")
-        self.assertEqual(state['versions'][2], '3', "Version 3")
-        self.assertEqual(state['versions'][3], '4', "Version 4")
-        self.assertEqual(state['currentversion'], '4', "Current version == 4")
+        self.assertEqual(state['versions'][0], '0', "Version 0")
+        self.assertEqual(state['versions'][1], '1', "Version 1")
+        self.assertEqual(state['versions'][2], '2', "Version 2")
+        self.assertEqual(state['versions'][3], '3', "Version 3")
+        self.assertEqual(state['currentversion'], '3', "Current version == 3")
         self.assertEqual(state['rdffileformat'], 'xml', "RDF file type")
         self.assertEqual(state['rdffilename'], 'manifest.rdf', "RDF file name")
-        self.assertEqual(state['files']['1'], ['manifest.rdf'], "List should contain just manifest.rdf")
-        self.assertEqual(len(state['files']['2']), 2, "List should contain manifest.rdf and testdir.zip")
+        self.assertEqual(state['files']['0'], ['manifest.rdf'], "List should contain just manifest.rdf")
+        self.assertEqual(len(state['files']['1']), 2, "List should contain manifest.rdf and testdir.zip")
+        self.assertEqual(len(state['files']['2']), 3, "List should contain manifest.rdf, testdir.zip and testrdf3.zip")
         self.assertEqual(len(state['files']['3']), 3, "List should contain manifest.rdf, testdir.zip and testrdf3.zip")
-        self.assertEqual(len(state['files']['4']), 3, "List should contain manifest.rdf, testdir.zip and testrdf3.zip")
+        self.assertEqual(len(state['metadata_files']['0']), 0, "metadata_files of version 0")
         self.assertEqual(len(state['metadata_files']['1']), 0, "metadata_files of version 1")
         self.assertEqual(len(state['metadata_files']['2']), 0, "metadata_files of version 2")
         self.assertEqual(len(state['metadata_files']['3']), 0, "metadata_files of version 3")
-        self.assertEqual(len(state['metadata_files']['4']), 0, "metadata_files of version 4")
+        self.assertEqual(len(state['subdir']['0']), 0,   "Subdirectory count for version 0")
         self.assertEqual(len(state['subdir']['1']), 0,   "Subdirectory count for version 1")
         self.assertEqual(len(state['subdir']['2']), 0,   "Subdirectory count for version 2")
         self.assertEqual(len(state['subdir']['3']), 0,   "Subdirectory count for version 3")
-        self.assertEqual(len(state['subdir']['4']), 0,   "Subdirectory count for version 4")
         self.assertEqual(state['metadata']['createdby'], RDFDatabankConfig.endpointuser, "Created by")
         self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
         self.assertEqual(len(parts.keys()), 5, "Parts")
@@ -1249,9 +1249,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['manifest.rdf'].keys()), 13, "File stats for manifest.rdf")
         self.assertEqual(len(parts['testdir.zip'].keys()), 13, "File stats for testdir.zip")
         self.assertEqual(len(parts['testrdf3.zip'].keys()), 13, "File stats for testrdf3.zip")
-        # Access and check zip file content of version 2
+        # Access and check zip file content of version 1
         zipfile = self.doHTTP_GET(
-            resource="datasets/TestSubmission/testdir.zip/version2",
+            resource="datasets/TestSubmission/testdir.zip/version1",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
         self.assertEqual(zipdata, zipfile, "Difference between local and remote zipfile!")
 
@@ -1284,7 +1284,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         self.failUnless((subj,URIRef(dcterms+"title"),"Test dataset with merged metadata") in rdfgraph, 'dcterms:title')
         self.failUnless((subj,URIRef(owl+"sameAs"),URIRef("http://example.org/testrdf/")) in rdfgraph, 'owl:sameAs')
@@ -1306,7 +1306,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'3') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         self.failUnless((subj,URIRef(owl+"sameAs"),URIRef("http://example.org/testrdf/")) in rdfgraph, 'owl:sameAs')
         self.failUnless((subj,URIRef(dcterms+"title"),'Test dataset with updated and merged metadata') in rdfgraph, 'dcterms:title')
@@ -1319,21 +1319,21 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(state.keys()), 11, "States")
         self.assertEqual(state['item_id'], "TestSubmission", "Submission item identifier")
         self.assertEqual(len(state['versions']), 3, "Three versions")
-        self.assertEqual(state['versions'][0], '1', "Version 1")
-        self.assertEqual(state['versions'][1], '2', "Version 2")
-        self.assertEqual(state['versions'][2], '3', "Version 3")
-        self.assertEqual(state['currentversion'], '3', "Current version == 3")
+        self.assertEqual(state['versions'][0], '0', "Version 0")
+        self.assertEqual(state['versions'][1], '1', "Version 1")
+        self.assertEqual(state['versions'][2], '2', "Version 2")
+        self.assertEqual(state['currentversion'], '2', "Current version == 2")
         self.assertEqual(state['rdffileformat'], 'xml', "RDF file type")
         self.assertEqual(state['rdffilename'], 'manifest.rdf', "RDF file name")
+        self.assertEqual(len(state['files']['0']), 1, "List should contain just manifest.rdf")
         self.assertEqual(len(state['files']['1']), 1, "List should contain just manifest.rdf")
         self.assertEqual(len(state['files']['2']), 1, "List should contain just manifest.rdf")
-        self.assertEqual(len(state['files']['3']), 1, "List should contain just manifest.rdf")
+        self.assertEqual(len(state['metadata_files']['0']), 0, "metadata_files of version 0")
         self.assertEqual(len(state['metadata_files']['1']), 0, "metadata_files of version 1")
         self.assertEqual(len(state['metadata_files']['2']), 0, "metadata_files of version 2")
-        self.assertEqual(len(state['metadata_files']['3']), 0, "metadata_files of version 3")
+        self.assertEqual(len(state['subdir']['0']), 0,   "Subdirectory count for version 0")
         self.assertEqual(len(state['subdir']['1']), 0,   "Subdirectory count for version 1")
         self.assertEqual(len(state['subdir']['2']), 0,   "Subdirectory count for version 2")
-        self.assertEqual(len(state['subdir']['3']), 0,   "Subdirectory count for version 3")
         self.assertEqual(state['metadata']['createdby'], RDFDatabankConfig.endpointuser, "Created by")
         self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
         self.assertEqual(len(parts.keys()), 3, "Parts")
@@ -1386,7 +1386,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
         self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         #Access state information and check
         data = self.doHTTP_GET(
@@ -1449,7 +1449,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
         self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         #Access state information and check
         data = self.doHTTP_GET(
@@ -1502,7 +1502,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),"2") in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),"1") in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access new dataset, check response
         rdfdata = self.doHTTP_GET(
@@ -1528,7 +1528,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"directory/file1.b")) in rdfgraph)
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"directory/file2.a")) in rdfgraph)
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"test-csv.csv")) in rdfgraph)
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),"2") in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),"1") in rdfgraph, 'oxds:currentVersion')
         # Access and check content of a resource
         filedata = self.doHTTP_GET(
             resource="datasets/TestSubmission-testdir/directory/file1.b",
@@ -1544,17 +1544,17 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(state.keys()), 11, "States")
         self.assertEqual(state['item_id'], "TestSubmission-testdir", "Submission item identifier")
         self.assertEqual(len(state['versions']), 2, "Two versions")
-        self.assertEqual(state['versions'][0], '1', "Version 1")
-        self.assertEqual(state['versions'][1], '2', "Version 2")
-        self.assertEqual(state['currentversion'], '2', "Current version == 2")
+        self.assertEqual(state['versions'][0], '0', "Version 0")
+        self.assertEqual(state['versions'][1], '1', "Version 1")
+        self.assertEqual(state['currentversion'], '1', "Current version == 1")
         self.assertEqual(state['rdffileformat'], 'xml', "RDF file type")
         self.assertEqual(state['rdffilename'], 'manifest.rdf', "RDF file name")
-        self.assertEqual(len(state['files']['1']), 1, "List should contain just manifest.rdf")
-        self.assertEqual(len(state['files']['2']), 3, "List should contain manifest.rdf, testdir and test-csv.csv")
+        self.assertEqual(len(state['files']['0']), 1, "List should contain just manifest.rdf")
+        self.assertEqual(len(state['files']['1']), 3, "List should contain manifest.rdf, testdir and test-csv.csv")
+        self.assertEqual(len(state['metadata_files']['0']), 0, "metadata_files of version 0")
         self.assertEqual(len(state['metadata_files']['1']), 0, "metadata_files of version 1")
-        self.assertEqual(len(state['metadata_files']['2']), 0, "metadata_files of version 2")
-        self.assertEqual(state['subdir']['1'], [],   "Subdirectory for version 1")
-        self.assertEqual(state['subdir']['2'], ['directory'],   "Subdirectory for version 2")
+        self.assertEqual(state['subdir']['0'], [],   "Subdirectory for version 0")
+        self.assertEqual(state['subdir']['1'], ['directory'],   "Subdirectory for version 1")
         self.assertEqual(state['metadata']['createdby'], RDFDatabankConfig.endpointuser, "Created by")
         self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
         self.assertEqual(len(parts.keys()), 5, "Parts")
@@ -1614,7 +1614,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),"3") in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),"2") in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access new dataset, check response
         rdfdata = self.doHTTP_GET(
@@ -1640,7 +1640,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"directory/file1.b")) in rdfgraph)
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"directory/file2.a")) in rdfgraph)
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"test-csv.csv")) in rdfgraph)
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),"2") in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),"1") in rdfgraph, 'oxds:currentVersion')
         # Access and check content of a resource
         filedata = self.doHTTP_GET(
             resource="datasets/TestSubmission-testdir/directory/file1.b",
@@ -1656,17 +1656,17 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(state.keys()), 11, "States")
         self.assertEqual(state['item_id'], "TestSubmission-testdir", "Submission item identifier")
         self.assertEqual(len(state['versions']), 2, "Two versions")
-        self.assertEqual(state['versions'][0], '1', "Version 1")
-        self.assertEqual(state['versions'][1], '2', "Version 2")
-        self.assertEqual(state['currentversion'], '2', "Current version == 2")
+        self.assertEqual(state['versions'][0], '0', "Version 0")
+        self.assertEqual(state['versions'][1], '1', "Version 1")
+        self.assertEqual(state['currentversion'], '1', "Current version == 1")
         self.assertEqual(state['rdffileformat'], 'xml', "RDF file type")
         self.assertEqual(state['rdffilename'], 'manifest.rdf', "RDF file name")
-        self.assertEqual(len(state['files']['1']), 1, "List should contain just manifest.rdf")
-        self.assertEqual(len(state['files']['2']), 3, "List should contain manifest.rdf, test-csv.csv and testdir")
+        self.assertEqual(len(state['files']['0']), 1, "List should contain just manifest.rdf")
+        self.assertEqual(len(state['files']['1']), 3, "List should contain manifest.rdf, test-csv.csv and testdir")
+        self.assertEqual(len(state['metadata_files']['0']), 0, "metadata_files of version 0")
         self.assertEqual(len(state['metadata_files']['1']), 0, "metadata_files of version 1")
-        self.assertEqual(len(state['metadata_files']['2']), 0, "metadata_files of version 2")
-        self.assertEqual(state['subdir']['1'], [],   "Subdirectory for version 1")
-        self.assertEqual(state['subdir']['2'], ['directory'],   "Subdirectory for version 2")
+        self.assertEqual(state['subdir']['0'], [],   "Subdirectory for version 0")
+        self.assertEqual(state['subdir']['1'], ['directory'],   "Subdirectory for version 1")
         self.assertEqual(state['metadata']['createdby'], RDFDatabankConfig.endpointuser, "Created by")
         self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
         self.assertEqual(len(parts.keys()), 5, "Parts")
@@ -1731,7 +1731,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"directory/file1.b")) in rdfgraph)
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"directory/file2.a")) in rdfgraph)
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"test-csv.csv")) in rdfgraph)
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),"2") in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),"1") in rdfgraph, 'oxds:currentVersion')
         # Upload zip file to dataset TestSubmission-testdir
         fields = \
             [ ("filename", "testdir2.zip")
@@ -1770,7 +1770,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"directory/file2.a")) in rdfgraph)
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"test-csv.csv")) in rdfgraph)
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testdir2.zip")) in rdfgraph)
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),"3") in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),"2") in rdfgraph, 'oxds:currentVersion')
         #Access state information of TestSubmission-testdir
         data = self.doHTTP_GET(
             resource="states/TestSubmission-testdir", 
@@ -1780,21 +1780,21 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(state.keys()), 11, "States")
         self.assertEqual(state['item_id'], "TestSubmission-testdir", "Submission item identifier")
         self.assertEqual(len(state['versions']), 3, "Three versions")
-        self.assertEqual(state['versions'][0], '1', "Version 1")
-        self.assertEqual(state['versions'][1], '2', "Version 2")
-        self.assertEqual(state['versions'][2], '3', "Version 3")
-        self.assertEqual(state['currentversion'], '3', "Current version == 3")
+        self.assertEqual(state['versions'][0], '0', "Version 0")
+        self.assertEqual(state['versions'][1], '1', "Version 1")
+        self.assertEqual(state['versions'][2], '2', "Version 2")
+        self.assertEqual(state['currentversion'], '2', "Current version == 2")
         self.assertEqual(state['rdffileformat'], 'xml', "RDF file type")
         self.assertEqual(state['rdffilename'], 'manifest.rdf', "RDF file name")
-        self.assertEqual(len(state['files']['1']), 1, "List should contain just manifest.rdf")
-        self.assertEqual(len(state['files']['2']), 3, "List should contain manifest.rdf, test-csv.csv and directory")
-        self.assertEqual(len(state['files']['3']), 4, "List should contain manifest.rdf, test-csv.csv, directory and testdir2.zip")
+        self.assertEqual(len(state['files']['0']), 1, "List should contain just manifest.rdf")
+        self.assertEqual(len(state['files']['1']), 3, "List should contain manifest.rdf, test-csv.csv and directory")
+        self.assertEqual(len(state['files']['2']), 4, "List should contain manifest.rdf, test-csv.csv, directory and testdir2.zip")
+        self.assertEqual(len(state['metadata_files']['0']), 0, "metadata_files of version 0")
         self.assertEqual(len(state['metadata_files']['1']), 0, "metadata_files of version 1")
         self.assertEqual(len(state['metadata_files']['2']), 0, "metadata_files of version 2")
-        self.assertEqual(len(state['metadata_files']['3']), 0, "metadata_files of version 3")
-        self.assertEqual(state['subdir']['1'], [],   "Subdirectory for version 1")
+        self.assertEqual(state['subdir']['0'], [],   "Subdirectory for version 0")
+        self.assertEqual(state['subdir']['1'], ['directory'],   "Subdirectory for version 1")
         self.assertEqual(state['subdir']['2'], ['directory'],   "Subdirectory for version 2")
-        self.assertEqual(state['subdir']['3'], ['directory'],   "Subdirectory for version 3")
         self.assertEqual(state['metadata']['createdby'], RDFDatabankConfig.endpointuser, "Created by")
         self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
         self.assertEqual(len(parts.keys()), 6, "Parts")
@@ -1866,7 +1866,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"directory/file1.b")) in rdfgraph)
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"directory/file2.a")) in rdfgraph)
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"test-csv.csv")) in rdfgraph)
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),"2") in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),"1") in rdfgraph, 'oxds:currentVersion')
         # Unpack second ZIP file into dataset TestSubmission-testdir, check response
         fields = \
             [ ("filename", "testdir2.zip"),
@@ -1902,7 +1902,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),"3") in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),"2") in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access dataset TestSubmission-testdir, check response
         rdfdata = self.doHTTP_GET(
@@ -1935,7 +1935,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"directory2/file2.a")) in rdfgraph)
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"directory2/file2.b")) in rdfgraph)
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"test-csv.csv")) in rdfgraph)
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),"3") in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),"2") in rdfgraph, 'oxds:currentVersion')
         #Access state information of TestSubmission-testdir
         data = self.doHTTP_GET(
             resource="states/TestSubmission-testdir", 
@@ -1945,21 +1945,21 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(state.keys()), 11, "States")
         self.assertEqual(state['item_id'], "TestSubmission-testdir", "Submission item identifier")
         self.assertEqual(len(state['versions']), 3, "Three versions")
-        self.assertEqual(state['versions'][0], '1', "Version 1")
-        self.assertEqual(state['versions'][1], '2', "Version 2")
-        self.assertEqual(state['versions'][2], '3', "Version 3")
-        self.assertEqual(state['currentversion'], '3', "Current version == 3")
+        self.assertEqual(state['versions'][0], '0', "Version 0")
+        self.assertEqual(state['versions'][1], '1', "Version 1")
+        self.assertEqual(state['versions'][2], '2', "Version 2")
+        self.assertEqual(state['currentversion'], '2', "Current version == 2")
         self.assertEqual(state['rdffileformat'], 'xml', "RDF file type")
         self.assertEqual(state['rdffilename'], 'manifest.rdf', "RDF file name")
-        self.assertEqual(len(state['files']['1']), 1, "List should contain just manifest.rdf")
-        self.assertEqual(len(state['files']['2']), 3, "List should contain manifest.rdf, directory and test-csv.csv")
-        self.assertEqual(len(state['files']['3']), 4, "List should contain manifest.rdf, directory1, directory2 and test-csv.csv")
+        self.assertEqual(len(state['files']['0']), 1, "List should contain just manifest.rdf")
+        self.assertEqual(len(state['files']['1']), 3, "List should contain manifest.rdf, directory and test-csv.csv")
+        self.assertEqual(len(state['files']['2']), 4, "List should contain manifest.rdf, directory1, directory2 and test-csv.csv")
+        self.assertEqual(len(state['metadata_files']['0']), 0, "metadata_files of version 0")
         self.assertEqual(len(state['metadata_files']['1']), 0, "metadata_files of version 1")
         self.assertEqual(len(state['metadata_files']['2']), 0, "metadata_files of version 2")
-        self.assertEqual(len(state['metadata_files']['3']), 0, "metadata_files of version 3")
-        self.assertEqual(state['subdir']['1'], [],   "Subdirectory count for version 1")
-        self.assertEqual(state['subdir']['2'], ['directory'], "Subdirectory for version 2")
-        self.assertEqual(len(state['subdir']['3']), 2, "Subdirectory for version 3 should be directory1 and directory2")
+        self.assertEqual(state['subdir']['0'], [],   "Subdirectory count for version 0")
+        self.assertEqual(state['subdir']['1'], ['directory'], "Subdirectory for version 1")
+        self.assertEqual(len(state['subdir']['2']), 2, "Subdirectory for version 2 should be directory1 and directory2")
         self.assertEqual(state['metadata']['createdby'], RDFDatabankConfig.endpointuser, "Created by")
         self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
         self.assertEqual(len(parts.keys()), 6, "Parts")
@@ -1968,9 +1968,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['test-csv.csv'].keys()), 13, "File stats for test-csv.csv")
         self.assertEqual(len(parts['directory1'].keys()), 0, "File stats for directory1")
         self.assertEqual(len(parts['directory2'].keys()), 0, "File stats for directory2")
-        # Access dataset TestSubmission-testdir version 2
+        # Access dataset TestSubmission-testdir version 1
         rdfdata = self.doHTTP_GET(
-            resource="datasets/TestSubmission-testdir/version2",  
+            resource="datasets/TestSubmission-testdir/version1",  
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
         rdfstream = StringIO(rdfdata)
@@ -1989,10 +1989,10 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"directory/file1.b")) in rdfgraph)
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"directory/file2.a")) in rdfgraph)
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"test-csv.csv")) in rdfgraph)
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),"2") in rdfgraph, 'oxds:currentVersion')
-        #Access state information of TestSubmission-testdir version 2
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),"1") in rdfgraph, 'oxds:currentVersion')
+        #Access state information of TestSubmission-testdir version 1
         data = self.doHTTP_GET(
-            resource="states/TestSubmission-testdir/version2", 
+            resource="states/TestSubmission-testdir/version1", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
         parts = data['parts']
@@ -2002,9 +2002,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['manifest.rdf'].keys()), 13, "File stats for manifest.rdf")
         self.assertEqual(len(parts['test-csv.csv'].keys()), 13, "File stats for test-csv.csv")
         self.assertEqual(len(parts['directory'].keys()), 0, "File stats for directory")
-        # Access and check list of contents in TestSubmission-testdir version 1
+        # Access and check list of contents in TestSubmission-testdir version 0
         rdfdata = self.doHTTP_GET(
-            resource="datasets/TestSubmission-testdir/version1",  
+            resource="datasets/TestSubmission-testdir/version0",  
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
         rdfstream = StringIO(rdfdata)
@@ -2016,10 +2016,10 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
         self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),"1") in rdfgraph, 'oxds:currentVersion')
-        #Access state information of TestSubmission-testdir version 1
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),"0") in rdfgraph, 'oxds:currentVersion')
+        #Access state information of TestSubmission-testdir version 0
         data = self.doHTTP_GET(
-            resource="states/TestSubmission-testdir/version1", 
+            resource="states/TestSubmission-testdir/version0", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
         parts = data['parts']
@@ -2027,9 +2027,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts.keys()), 3, "Parts")
         self.assertEqual(len(parts['4=TestSubmission-testdir'].keys()), 13, "File stats for 4=TestSubmission-testdir")
         self.assertEqual(len(parts['manifest.rdf'].keys()), 13, "File stats for manifest.rdf")
-        # Access dataset TestSubmission-testdir version 3
+        # Access dataset TestSubmission-testdir version 2
         rdfdata = self.doHTTP_GET(
-            resource="datasets/TestSubmission-testdir/version3",  
+            resource="datasets/TestSubmission-testdir/version2",  
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
         rdfstream = StringIO(rdfdata)
@@ -2053,14 +2053,33 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"directory2/file2.a")) in rdfgraph)
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"directory2/file2.b")) in rdfgraph)
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"test-csv.csv")) in rdfgraph)
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),"3") in rdfgraph, 'oxds:currentVersion')
-        #Access state information of TestSubmission-testdir version 3
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),"2") in rdfgraph, 'oxds:currentVersion')
+        #Access state information of TestSubmission-testdir version 2
         data = self.doHTTP_GET(
-            resource="states/TestSubmission-testdir/version3", 
+            resource="states/TestSubmission-testdir/version2", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
         parts = data['parts']
         self.assertEqual(len(state.keys()), 11, "States")
+        self.assertEqual(state['item_id'], "TestSubmission-testdir", "Submission item identifier")
+        self.assertEqual(len(state['versions']), 3, "Three versions")
+        self.assertEqual(state['versions'][0], '0', "Version 0")
+        self.assertEqual(state['versions'][1], '1', "Version 1")
+        self.assertEqual(state['versions'][2], '2', "Version 2")
+        self.assertEqual(state['currentversion'], '2', "Current version == 2")
+        self.assertEqual(state['rdffileformat'], 'xml', "RDF file type")
+        self.assertEqual(state['rdffilename'], 'manifest.rdf', "RDF file name")
+        self.assertEqual(len(state['files']['0']), 1, "List should contain just manifest.rdf")
+        self.assertEqual(len(state['files']['1']), 3, "List should contain manifest.rdf, directory and test-csv.csv")
+        self.assertEqual(len(state['files']['2']), 4, "List should contain manifest.rdf, directory1, directory2 and test-csv.csv")
+        self.assertEqual(len(state['metadata_files']['0']), 0, "metadata_files of version 0")
+        self.assertEqual(len(state['metadata_files']['1']), 0, "metadata_files of version 1")
+        self.assertEqual(len(state['metadata_files']['2']), 0, "metadata_files of version 2")
+        self.assertEqual(state['subdir']['0'], [],   "Subdirectory count for version 0")
+        self.assertEqual(state['subdir']['1'], ['directory'], "Subdirectory for version 1")
+        self.assertEqual(len(state['subdir']['2']), 2, "Subdirectory for version 2 should be directory1 and directory2")
+        self.assertEqual(state['metadata']['createdby'], RDFDatabankConfig.endpointuser, "Created by")
+        self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
         self.assertEqual(len(parts.keys()), 6, "Parts")
         self.assertEqual(len(parts['4=TestSubmission-testdir'].keys()), 13, "File stats for 4=TestSubmission-testdir")
         self.assertEqual(len(parts['manifest.rdf'].keys()), 13, "File stats for manifest.rdf")
@@ -2130,7 +2149,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access and check list of contents in child dataset - TestSubmission-testrdf
         rdfdata = self.doHTTP_GET(
@@ -2159,7 +2178,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
         self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         # Delete the dataset TestSubmission-testrdf
         self.doHTTP_DELETE(
             resource="datasets/TestSubmission-testrdf", 
@@ -2220,7 +2239,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access and check list of contents in child dataset - TestSubmission-testrdf
         rdfdata = self.doHTTP_GET(
@@ -2250,7 +2269,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
         self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         # Delete the dataset TestSubmission-testrdf2
         self.doHTTP_DELETE(
             resource="datasets/TestSubmission-testrdf2", 
@@ -2313,7 +2332,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access and check list of contents in child dataset - TestSubmission-testrdf3
         rdfdata = self.doHTTP_GET(
@@ -2346,7 +2365,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
         self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         # Delete the dataset TestSubmission-testrdf3
         self.doHTTP_DELETE(
             resource="datasets/TestSubmission-testrdf3", 
@@ -2409,7 +2428,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"creator"),None) in rdfgraph, 'dcterms:creator')
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access and check list of contents in child dataset - TestSubmission-testrdf3
         rdfdata = self.doHTTP_GET(
@@ -2444,7 +2463,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),None) in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
         self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dc+"description"),"This is a archived test item 2a ") in rdfgraph, 'dc:description')
         self.failUnless((subj,URIRef(dcterms+"title"),"Test item 2a") in rdfgraph, 'dcterms:title')
         self.failUnless((subj,URIRef(owl+"sameAs"),URIRef("2aFiles")) in rdfgraph, 'dcterms:title')
