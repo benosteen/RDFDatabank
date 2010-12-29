@@ -66,7 +66,7 @@ def is_embargoed(silo, id, refresh=False):
     return (e, e_d)
 
 def create_new(silo, id, creator, title=None, embargoed=True, embargoed_until=None, embargo_days_from_now=None, **kw):
-    item = silo.get_item(id)
+    item = silo.get_item(id, startversion="0")
     item.metadata['createdby'] = creator
     item.metadata['embargoed'] = embargoed
     item.metadata['uuid'] = uuid4().hex
