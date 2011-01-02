@@ -28,10 +28,7 @@ def make_map():
     map.connect('/admin/{silo_name}', controller='admin', action='archive')
     
     map.connect('/silos', controller='silos', action='index')
-
     map.connect('/{silo}', controller='silos', action='siloview')
-
-    #map.connect('/{silo}/packages', controller='packages', action='siloview')
 
     map.connect('/{silo}/datasets', controller='datasets', action='siloview')
     map.connect('/{silo}/datasets/{id}', controller='datasets', action='datasetview')

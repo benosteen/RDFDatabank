@@ -4,9 +4,6 @@ from pylons import request, response, session, config, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
 from pylons import app_globals as ag
 from rdfdatabank.lib.base import BaseController, render
-
-import re, os
-
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 
 log = logging.getLogger(__name__)
@@ -26,11 +23,32 @@ class AdminController(BaseController):
         if ident.get('role') == "admin":
             http_method = request.environ['REQUEST_METHOD']
             if http_method == "GET":
-                c.granary = ag.granary
+                #c.granary = ag.granary
+                accept_list = None
+                if 'HTTP_ACCEPT' in request.environ:
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                if not accept_list:
+                    accept_list= [MT("text", "html")]
+                mimetype = accept_list.pop(0)
+                while(mimetype):
+                    if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                        return render("/silo_admin.html")
+                    elif str(mimetype).lower() in ["text/plain", "application/json"]:
+                        response.content_type = 'application/json; charset="UTF-8"'
+                        response.status_int = 200
+                        response.status = "200 OK"
+                        return simplejson.dumps(list(c.granary_list))
+                    try:
+                        mimetype = accept_list.pop(0)
+                    except IndexError:
+                        mimetype = None
+                #Whoops nothing satisfies - return text/html            
                 return render("/silo_admin.html")
             elif http_method == "POST":
                 params = request.POST
-                if 'silo' in params and not ag.granary.issilo(params['silo']):
+                if 'silo' in params:
+                    if ag.granary.issilo(params['silo']):
+                        abort(403)
                     # Create new silo
                     silo_name = params['silo']
                     g_root = config.get("granary.uri_root", "info:")
@@ -55,6 +73,8 @@ class AdminController(BaseController):
                         else:
                             response.status_int = 201
                             return "Created Silo %s" % silo_name
+            else:
+                abort(403)
         else:
             abort(403)
 
@@ -63,7 +83,7 @@ class AdminController(BaseController):
             abort(401, "Not Authorised")
         ident = request.environ.get('repoze.who.identity')
         c.ident = ident
-        c.granary_list = ag.granary.silos
+        #c.granary_list = ag.granary.silos
         c.silo_name = silo_name
         # Admin only
         if ident.get('role') == "admin":
@@ -71,6 +91,25 @@ class AdminController(BaseController):
             if http_method == "GET":
                 if ag.granary.issilo(silo_name):
                     c.kw = ag.granary.describe_silo(silo_name)
+                    accept_list = None
+                    if 'HTTP_ACCEPT' in request.environ:
+                        accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                    if not accept_list:
+                        accept_list= [MT("text", "html")]
+                    mimetype = accept_list.pop(0)
+                    while(mimetype):
+                        if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                            return render("/admin_siloview.html")
+                        elif str(mimetype).lower() in ["text/plain", "application/json"]:
+                            response.content_type = 'application/json; charset="UTF-8"'
+                            response.status_int = 200
+                            response.status = "200 OK"
+                            return simplejson.dumps(dict(c.kw))
+                        try:
+                            mimetype = accept_list.pop(0)
+                        except IndexError:
+                            mimetype = None
+                    #Whoops nothing satisfies - return text/html            
                     return render("/admin_siloview.html")
                 else:
                     abort(404)
