@@ -1,5 +1,5 @@
 import logging
-
+import simplejson
 from pylons import request, response, session, config, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
 from pylons import app_globals as ag
