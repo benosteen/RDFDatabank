@@ -107,3 +107,18 @@ In your apache2 configuration, you need an entry like:
 </VirtualHost>
 
 Note the WSGIScriptAlias points to the dispatch.wsgi file.
+
+---------------
+
+Note about permissions:
+src directory and all its files and directories:
+    Set the owner as admin_user:www-data
+    Set the permission to 775 on all directories and everything under it
+    Set the permission to 644 on all files
+apachelog directory and all its files and directories:
+    Set the owner as admin_user:www-data
+    Set the persmissions 755 (currently the dir permission is set to 755 and the permission of the files within it is set to 644)
+All of other directories:
+    Set the owner as admin_user:admin_user
+    Set the permission to 775 on all directories and everything under it
+
