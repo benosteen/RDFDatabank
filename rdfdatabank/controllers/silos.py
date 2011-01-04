@@ -63,13 +63,14 @@ class SilosController(BaseController):
             abort(403, "Forbidden")
         
         c.silo_name = silo
-        c.silo = ag.granary.get_rdf_silo(silo)
-        
+        rdfsilo = ag.granary.get_rdf_silo(silo)       
         c.embargos = {}
-        for item in c.silo.list_items():
+        c.items = []
+        for item in rdfsilo.list_items():
             c.embargos[item] = None
-            c.embargos[item] = is_embargoed(c.silo, item)
-        c.items = c.silo.list_items()
+            c.embargos[item] = is_embargoed(rdfsilo, item)
+            c.items.append(item)
+
         # conneg return
         accept_list = None
         if 'HTTP_ACCEPT' in request.environ:
