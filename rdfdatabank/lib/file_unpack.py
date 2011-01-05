@@ -11,12 +11,13 @@ from uuid import uuid4
 from rdfdatabank.lib.utils import create_new, munge_manifest, test_rdf
 
 #import checkm
+from zipfile import ZipFile, BadZipfile as BZ
 
 zipfile_root = "zipfile:"
 
 class BadZipfile(Exception):
     """Cannot open zipfile using commandline tool 'unzip' to target directory"""
-    
+   
 def check_file_mimetype(real_filepath, mimetype):
     if os.path.islink(real_filepath):
         real_filepath = os.readlink(real_filepath)
@@ -62,6 +63,59 @@ def store_zipfile(silo, target_item_uri, POSTED_file, ident):
         pass
     zip_item.sync()
     return zip_item
+
+def read_zipfile(filepath):
+    try:
+        tmpfile = ZipFile(filepath, "r")
+    except BZ:
+        raise BadZipfile
+
+    # list filenames
+    #list_of_files = tmpfile.namelist()
+    
+    # file information
+    zipfile_contents = {}
+    for info in tmpfile.infolist():
+        zipfile_contents[info.filename] = (info.file_size, info.date_time)
+    tmpfile.close()
+    return zipfile_contents
+
+def read_file_in_zipfile(filepath, filename):
+    try:
+        tmpfile = ZipFile(filepath, "r")
+    except BZ:
+        raise BadZipfile
+
+    try:
+        fileinfo = tmpfile.getinfo(filename)
+    except KeyError:
+        return False
+    if fileinfo.file_size == 0:
+        return 0
+
+    # read file
+    file_contents = None
+    file_contents = tmpfile.read(filename)
+    tmpfile.close()
+    return file_contents
+
+def get_file_in_zipfile(filepath, filename, targetdir):
+    try:
+        tmpfile = ZipFile(filepath, "r")
+    except BZ:
+        raise BadZipfile
+
+    try:
+        fileinfo = tmpfile.getinfo(filename)
+    except KeyError:
+        return False
+    if fileinfo.file_size == 0:
+        return 0
+
+    # extract file
+    targetfile = tmpfile.extract(filename, targetdir)
+    tmpfile.close()
+    return targetfile
 
 def unzip_file(filepath, target_directory=None):
     #f = open("/tmp/python_out.log", "a")

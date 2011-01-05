@@ -14,28 +14,11 @@ log = logging.getLogger(__name__)
 
 class ItemsController(BaseController):  
     def siloview(self, silo):
-        if not request.environ.get('repoze.who.identity'):
-            abort(401, "Not Authorised")
-        #ident = request.environ.get('repoze.who.identity')
-        #c.ident = ident
-        #granary_list = ag.granary.silos
-        #c.silos = ag.authz(granary_list, ident)
-        #if silo not in c.silos:
-        #    abort(403, "Forbidden")
-        
-        #c.silo_name = silo
-        #c.silo = ag.granary.get_rdf_silo(silo)
-        #http_method = request.environ['REQUEST_METHOD']
-        #items = c.silo.list_items()
-        #c.items = {}
-        #for i in items:
-        #    item = None
-        #    item = c.silo.get_item(i)
-        #    c.items[i] = get_zipfiles_in_dataset(item)
-        #return render("/files_list_of_datasets.html")
         abort(403, "Forbidden")
 
     def datasetview(self, silo, id):
+        #tmpl_context variables needed: c.silo_name, c.zipfiles, c.ident, c.id, c.path
+
         c.silo_name = silo
         c.id = id
         
@@ -46,30 +29,47 @@ class ItemsController(BaseController):
         c.ident = ident
         granary_list = ag.granary.silos
         if ident:
-            c.silos = ag.authz(granary_list, ident)      
-            if silo not in c.silos:
+            silos = ag.authz(granary_list, ident)      
+            if silo not in silos:
                 abort(403, "Forbidden")
         else:
             abort(403, "Forbidden")
 
-        c.silo = ag.granary.get_rdf_silo(silo)
-        if not c.silo.exists(id):
+        rdfsilo = ag.granary.get_rdf_silo(silo)
+        if not rdfsilo.exists(id):
             abort (403, "Forbidden")
 
-        #c.item is the dataset containing the zip files
-        c.item = c.silo.get_item(id)
-        item_real_filepath = c.item.to_dirpath()
-        #c.parts = c.item.list_parts(detailed=False)
+        dataset = rdfsilo.get_item(id)
 
         http_method = request.environ['REQUEST_METHOD']
         if http_method == "GET":
-            c.zipfiles = get_zipfiles_in_dataset(c.item)
-            return render("/files_list_of_items.html")
+            c.zipfiles = get_zipfiles_in_dataset(dataset)
+            # conneg return
+            accept_list = None
+            if 'HTTP_ACCEPT' in request.environ:
+                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+            if not accept_list:
+                accept_list= [MT("text", "html")]
+            mimetype = accept_list.pop(0)
+            while(mimetype):
+                if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                    return render("/list_of_zipfiles.html")
+                elif str(mimetype).lower() in ["text/plain", "application/json"]:
+                    response.content_type = 'application/json; charset="UTF-8"'
+                    response.status_int = 200
+                    response.status = "200 OK"
+                    return simplejson.dumps(dict(c.zipfiles))
+                try:
+                    mimetype = accept_list.pop(0)
+                except IndexError:
+                    mimetype = None
+            #Whoops nothing satisfies - return text/html            
+            return render("/list_of_zipfiles.html")
         elif http_method == "POST":
             params = request.POST
             if not (params.has_key("filename") and params['filename']):
                 abort(400, "You must supply a filename to unpack")
-
+            item_real_filepath = dataset.to_dirpath()
             target_filepath = "%s/%s"%(item_real_filepath, params['filename'])
             if not os.path.isfile(target_filepath):
                 abort(404, "File to unpack not found")
@@ -83,13 +83,13 @@ class ItemsController(BaseController):
                 (fn, ext) = os.path.splitext(fn)
                 target_dataset_name = "%s-%s"%(id,fn)
             
-            if not c.silo.exists(target_dataset_name):
-                target_dataset = create_new(c.silo, target_dataset_name, ident['repoze.who.userid'])
+            if not rdfsilo.exists(target_dataset_name):
+                target_dataset = create_new(rdfsilo, target_dataset_name, ident['repoze.who.userid'])
             else:
-                target_dataset = c.silo.get_item(target_dataset_name)
+                target_dataset = rdfsilo.get_item(target_dataset_name)
             
             try:
-                unpack_zip_item(target_dataset, c.item, params['filename'], c.silo, ident['repoze.who.userid'])
+                unpack_zip_item(target_dataset, dataset, params['filename'], rdfsilo, ident['repoze.who.userid'])
             except BadZipfile:
                 abort(400, "Couldn't unpack zipfile")
 
@@ -108,7 +108,7 @@ class ItemsController(BaseController):
                     response.content_type = "text/plain"
                     response.status_int = 201
                     response.status = "201 Created"
-                    new_item = c.silo.get_item(target_dataset_name)
+                    #new_item = rdfsilo.get_item(target_dataset_name)
                     #response.headers["Content-Location"] = new_item.uri
                     #response.headers.add("Content-Location", new_item.uri)
                     #response.content_location = item.uri
@@ -122,55 +122,76 @@ class ItemsController(BaseController):
             # Whoops - nothing satisfies - return text/plain
             response.content_type = "text/plain"
             response.status_int = 201
-            new_item = c.silo.get_item(target_dataset_name)
-            #response.headers.add("Content-Location", new_item.uri)
             response.status = "201 Created"
+            #new_item = rdfsilo.get_item(target_dataset_name)
+            #response.headers.add("Content-Location", new_item.uri)
             return "Created"
             
     def itemview(self, silo, id, path):
+        #tmpl_context variables needed: c.silo_name, c.zipfile_contents c.ident, c.id, c.path
         c.silo_name = silo
         c.id = id
-        
+        c.path = path
+
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
+
+        if not path:
+            abort(400, "You must supply a filename to unpack")
 
         ident = request.environ.get('repoze.who.identity')  
         c.ident = ident
         granary_list = ag.granary.silos
         if ident:
-            c.silos = ag.authz(granary_list, ident)      
-            if silo not in c.silos:
+            silos = ag.authz(granary_list, ident)      
+            if silo not in silos:
                 abort(403, "Forbidden")
         else:
             abort(403, "Forbidden")
 
-        c.silo = ag.granary.get_rdf_silo(silo)
-        if not c.silo.exists(id):
+        rdfsilo = ag.granary.get_rdf_silo(silo)
+        if not rdfsilo.exists(id):
             abort (403, "Forbidden")
 
-        #c.item is the dataset containing the zip files
-        c.item = c.silo.get_item(id)
-        item_real_filepath = c.item.to_dirpath()
-        #c.parts = c.item.list_parts(detailed=False)
+        dataset = rdfsilo.get_item(id)
+        item_real_filepath = dataset.to_dirpath()
+        target_filepath = "%s/%s"%(item_real_filepath, path)
+        #c.parts = dataset.list_parts(detailed=False)
+        if not dataset.isfile(path):
+            abort(404, "File not found")
+        if not os.path.isfile(target_filepath):
+            abort(404, "File not found")
+        if not check_file_mimetype(target_filepath, 'application/zip'): 
+            abort(415, "File is not of type application/zip")
 
         http_method = request.environ['REQUEST_METHOD']
         if http_method == "GET":
-            c.zipfiles = get_zipfiles_in_dataset(c.item)
-            return render("/files_list_of_items.html")
-            #abort (403, "Forbidden")
+            c.zipfile_contents = read_zipfile(target_filepath)
+            # conneg return
+            accept_list = None
+            if 'HTTP_ACCEPT' in request.environ:
+                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+            if not accept_list:
+                accept_list= [MT("text", "html")]
+            mimetype = accept_list.pop(0)
+            while(mimetype):
+                if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                    return render("/zipfileview.html")
+                elif str(mimetype).lower() in ["text/plain", "application/json"]:
+                    response.content_type = 'application/json; charset="UTF-8"'
+                    response.status_int = 200
+                    response.status = "200 OK"
+                    return simplejson.dumps(c.zipfile_contents)
+                try:
+                    mimetype = accept_list.pop(0)
+                except IndexError:
+                    mimetype = None
+            # Whoops - nothing satisfies - return text/html
+            return render("/zipfileview.html")
         elif http_method == "POST":
             params = request.POST
             #if not (params.has_key("filename") and params['filename']):
             #    abort(400, "You must supply a filename to unpack")
-
-            if not path:
-                abort(400, "You must supply a filename to unpack")
-
-            target_filepath = "%s/%s"%(item_real_filepath, path)
-            if not os.path.isfile(target_filepath):
-                abort(404, "File to unpack not found")
-            if not check_file_mimetype(target_filepath, 'application/zip'): 
-                abort(415, "File is not of type application/zip")
 
             if params.has_key("id") and params['id']:
                 target_dataset_name = params['id']
@@ -180,7 +201,7 @@ class ItemsController(BaseController):
                 target_dataset_name = "%s-%s"%(id,fn)
             #target_dataset_name, current_dataset, post_filepath, silo, ident
             try:
-                unpack_zip_item(target_dataset_name, c.item, path, c.silo, ident['repoze.who.userid'])
+                unpack_zip_item(target_dataset_name, dataset, path, rdfsilo, ident['repoze.who.userid'])
             except BadZipfile:
                 abort(400, "Couldn't unpack zipfile")
 
@@ -199,7 +220,7 @@ class ItemsController(BaseController):
                     response.content_type = "text/plain"
                     response.status_int = 201
                     response.status = "201 Created"
-                    new_item = c.silo.get_item(target_dataset_name)
+                    #new_item = rdfsilo.get_item(target_dataset_name)
                     #response.headers.add("Content-Location", new_item.uri)
                     return "Created"
                 try:
@@ -209,7 +230,7 @@ class ItemsController(BaseController):
             # Whoops - nothing satisfies - return text/plain
             response.content_type = "text/plain"
             response.status_int = 201
-            new_item = c.silo.get_item(target_dataset_name)
+            #new_item = rdfsilo.get_item(target_dataset_name)
             #response.headers.add("Content-Location", new_item.uri)
             response.status = "201 Created"
             return "Created"
