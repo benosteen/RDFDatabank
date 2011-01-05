@@ -7,7 +7,7 @@
 <h1> Contents of zipfile ${c.path} </h1>
 <ul>
 % for zf in c.zipfile_contents:
-<li><p><a href="/${c.silo_name}/items/${c.id}/${c.path}/${zf}">${zf}</a> (${c.zipfile_contents[zf][0]})
+<li><p><a href="/${c.silo_name}/items/${c.id}/${c.path}/${zf}">${zf}</a> ( ${h.bytes_to_english(c.zipfile_contents[zf][0])} )
 </li>
 % endfor
 </ul>

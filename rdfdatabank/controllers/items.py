@@ -7,7 +7,7 @@ from pylons import app_globals as ag
 
 from rdfdatabank.lib.base import BaseController, render
 from rdfdatabank.lib.utils import create_new
-from rdfdatabank.lib.file_unpack import check_file_mimetype, BadZipfile, get_zipfiles_in_dataset, unpack_zip_item
+from rdfdatabank.lib.file_unpack import check_file_mimetype, BadZipfile, get_zipfiles_in_dataset, unpack_zip_item, read_zipfile
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 
 log = logging.getLogger(__name__)
@@ -166,7 +166,10 @@ class ItemsController(BaseController):
 
         http_method = request.environ['REQUEST_METHOD']
         if http_method == "GET":
-            c.zipfile_contents = read_zipfile(target_filepath)
+            try:
+                c.zipfile_contents = read_zipfile(target_filepath)
+            except BadZipfile:
+                abort(400, "Could not read zipfile")
             # conneg return
             accept_list = None
             if 'HTTP_ACCEPT' in request.environ:
