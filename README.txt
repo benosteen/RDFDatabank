@@ -114,6 +114,7 @@ Note about permissions:
 src directory and all its files and directories:
     Set the owner as admin_user:www-data
     Set the permission to 775 on all directories and everything under it
+    set the owner as www-data:www-data for src/data folder
     Set the permission to 644 on all files
 apachelog directory and all its files and directories:
     Set the owner as admin_user:www-data
