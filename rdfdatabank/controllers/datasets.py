@@ -140,91 +140,94 @@ class DatasetsController(BaseController):
                 abort(403, "Forbidden")
             
             c.editor = silo in silos
-        else:
-            if request.environ.get('repoze.who.identity'):
+        elif http_method == "GET":
+            if not c_silo.exists(id):
+                abort(404)
+            item = c_silo.get_item(id)
+            embargoed = False
+            if item.metadata.get('embargoed') not in ["false", 0, False]:
+                embargoed = True
+            if embargoed:
+                if not request.environ.get('repoze.who.identity'):
+                    abort(403, "Forbidden")
                 ident = request.environ.get('repoze.who.identity')  
                 c.ident = ident
                 granary_list = ag.granary.silos
                 if ident:
                     silos = ag.authz(granary_list, ident)
                     c.editor = silo in silos
+                else:
+                    abort(403, "Forbidden")
         
         # Method determination
         if http_method == "GET":
-            if c_silo.exists(id):
-                item = c_silo.get_item(id)      
-                #c.embargoed = False
-                #if item.metadata.get('embargoed') not in ["false", 0, False]:
-                #    c.embargoed = True
-                c.embargos = {}
-                c.embargos[id] = is_embargoed(c_silo, id)
-                c.readme_text = None
-                # conneg:
-                c.parts = item.list_parts(detailed=True)
-                c.manifest_pretty = item.rdf_to_string(format="pretty-xml")
-                c.manifest = item.rdf_to_string()
-                c.zipfiles = get_zipfiles_in_dataset(item)
-                #if item.isfile("README"):
-                if "README" in c.parts.keys():
-                    c.readme_text = get_readme_text(item)
-                #if item.manifest:
-                #    state = item.manifest.state
+            c.embargos = {}
+            c.embargos[id] = is_embargoed(c_silo, id)
+            c.readme_text = None
+            # conneg:
+            c.parts = item.list_parts(detailed=True)
+            c.manifest_pretty = item.rdf_to_string(format="pretty-xml")
+            c.manifest = item.rdf_to_string()
+            c.zipfiles = get_zipfiles_in_dataset(item)
+            #if item.isfile("README"):
+            if "README" in c.parts.keys():
+                c.readme_text = get_readme_text(item)
+            #if item.manifest:
+            #    state = item.manifest.state
                     
-                # View options
-                options = request.GET
-                if "view" in options:
-                    c.view = options['view']
-                elif c.editor:
-                    c.view = 'editor'
-                else:
-                    c.view = 'user'
-                    
-                accept_list = None
-                if 'HTTP_ACCEPT' in request.environ:
-                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
-                if not accept_list:
-                    accept_list= [MT("text", "html")]
-                mimetype = accept_list.pop(0)
-
-                while(mimetype):
-                    if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                        return render('/datasetview.html')
-                    elif str(mimetype).lower() in ["text/plain", "application/json"]:
-                        response.content_type = 'application/json; charset="UTF-8"'
-                        returndata = {}
-                        returndata['embargos'] = c.embargos
-                        returndata['view'] = c.view
-                        returndata['editor'] = c.editor
-                        returndata['parts'] = {}
-                        for part in c.parts:
-                            returndata['parts'][part] = serialisable_stat(c.parts[part])
-                        returndata['readme_text'] = c.readme_text
-                        returndata['manifest_pretty'] = c.manifest_pretty
-                        returndata['manifest'] = c.manifest
-                        returndata['zipfiles'] = c.zipfiles
-                        #items['state'] = state
-                        return simplejson.dumps(returndata)
-                    elif str(mimetype).lower() in ["application/rdf+xml", "text/xml"]:
-                        response.content_type = 'application/rdf+xml; charset="UTF-8"'
-                        return item.rdf_to_string(format="pretty-xml")
-                    elif str(mimetype).lower() == "text/rdf+n3":
-                        response.content_type = 'text/rdf+n3; charset="UTF-8"'
-                        return item.rdf_to_string(format="n3")
-                    elif str(mimetype).lower() == "application/x-turtle":
-                        response.content_type = 'application/x-turtle; charset="UTF-8"'
-                        return item.rdf_to_string(format="turtle")
-                    elif str(mimetype).lower() in ["text/rdf+ntriples", "text/rdf+nt"]:
-                        response.content_type = 'text/rdf+ntriples; charset="UTF-8"'
-                        return item.rdf_to_string(format="nt")
-                    # Whoops - nothing satisfies
-                    try:
-                        mimetype = accept_list.pop(0)
-                    except IndexError:
-                        mimetype = None
-                #Whoops - nothing staisfies - default to text/html
-                return render('/datasetview.html')
+            # View options
+            options = request.GET
+            if "view" in options:
+                c.view = options['view']
+            elif c.editor:
+                c.view = 'editor'
             else:
-                abort(404)
+                c.view = 'user'
+                   
+            accept_list = None
+            if 'HTTP_ACCEPT' in request.environ:
+                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+            if not accept_list:
+                accept_list= [MT("text", "html")]
+            mimetype = accept_list.pop(0)
+            
+            while(mimetype):
+                if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                    return render('/datasetview.html')
+                elif str(mimetype).lower() in ["text/plain", "application/json"]:
+                    response.content_type = 'application/json; charset="UTF-8"'
+                    returndata = {}
+                    returndata['embargos'] = c.embargos
+                    returndata['view'] = c.view
+                    returndata['editor'] = c.editor
+                    returndata['parts'] = {}
+                    for part in c.parts:
+                        returndata['parts'][part] = serialisable_stat(c.parts[part])
+                    returndata['readme_text'] = c.readme_text
+                    returndata['manifest_pretty'] = c.manifest_pretty
+                    returndata['manifest'] = c.manifest
+                    returndata['zipfiles'] = c.zipfiles
+                    #items['state'] = state
+                    return simplejson.dumps(returndata)
+                elif str(mimetype).lower() in ["application/rdf+xml", "text/xml"]:
+                    response.content_type = 'application/rdf+xml; charset="UTF-8"'
+                    return item.rdf_to_string(format="pretty-xml")
+                elif str(mimetype).lower() == "text/rdf+n3":
+                    response.content_type = 'text/rdf+n3; charset="UTF-8"'
+                    return item.rdf_to_string(format="n3")
+                elif str(mimetype).lower() == "application/x-turtle":
+                    response.content_type = 'application/x-turtle; charset="UTF-8"'
+                    return item.rdf_to_string(format="turtle")
+                elif str(mimetype).lower() in ["text/rdf+ntriples", "text/rdf+nt"]:
+                    response.content_type = 'text/rdf+ntriples; charset="UTF-8"'
+                    return item.rdf_to_string(format="nt")
+                # Whoops - nothing satisfies
+                try:
+                    mimetype = accept_list.pop(0)
+                except IndexError:
+                    mimetype = None
+            #Whoops - nothing staisfies - default to text/html
+            return render('/datasetview.html')
         elif http_method == "POST" and c.editor:
             params = request.POST
             if not c_silo.exists(id):
@@ -497,15 +500,6 @@ class DatasetsController(BaseController):
             response.status_int = 404
             return "Dataset %s doesn't exist" % id
 
-        c.editor = False       
-        if request.environ.get('repoze.who.identity'):
-            ident = request.environ.get('repoze.who.identity')  
-            c.ident = ident
-            granary_list = ag.granary.silos
-            if ident:
-                silos = ag.authz(granary_list, ident)
-                c.editor = silo in silos
-
         item = c_silo.get_item(id)
         vnum = str(vnum)
         if not vnum in item.manifest['versions']:
@@ -513,6 +507,29 @@ class DatasetsController(BaseController):
         #Set the item's version cursor
         item.set_version_cursor(vnum)
         c.version = vnum           
+
+        embargoed = False
+        c.editor = False 
+        if item.metadata.get('embargoed') not in ["false", 0, False]:
+            embargoed = True
+        if embargoed:
+            if not request.environ.get('repoze.who.identity'):
+                abort(403, "Forbidden")
+            ident = request.environ.get('repoze.who.identity')  
+            c.ident = ident
+            granary_list = ag.granary.silos
+            if ident:
+                silos = ag.authz(granary_list, ident)
+                c.editor = silo in silos
+            else:
+                abort(403, "Forbidden")
+        elif request.environ.get('repoze.who.identity'):
+            ident = request.environ.get('repoze.who.identity')  
+            c.ident = ident
+            granary_list = ag.granary.silos
+            if ident:
+                silos = ag.authz(granary_list, ident)
+                c.editor = silo in silos
 
         # Check to see if embargo is on:        
         c.embargos = {}
@@ -562,8 +579,8 @@ class DatasetsController(BaseController):
                 mimetype = accept_list.pop(0)
             except IndexError:
                 mimetype = None
-                #Whoops - nothing staisfies - default to text/html
-                return render('/datasetview_version.html')
+        #Whoops - nothing staisfies - default to text/html
+        return render('/datasetview_version.html')
 
     def itemview(self, silo, id, path):
         # Check to see if embargo is on:
