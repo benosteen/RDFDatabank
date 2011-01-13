@@ -152,12 +152,12 @@ class DatasetsController(BaseController):
         # Method determination
         if http_method == "GET":
             if c.silo.exists(id):
-                c.embargoed = False
                 item = c.silo.get_item(id)      
-                if item.metadata.get('embargoed') not in ["false", 0, False]:
-                    c.embargoed = True
-                c.embargos = None
-                c.embargos = is_embargoed(c.silo, id)
+                #c.embargoed = False
+                #if item.metadata.get('embargoed') not in ["false", 0, False]:
+                #    c.embargoed = True
+                c.embargos = {}
+                c.embargos[id] = is_embargoed(c.silo, id)
                 c.readme_text = None
                 # conneg:
                 c.parts = item.list_parts(detailed=True)
@@ -193,16 +193,17 @@ class DatasetsController(BaseController):
                         response.content_type = 'application/json; charset="UTF-8"'
                         returndata = {}
                         returndata['embargos'] = c.embargos
-                        returndata['embargoed'] = c.embargoed
                         returndata['view'] = c.view
                         returndata['editor'] = c.editor
-                        items['parts'] = c.parts
-                        items['readme_text'] = c.readme_text
-                        items['manifest_pretty'] = c.manifest_pretty
-                        items['manifest'] = c.manifest
-                        items[zipfiles] = c.zipfiles
+                        returndata['parts'] = {}
+                        for part in c.parts:
+                            returndata['parts'][part] = serialisable_stat(c.parts[part])
+                        returndata['readme_text'] = c.readme_text
+                        returndata['manifest_pretty'] = c.manifest_pretty
+                        returndata['manifest'] = c.manifest
+                        returndata['zipfiles'] = c.zipfiles
                         #items['state'] = state
-                        return simplejson.dumps(items)
+                        return simplejson.dumps(returndata)
                     elif str(mimetype).lower() in ["application/rdf+xml", "text/xml"]:
                         response.content_type = 'application/rdf+xml; charset="UTF-8"'
                         return item.rdf_to_string(format="pretty-xml")
@@ -507,8 +508,8 @@ class DatasetsController(BaseController):
         c.version = vnum           
         if c.item.metadata.get('embargoed') not in ["false", 0, False]:
             c.embargoed = True
-        c.embargos = None
-        c.embargos = is_embargoed(c.silo, id)
+        c.embargos = {}
+        c.embargos[id] = is_embargoed(c.silo, id)
 
         c.editor = False       
         if request.environ.get('repoze.who.identity'):

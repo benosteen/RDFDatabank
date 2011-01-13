@@ -2,17 +2,17 @@
 <form method="POST" enctype="multipart/form-data" action="/${c.silo_name}/datasets/${c.current}">
 <label for="embargoed">Embargoed?</label>
 % if c.embargos:
-%   if c.embargos[c.current][0] not in ['False', 'false', 0, False]:
-<input type="checkbox" name="embargoed" checked="true"/>
-%   else:
-<input type="checkbox" name="embargoed"/>
-%   endif
-<br />
-<label for="embargoed_until">Embargoed until (date)</label>
-<input type="text" name="embargoed_until" value="${c.embargos[c.current][1]}" />
+  % if c.embargos[c.current][0] not in ['False', 'false', 0, False]:
+    <input type="checkbox" name="embargoed" checked="true"/>
+  % else:
+    <input type="checkbox" name="embargoed"/>
+  % endif
+  <br />
+  <label for="embargoed_until">Embargoed until (date)</label>
+  <input type="text" name="embargoed_until" value="${c.embargos[c.current][1]}" />
 % else:
-<input type="checkbox" name="embargoed"/>
-<input type="text" name="embargoed_until" />
+  <input type="checkbox" name="embargoed"/>
+  <input type="text" name="embargoed_until" />
 % endif
 <input type="hidden" name="embargo_change" value="true"/>
 <input type="submit" value="Change embargo"/>
