@@ -38,7 +38,8 @@ class DatasetsController(BaseController):
             c.embargos = {}
             for item in c.silo.list_items():
                 c.embargos[item] = is_embargoed(c.silo, item)
-            c.items = c.silo.list_items()
+            #c.items = c.silo.list_items()
+            c.items = c.embargos.keys()
             # conneg return
             accept_list = None
             if 'HTTP_ACCEPT' in request.environ:
@@ -53,7 +54,7 @@ class DatasetsController(BaseController):
                     response.content_type = 'application/json; charset="UTF-8"'
                     response.status_int = 200
                     response.status = "200 OK"
-                    return simplejson.dumps(list(c.items))
+                    return simplejson.dumps(c.embargos)
                 try:
                     mimetype = accept_list.pop(0)
                 except IndexError:
