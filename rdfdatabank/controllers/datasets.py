@@ -120,19 +120,11 @@ class DatasetsController(BaseController):
         c.id = id
         c.silo = ag.granary.get_rdf_silo(silo)
         
-        c.embargoed = False
-        if c.silo.exists(id):
-            c.item = c.silo.get_item(id)
-        
-            if c.item.metadata.get('embargoed') not in ["false", 0, False]:
-                c.embargoed = True
-        c.embargos = None
-        c.embargos = is_embargoed(c.silo, id)
         http_method = request.environ['REQUEST_METHOD']
-        
+
         c.editor = False
         c.version = None
-        
+                
         if not (http_method == "GET"):
             #identity management of item 
             if not request.environ.get('repoze.who.identity'):
@@ -160,24 +152,23 @@ class DatasetsController(BaseController):
         # Method determination
         if http_method == "GET":
             if c.silo.exists(id):
+                c.embargoed = False
+                item = c.silo.get_item(id)      
+                if item.metadata.get('embargoed') not in ["false", 0, False]:
+                    c.embargoed = True
+                c.embargos = None
+                c.embargos = is_embargoed(c.silo, id)
                 c.readme_text = None
                 # conneg:
-                #c.item = c.silo.get_item(id)
-                #c.parts = c.item.list_parts(detailed=True)
-                #if "README" in c.parts.keys():
-                #c.parts = c.item.list_parts(detailed=False)
-                #if "README" in c.parts:
-                if c.item.isfile("README"):
-                    c.readme_text = get_readme_text(c.item)
-                c.parts = []
-                if c.item.manifest:
-                    state = c.item.manifest.state
-                    if state:
-                        if "currentversion" in state and  "files" in state and state["files"] :
-                            c_ver = state["currentversion"]
-                            c.parts = state["files"][c_ver]
-                        if "item_id" in state:
-                            c.item_id =  state["item_id"] 
+                c.parts = item.list_parts(detailed=True)
+                c.manifest_pretty = item.rdf_to_string(format="pretty-xml")
+                c.manifest = item.rdf_to_string()
+                c.zipfiles = get_zipfiles_in_dataset(item)
+                #if item.isfile("README"):
+                if "README" in c.parts.keys():
+                    c.readme_text = get_readme_text(item)
+                #if item.manifest:
+                #    state = item.manifest.state
                     
                 # View options
                 options = request.GET
@@ -197,32 +188,33 @@ class DatasetsController(BaseController):
 
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                        c.zipfiles = get_zipfiles_in_dataset(c.item)
                         return render('/datasetview.html')
                     elif str(mimetype).lower() in ["text/plain", "application/json"]:
                         response.content_type = 'application/json; charset="UTF-8"'
-                        items = {}
-                        #items['parts'] = {}
-                        #for part in c.parts:
-                        #    items['parts'][part] = serialisable_stat(c.parts[part])
+                        returndata = {}
+                        returndata['embargos'] = c.embargos
+                        returndata['embargoed'] = c.embargoed
+                        returndata['view'] = c.view
+                        returndata['editor'] = c.editor
                         items['parts'] = c.parts
-                        if c.readme_text:
-                            items['readme_text'] = c.readme_text
-                        if c.item.manifest:
-                            items['state'] = state
+                        items['readme_text'] = c.readme_text
+                        items['manifest_pretty'] = c.manifest_pretty
+                        items['manifest'] = c.manifest
+                        items[zipfiles] = c.zipfiles
+                        #items['state'] = state
                         return simplejson.dumps(items)
                     elif str(mimetype).lower() in ["application/rdf+xml", "text/xml"]:
                         response.content_type = 'application/rdf+xml; charset="UTF-8"'
-                        return c.item.rdf_to_string(format="pretty-xml")
+                        return item.rdf_to_string(format="pretty-xml")
                     elif str(mimetype).lower() == "text/rdf+n3":
                         response.content_type = 'text/rdf+n3; charset="UTF-8"'
-                        return c.item.rdf_to_string(format="n3")
+                        return item.rdf_to_string(format="n3")
                     elif str(mimetype).lower() == "application/x-turtle":
                         response.content_type = 'application/x-turtle; charset="UTF-8"'
-                        return c.item.rdf_to_string(format="turtle")
+                        return item.rdf_to_string(format="turtle")
                     elif str(mimetype).lower() in ["text/rdf+ntriples", "text/rdf+nt"]:
                         response.content_type = 'text/rdf+ntriples; charset="UTF-8"'
-                        return c.item.rdf_to_string(format="nt")
+                        return item.rdf_to_string(format="nt")
                     # Whoops - nothing satisfies
                     try:
                         mimetype = accept_list.pop(0)
