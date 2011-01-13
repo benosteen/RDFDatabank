@@ -26,8 +26,8 @@ class DatasetsController(BaseController):
         ident = request.environ.get('repoze.who.identity')
         c.ident = ident
         granary_list = ag.granary.silos
-        c.silos = ag.authz(granary_list, ident)
-        if silo not in c.silos:
+        silos = ag.authz(granary_list, ident)
+        if silo not in silos:
             abort(403, "Forbidden")
         
         c.silo_name = silo
@@ -126,8 +126,8 @@ class DatasetsController(BaseController):
         
             if c.item.metadata.get('embargoed') not in ["false", 0, False]:
                 c.embargoed = True
-        c.embargos = {}
-        c.embargos[id] = is_embargoed(c.silo, id)
+        c.embargos = None
+        c.embargos = is_embargoed(c.silo, id)
         http_method = request.environ['REQUEST_METHOD']
         
         c.editor = False
@@ -141,25 +141,26 @@ class DatasetsController(BaseController):
             c.ident = ident
             granary_list = ag.granary.silos
             if ident:
-                c.silos = ag.authz(granary_list, ident)      
-                if silo not in c.silos:
+                silos = ag.authz(granary_list, ident)      
+                if silo not in silos:
                     abort(403, "Forbidden")
             else:
                 abort(403, "Forbidden")
             
-            c.editor = silo in c.silos
+            c.editor = silo in silos
         else:
             if request.environ.get('repoze.who.identity'):
                 ident = request.environ.get('repoze.who.identity')  
                 c.ident = ident
                 granary_list = ag.granary.silos
                 if ident:
-                    c.silos = ag.authz(granary_list, ident)
-                    c.editor = silo in c.silos
+                    silos = ag.authz(granary_list, ident)
+                    c.editor = silo in silos
         
         # Method determination
         if http_method == "GET":
             if c.silo.exists(id):
+                c.readme_text = None
                 # conneg:
                 #c.item = c.silo.get_item(id)
                 #c.parts = c.item.list_parts(detailed=True)
@@ -514,8 +515,8 @@ class DatasetsController(BaseController):
         c.version = vnum           
         if c.item.metadata.get('embargoed') not in ["false", 0, False]:
             c.embargoed = True
-        c.embargos = {}
-        c.embargos[id] = is_embargoed(c.silo, id)
+        c.embargos = None
+        c.embargos = is_embargoed(c.silo, id)
 
         c.editor = False       
         if request.environ.get('repoze.who.identity'):
@@ -523,8 +524,8 @@ class DatasetsController(BaseController):
             c.ident = ident
             granary_list = ag.granary.silos
             if ident:
-                c.silos = ag.authz(granary_list, ident)
-                c.editor = silo in c.silos
+                silos = ag.authz(granary_list, ident)
+                c.editor = silo in silos
 
         # Method determination
         if c.item.isfile("README"):
@@ -611,21 +612,21 @@ class DatasetsController(BaseController):
             c.ident = ident
             granary_list = ag.granary.silos
             if ident:
-                c.silos = ag.authz(granary_list, ident)      
-                if silo not in c.silos:
+                silos = ag.authz(granary_list, ident)      
+                if silo not in silos:
                     abort(403, "Forbidden")
             else:
                 abort(403, "Forbidden")
         
-            c.editor = silo in c.silos
+            c.editor = silo in silos
         else:
             if request.environ.get('repoze.who.identity'):
                 ident = request.environ.get('repoze.who.identity')  
                 c.ident = ident
                 granary_list = ag.granary.silos
                 if ident:
-                    c.silos = ag.authz(granary_list, ident)
-                    c.editor = silo in c.silos
+                    silos = ag.authz(granary_list, ident)
+                    c.editor = silo in silos
         
         c.path = path
         
@@ -863,12 +864,12 @@ class DatasetsController(BaseController):
             c.ident = ident
             granary_list = ag.granary.silos
             if ident:
-                c.silos = ag.authz(granary_list, ident)      
-                if silo not in c.silos:
+                silos = ag.authz(granary_list, ident)      
+                if silo not in silos:
                     abort(403, "Forbidden")
             else:
                 abort(403, "Forbidden")
-            c.editor = silo in c.silos
+            c.editor = silo in silos
         
         c.path = path
         
