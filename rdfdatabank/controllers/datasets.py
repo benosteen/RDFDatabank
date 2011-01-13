@@ -475,7 +475,6 @@ class DatasetsController(BaseController):
             else:
                 response.status_int = 403
                 return "403 Forbidden"
-            
         elif http_method == "DELETE" and c.editor:
             if c_silo.exists(id):
                 c_silo.del_item(id)
@@ -589,7 +588,7 @@ class DatasetsController(BaseController):
         
         http_method = request.environ['REQUEST_METHOD']
         
-        #c.editor = False
+        editor = False
         if not (http_method == "GET"):
             #identity management if item 
             if not request.environ.get('repoze.who.identity'):
@@ -603,7 +602,7 @@ class DatasetsController(BaseController):
                     abort(403, "Forbidden")
             else:
                 abort(403, "Forbidden")
-            #c.editor = silo in silos
+            editor = silo in silos
         elif embargoed:
             if not request.environ.get('repoze.who.identity'):
                 abort(401, "Not Authorised")  
@@ -614,7 +613,7 @@ class DatasetsController(BaseController):
                 silos = ag.authz(granary_list, ident)      
                 if silo not in silos:
                     abort(403, "Forbidden")
-                #c.editor = silo in silos
+                editor = silo in silos
             else:
                 abort(403, "Forbidden")
         
@@ -653,7 +652,7 @@ class DatasetsController(BaseController):
                 return render("/itemview.html")
             else:
                 abort(404)
-        elif http_method == "PUT" and c.editor:
+        elif http_method == "PUT" and editor:
             # Pylons loads the request body into request.body...
             # This is not going to work for large files... ah well
             # POST will handle large files as they are pushed to disc,
@@ -710,7 +709,7 @@ class DatasetsController(BaseController):
                 
             response.status_int = code
             return
-        elif http_method == "POST" and c.editor:
+        elif http_method == "POST" and editor:
             # POST... differences from PUT:
             # path = filepath that this acts on, should be dir, or non-existant
             # if path is a file, this will revert to PUT's functionality and
@@ -781,7 +780,7 @@ class DatasetsController(BaseController):
                 response.status = "204 Updated"
             response.status_int = code
             return
-        elif http_method == "DELETE" and c.editor:
+        elif http_method == "DELETE" and editor:
             item = c_silo.get_item(id)
             if item.isfile(path):
                 if 'manifest.rdf' in path:
@@ -846,7 +845,6 @@ class DatasetsController(BaseController):
         if item.metadata.get('embargoed') not in ["false", 0, False]:
             embargoed = True
         
-        #c.editor = False
         if embargoed:
             #identity management if item 
             if not request.environ.get('repoze.who.identity'):
@@ -858,7 +856,6 @@ class DatasetsController(BaseController):
                 silos = ag.authz(granary_list, ident)      
                 if silo not in silos:
                     abort(403, "Forbidden")
-                #c.editor = silo in silos
             else:
                 abort(403, "Forbidden")
         
