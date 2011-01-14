@@ -165,8 +165,17 @@ class AdminController(BaseController):
                         pass
                     ag.granary.sync()
                     ag.granary._register_silos()
-                    response.status_int = 200
-                    return """{'status':'Silo %s deleted'}""" % silo_name
+                    # conneg return
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                    if not accept_list:
+                        accept_list= [MT("text", "html")]
+                    mimetype = accept_list.pop(0)
+                    while(mimetype):
+                        if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                            redirect_to(controller="admin", action="index")
+                        else:
+                            response.status_int = 200
+                            return """{'status':'Silo %s deleted'}""" % silo_name
                 else:
                     abort(404)
         else:

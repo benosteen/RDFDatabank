@@ -8,7 +8,7 @@
 <h3> Admin Archives:
 <ul>
 % for silo in c.granary_list:
-<li id="delete_${silo}"><a href="/admin/${silo}"><big><big>${silo}</big></big></a> - <small><small><a class="delete" href="/admin/${silo}" data-remove="delete_${silo}">(remove)</a></small></small></li>
+<li id="delete_${silo}"><a href="/${silo}/admin"><big><big>${silo}</big></big></a> - <small><small><a class="delete" href="/${silo}/admin" data-remove="delete_${silo}">(remove)</a></small></small></li>
 % endfor
 </ul>
 % endif

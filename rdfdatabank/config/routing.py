@@ -25,7 +25,7 @@ def make_map():
              _redirect_code='301 Moved Permanently')
 
     map.connect('/admin', controller='admin', action='index')
-    map.connect('/admin/{silo_name}', controller='admin', action='archive')
+    map.connect('/{silo_name}/admin', controller='admin', action='archive')
     
     map.connect('/silos', controller='silos', action='index')
     map.connect('/{silo}', controller='silos', action='siloview')
@@ -38,7 +38,8 @@ def make_map():
 
     map.connect('/{silo}/items', controller='items', action='siloview')
     map.connect('/{silo}/items/{id}', controller='items', action='datasetview')
-    map.connect('/{silo}/items/{id}/{path:.*}', controller='items', action='itemview')
+    map.connect('/{silo}/items/{id}/{path}', controller='items', action='itemview')
+    map.connect('/{silo}/items/{id}/{path}/{subpath:.*}', controller='items', action='subitemview')
     
     map.connect('/{silo}/states', controller='states', action='siloview')
     map.connect('/{silo}/states/{id}', controller='states', action='datasetview')

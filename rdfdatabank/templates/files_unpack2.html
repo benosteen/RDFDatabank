@@ -1,0 +1,12 @@
+# -*- coding: utf-8 -*-
+% if c.zipfile:
+<form method="POST" action="/${c.silo_name}/items/${c.id}">
+<input type="submit" name="Unpack" value="Unpack"/>
+% if c.newid:
+<label for="id">Id (optional) : </label><input type="text" name="id" value="${c.newid}"/>&nbsp;&nbsp;
+% else:
+<label for="id">Id (optional): </label><input type="text" name="id"/>&nbsp;&nbsp;
+%endif
+<input type="hidden" name="filename" value="${c.zipfile}"/>
+</form>
+%endif

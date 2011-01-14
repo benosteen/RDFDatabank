@@ -10,7 +10,7 @@
 <p><span style="color:red;">${c.message}</span></p>
 % endif
 <hr/>
-<h4 id="delete_${c.silo_name}"> <a class="delete" href="/admin/${c.silo_name}" data-remove="delete_${c.silo_name}">Delete this silo - NO UNDO!</a></h4>
+<h4 id="delete_${c.silo_name}"> <a class="delete" href="/${c.silo_name}/admin" data-remove="delete_${c.silo_name}">Delete this silo - NO UNDO!</a></h4>
 <hr/>
 % endif
 <%include file="/alter_silo.html"/>

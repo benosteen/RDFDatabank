@@ -639,9 +639,10 @@ class DatasetsController(BaseController):
                 fileserve_app = FileApp(item.to_dirpath(path))
                 return fileserve_app(request.environ, self.start_response)
             elif item.isdir(path):
-                c.parts = item.list_parts(path, detailed=False)
+                #c.parts = item.list_parts(detailed=True)
+                c.parts = item.list_parts(path, detailed=True)
                 c.readme_text = None
-                if "README" in c.parts:
+                if "README" in c.parts.keys():
                     c.readme_text = get_readme_text(item, "%s/README" % path)
                     
                 accept_list = None
@@ -880,9 +881,9 @@ class DatasetsController(BaseController):
             fileserve_app = FileApp(item.to_dirpath(path))
             return fileserve_app(request.environ, self.start_response)
         elif item.isdir(path):
-            c.parts = item.list_parts(path, detailed=False)
+            c.parts = item.list_parts(path, detailed=True)
             c.readme_text = None
-            if "README" in c.parts:
+            if "README" in c.parts.keys():
                 c.readme_text = get_readme_text(item, "%s/README" % path)
                     
             accept_list = None

@@ -237,3 +237,19 @@ class ItemsController(BaseController):
             #response.headers.add("Content-Location", new_item.uri)
             response.status = "201 Created"
             return "Created"
+
+    def subitemview(self, silo, id, path, subpath):
+        #tmpl_context variables needed: c.silo_name, c.zipfile_contents c.ident, c.id, c.path
+        c.silo_name = silo
+        c.id = id
+        c.path = path
+        c.subpath = subpath
+
+        if not request.environ.get('repoze.who.identity'):
+            abort(401, "Not Authorised")
+
+        if not (path or subpath):
+            abort(400, "You must supply a filename to unpack")
+ 
+        return render("/zipfilesubitemview.html")
+
