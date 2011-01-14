@@ -28,7 +28,16 @@ def authz(granary_list,ident):
             return []
     
     if ident['role'] == "admin":
-        return granary_list
+        owners = _parse_owners(item)
+        if '*' in owners:
+            return granary_list
+        else:
+            authd = []
+            for item in granary_list:
+                owners = _parse_owners(item)
+                if ident['repoze.who.userid'] in owners:
+                    authd.append(item)
+            return authd
     else:
         authd = []
         for item in granary_list:

@@ -6,7 +6,7 @@ from recordsilo import Granary
 from redis import Redis
 
 from rdfdatabank.lib.utils import authz
-
+from rdfdatabank.lib.htpasswd import HtpasswdFile
 from rdfdatabank.lib.broadcast import BroadcastToRedis
 
 class Globals(object):
@@ -24,7 +24,7 @@ class Globals(object):
         """
         
         self.authz = authz
-        
+       
         if config.has_key("granary.store"):
             self.granary = Granary(config['granary.store'])
             
@@ -43,3 +43,8 @@ class Globals(object):
 
         if config.has_key("naming_rule"):
             self.naming_rule = config['naming_rule']
+
+        self.passwdfile = HtpasswdFile(config['htpasswd.file'])
+            pwdfile = self.granary.replace('silos', 'passwd')
+            self.passwdfile.load(pwdfile)
+

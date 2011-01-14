@@ -5,6 +5,7 @@ from pylons.controllers.util import abort, redirect_to
 from pylons import app_globals as ag
 from rdfdatabank.lib.base import BaseController, render
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
+from rdfdatabank.config.users import _USERS
 
 log = logging.getLogger(__name__)
 
@@ -180,4 +181,46 @@ class AdminController(BaseController):
                     abort(404)
         else:
             abort(403)
+
+
+    def register(self):
+        if not request.environ.get('repoze.who.identity'):
+            abort(401, "Not Authorised")
+        ident = request.environ.get('repoze.who.identity')
+        c.ident = ident
+        #c.granary_list = ag.granary.silos
+        c.silo_name = silo_name
+        # Admin only
+        if not ident.get('role') == "admin":
+            abort(403)
+        params = request.POST
+        if 'owner' in params and params['owner'] and (('first_name' in params and 'last_name' in params) or 'name' in params) and \
+           'username' in params and params['username'] and 'password' in params and params['password']:
+            # Check if user id exists. Write new user into passwd file
+            for entry in ag.passwdfile.entries:
+                if entry[0] == params['username']:
+                    code = 204
+                else:
+                    code = 201
+            ag.passwdfile.update(params['username'], params['password'])
+            ag.passwdfile.save()
+            #Write user metadata and save the rdf file
+            _USERS[params['username']] = {'owner':params['owner'], 'role':'user'}
+            if 'name' in params and params['name']:
+                _USERS[params['username']]['name'] = params['name']
+            if 'first_name' in params and params['first_name']:
+                _USERS[params['username']]['first_name'] = params['first_name']
+            if 'last_name' in params and params['last_name']:
+                _USERS[params['username']]['last_name'] = params['last_name']
+            pwdfile = self.granary.replace('silos', 'passwd')
+            f = open(pwdfile, 'w')
+            f.write('_USERS = %s'%str(_USERS))
+            f.close()
+            if code == 201:
+                response.status_int = 201
+                response.status = "201 Created"
+            if code == 204:
+                response.status_int = 204
+                response.status = "204 Updated"
+            return
         
