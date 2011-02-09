@@ -26,6 +26,7 @@ def make_map():
 
     map.connect('/admin', controller='admin', action='index')
     map.connect('/{silo_name}/admin', controller='admin', action='archive')
+    map.connect('/{silo_name}/register', controller='admin', action='register')
     
     map.connect('/silos', controller='silos', action='index')
     map.connect('/{silo}', controller='silos', action='siloview')

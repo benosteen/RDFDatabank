@@ -176,6 +176,7 @@ class SparqlQueryTestCase(unittest.TestCase):
         (response, responsedata) = self.doRequest("GET", resource, 
             reqheaders=reqheaders,
             expect_status=expect_status, expect_reason=expect_reason)
+        #print responsedata
         if (expect_type.lower() == "application/json"): responsedata = simplejson.loads(responsedata)
         return responsedata
 

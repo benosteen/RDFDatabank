@@ -132,13 +132,9 @@ class DatasetsController(BaseController):
             ident = request.environ.get('repoze.who.identity')  
             c.ident = ident
             granary_list = ag.granary.silos
-            if ident:
-                silos = ag.authz(granary_list, ident)      
-                if silo not in silos:
-                    abort(403, "Forbidden")
-            else:
+            silos = ag.authz(granary_list, ident)      
+            if silo not in silos:
                 abort(403, "Forbidden")
-            
             c.editor = silo in silos
         elif http_method == "GET":
             if not c_silo.exists(id):
@@ -147,17 +143,20 @@ class DatasetsController(BaseController):
             embargoed = False
             if item.metadata.get('embargoed') not in ["false", 0, False]:
                 embargoed = True
+            granary_list = ag.granary.silos
             if embargoed:
                 if not request.environ.get('repoze.who.identity'):
-                    abort(403, "Forbidden")
+                    abort(401, "Not Authorised") 
                 ident = request.environ.get('repoze.who.identity')  
-                c.ident = ident
-                granary_list = ag.granary.silos
-                if ident:
-                    silos = ag.authz(granary_list, ident)
-                    c.editor = silo in silos
-                else:
+                silos = ag.authz(granary_list, ident)      
+                if silo not in silos:
                     abort(403, "Forbidden")
+                c.editor = silo in silos
+            ident = request.environ.get('repoze.who.identity')  
+            c.ident = ident
+            if ident:
+                silos = ag.authz(granary_list, ident)
+                c.editor = silo in silos
         
         # Method determination
         if http_method == "GET":
@@ -300,15 +299,34 @@ class DatasetsController(BaseController):
                 item.del_triple(item.uri, u"oxds:currentVersion")
                 item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
                 item.sync()
+                item.sync()
                 e, e_d = is_embargoed(c_silo, id, refresh=True)
                 
                 # Broadcast change as message
                 ag.b.embargo_change(silo, id, item.metadata['embargoed'], item.metadata['embargoed_until'], ident=ident['repoze.who.userid'])
                 
-                response.content_type = 'application/json; charset="UTF-8"'
+                # conneg return
+                accept_list = None
+                if 'HTTP_ACCEPT' in request.environ:
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                if not accept_list:
+                    accept_list= [MT("text", "html")]
+                mimetype = accept_list.pop(0)
+                while(mimetype):
+                    if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                        redirect_to(controller="datasets", action="datasetview", id=id, silo=silo)
+                    elif str(mimetype).lower() in ["text/plain", "application/json"]:
+                        response.content_type = "text/plain"
+                        response.status_int = 204
+                        return "204 Updated embargo information"
+                    try:
+                        mimetype = accept_list.pop(0)
+                    except IndexError:
+                        mimetype = None
+                #Whoops - nothing satisfies - return text / plain
+                response.content_type = "text/plain"
                 response.status_int = 204
-                response.status = "204 Updated"
-                return simplejson.dumps({'embargoed':e, 'embargoed_until':e_d})
+                return "204 Updated embargo information"
             elif params.has_key('file'):
                 # File upload by a not-too-savvy method - Service-orientated fallback:
                 # Assume file upload to 'filename'
@@ -492,7 +510,7 @@ class DatasetsController(BaseController):
                 abort(404)
 
     def datasetview_vnum(self, silo, id, vnum):       
-        c_silo_name = silo
+        c.silo_name = silo
         c.id = id
         c_silo = ag.granary.get_rdf_silo(silo)
         
@@ -613,11 +631,8 @@ class DatasetsController(BaseController):
             ident = request.environ.get('repoze.who.identity')  
             c.ident = ident
             granary_list = ag.granary.silos
-            if ident:
-                silos = ag.authz(granary_list, ident)      
-                if silo not in silos:
-                    abort(403, "Forbidden")
-            else:
+            silos = ag.authz(granary_list, ident)      
+            if silo not in silos:
                 abort(403, "Forbidden")
             editor = silo in silos
         elif embargoed:
@@ -631,8 +646,11 @@ class DatasetsController(BaseController):
                 if silo not in silos:
                     abort(403, "Forbidden")
                 editor = silo in silos
-            else:
-                abort(403, "Forbidden")
+        ident = request.environ.get('repoze.who.identity')  
+        c.ident = ident
+        if ident:
+            silos = ag.authz(granary_list, ident)
+            editor = silo in silos
         
         if http_method == "GET":
             if item.isfile(path):
@@ -724,9 +742,29 @@ class DatasetsController(BaseController):
             else:
                 ag.b.change(silo, id, path, ident=ident['repoze.who.userid'])
                 response.status = "204 Updated"
-                
+            
+            # conneg return
+            accept_list = None
+            if 'HTTP_ACCEPT' in request.environ:
+                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+            if not accept_list:
+                accept_list= [MT("text", "html")]
+            mimetype = accept_list.pop(0)
+            while(mimetype):
+                if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                    redirect_to(controller="datasets", action="itemview", id=id, silo=silo, path=path)
+                elif str(mimetype).lower() in ["text/plain", "application/json"]:
+                    response.content_type = "text/plain"
+                    response.status_int = code
+                    return response.status
+                try:
+                    mimetype = accept_list.pop(0)
+                except IndexError:
+                    mimetype = None
+            #Whoops - nothing satisfies - return text / plain
+            response.content_type = "text/plain"
             response.status_int = code
-            return
+            return response.status
         elif http_method == "POST" and editor:
             # POST... differences from PUT:
             # path = filepath that this acts on, should be dir, or non-existant
@@ -797,7 +835,8 @@ class DatasetsController(BaseController):
                 ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
                 response.status = "204 Updated"
             response.status_int = code
-            return
+            response.content_type = "text/plain"
+            return response.status
         elif http_method == "DELETE" and editor:
             item = c_silo.get_item(id)
             if item.isfile(path):
@@ -870,11 +909,8 @@ class DatasetsController(BaseController):
             ident = request.environ.get('repoze.who.identity')  
             c.ident = ident
             granary_list = ag.granary.silos
-            if ident:
-                silos = ag.authz(granary_list, ident)      
-                if silo not in silos:
-                    abort(403, "Forbidden")
-            else:
+            silos = ag.authz(granary_list, ident)      
+            if silo not in silos:
                 abort(403, "Forbidden")
         
         if item.isfile(path):

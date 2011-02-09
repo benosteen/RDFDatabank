@@ -28,11 +28,8 @@ class ItemsController(BaseController):
         ident = request.environ.get('repoze.who.identity')  
         c.ident = ident
         granary_list = ag.granary.silos
-        if ident:
-            silos = ag.authz(granary_list, ident)      
-            if silo not in silos:
-                abort(403, "Forbidden")
-        else:
+        silos = ag.authz(granary_list, ident)      
+        if silo not in silos:
             abort(403, "Forbidden")
 
         rdfsilo = ag.granary.get_rdf_silo(silo)
@@ -92,6 +89,9 @@ class ItemsController(BaseController):
                 unpack_zip_item(target_dataset, dataset, params['filename'], rdfsilo, ident['repoze.who.userid'])
             except BadZipfile:
                 abort(400, "Couldn't unpack zipfile")
+            target_dataset.sync()
+            target_dataset.sync()
+            target_dataset.sync()
 
             # conneg return
             accept_list = None
@@ -142,11 +142,8 @@ class ItemsController(BaseController):
         ident = request.environ.get('repoze.who.identity')  
         c.ident = ident
         granary_list = ag.granary.silos
-        if ident:
-            silos = ag.authz(granary_list, ident)      
-            if silo not in silos:
-                abort(403, "Forbidden")
-        else:
+        silos = ag.authz(granary_list, ident)      
+        if silo not in silos:
             abort(403, "Forbidden")
 
         rdfsilo = ag.granary.get_rdf_silo(silo)
@@ -207,6 +204,9 @@ class ItemsController(BaseController):
                 unpack_zip_item(target_dataset_name, dataset, path, rdfsilo, ident['repoze.who.userid'])
             except BadZipfile:
                 abort(400, "Couldn't unpack zipfile")
+            target_dataset.sync()
+            target_dataset.sync()
+            target_dataset.sync()
 
             # conneg return
             accept_list = None

@@ -14,6 +14,7 @@ class RDFDatabankConfig:
 
     # Access via IP address
     endpointhost="163.1.127.173"
+    endpointhost="databank.ora.ox.ac.uk"
     endpointpath="/admiral-test/"
 
     # Access credentials for testing

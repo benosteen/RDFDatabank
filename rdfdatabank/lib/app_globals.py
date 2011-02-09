@@ -44,7 +44,8 @@ class Globals(object):
         if config.has_key("naming_rule"):
             self.naming_rule = config['naming_rule']
 
-        self.passwdfile = HtpasswdFile(config['htpasswd.file'])
-            pwdfile = self.granary.replace('silos', 'passwd')
-            self.passwdfile.load(pwdfile)
+        pwdfile = config['granary.store'].replace('silos', 'passwd')
+        self.passwdfile = HtpasswdFile(pwdfile)
+        self.passwdfile.load()
+        self.userfile = config['granary.store'].replace('silos', 'rdfdatabank/config/users.py')
 

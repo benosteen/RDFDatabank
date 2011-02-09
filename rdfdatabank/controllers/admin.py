@@ -5,7 +5,7 @@ from pylons.controllers.util import abort, redirect_to
 from pylons import app_globals as ag
 from rdfdatabank.lib.base import BaseController, render
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
-from rdfdatabank.config.users import _USERS
+from rdfdatabank.config import users
 
 log = logging.getLogger(__name__)
 
@@ -18,7 +18,8 @@ class AdminController(BaseController):
             abort(401, "Not Authorised")
         ident = request.environ.get('repoze.who.identity')
         c.ident = ident
-        c.granary_list = ag.granary.silos
+        granary_list = ag.granary.silos
+        c.granary_list = ag.authz(granary_list, ident)
         
         # Admin only
         if ident.get('role') == "admin":
@@ -72,8 +73,10 @@ class AdminController(BaseController):
                         if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                             redirect_to(controller="admin", action="index")
                         else:
+                            response.content_type = "text/plain"
                             response.status_int = 201
-                            return "Created Silo %s" % silo_name
+                            response.status = "201 Created"
+                            return "201 Created Silo %s" % silo_name
             else:
                 abort(403)
         else:
@@ -88,6 +91,10 @@ class AdminController(BaseController):
         c.silo_name = silo_name
         # Admin only
         if ident.get('role') == "admin":
+            granary_list = ag.granary.silos
+            silos = ag.authz(granary_list, ident)
+            if not silo_name in silos:
+                abort(403)
             http_method = request.environ['REQUEST_METHOD']
             if http_method == "GET":
                 if ag.granary.issilo(silo_name):
@@ -147,8 +154,10 @@ class AdminController(BaseController):
                             kw[term] = params[term]
                     ag.granary.describe_silo(silo_name, **kw)
                     ag.granary.sync()
+                    response.content_type = "text/plain"
                     response.status_int = 201
-                    return "Created Silo %s" % silo_name
+                    response.status = "201 Created"
+                    return "201 Created Silo %s" % silo_name
             elif http_method == "DELETE":
                 if ag.granary.issilo(silo_name):
                     # Deletion of an entire Silo...
@@ -179,11 +188,12 @@ class AdminController(BaseController):
                             return """{'status':'Silo %s deleted'}""" % silo_name
                 else:
                     abort(404)
+            else:
+                abort(403)
         else:
             abort(403)
 
-
-    def register(self):
+    def register(self, silo_name):
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
         ident = request.environ.get('repoze.who.identity')
@@ -192,6 +202,10 @@ class AdminController(BaseController):
         c.silo_name = silo_name
         # Admin only
         if not ident.get('role') == "admin":
+            abort(403)
+        granary_list = ag.granary.silos
+        silos = ag.authz(granary_list, ident)
+        if not silo_name in silos:
             abort(403)
         params = request.POST
         if 'owner' in params and params['owner'] and (('first_name' in params and 'last_name' in params) or 'name' in params) and \
@@ -205,22 +219,36 @@ class AdminController(BaseController):
             ag.passwdfile.update(params['username'], params['password'])
             ag.passwdfile.save()
             #Write user metadata and save the rdf file
-            _USERS[params['username']] = {'owner':params['owner'], 'role':'user'}
+            users._USERS[params['username']] = {'owner':params['owner'], 'role':'user'}
             if 'name' in params and params['name']:
-                _USERS[params['username']]['name'] = params['name']
+                users._USERS[params['username']]['name'] = params['name']
             if 'first_name' in params and params['first_name']:
-                _USERS[params['username']]['first_name'] = params['first_name']
+                users._USERS[params['username']]['first_name'] = params['first_name']
             if 'last_name' in params and params['last_name']:
-                _USERS[params['username']]['last_name'] = params['last_name']
-            pwdfile = self.granary.replace('silos', 'passwd')
-            f = open(pwdfile, 'w')
-            f.write('_USERS = %s'%str(_USERS))
+                users._USERS[params['username']]['last_name'] = params['last_name']
+            f = open(ag.userfile, 'w')
+            f.write('_USERS = %s'%str(users._USERS))
             f.close()
+            reload(users)
+            silos_to_be_added = params['owner'].split(',')
+            #Add owner to silos
+            for s in silos_to_be_added:
+                if not ag.granary.issilo(s):
+                    continue
+                c.kw = ag.granary.describe_silo(s)
+                owners = c.kw.get('owners')
+                if not params['username'] in owners:
+                    owners = owners.strip().strip(',').strip()
+                    owners = owners + ',%s'%params['username']
+                    c.kw['owners'] = owners
+                    ag.granary.describe_silo(silo_name, **kw)
+                    ag.granary.sync()
+            response.content_type = "text/plain"
             if code == 201:
                 response.status_int = 201
                 response.status = "201 Created"
+                return "201 Created"
             if code == 204:
                 response.status_int = 204
                 response.status = "204 Updated"
-            return
-        
+                return "204 created"
