@@ -24,6 +24,9 @@ def make_map():
     map.redirect('/*(url)/', '/{url}',
              _redirect_code='301 Moved Permanently')
 
+    map.connect('/api', controller='api', action='index')
+    map.connect('/api/{api_name}', controller='api', action='apiview')
+   
     map.connect('/admin', controller='admin', action='index')
     map.connect('/{silo_name}/admin', controller='admin', action='archive')
     map.connect('/{silo_name}/register', controller='admin', action='register')

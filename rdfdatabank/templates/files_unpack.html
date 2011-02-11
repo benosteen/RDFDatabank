@@ -2,7 +2,14 @@
 % if c.zipfile:
 <form method="POST" action="/${c.silo_name}/items/${c.id}">
 <input type="submit" name="Unpack" value="Unpack"/>
+<%
+c.short = c.zipfile[:50]
+%>
+% if len(c.zipfile) > 50:
+<b><a href="/${c.silo_name}/datasets/${c.id}/${c.zipfile}">${c.short}...</a></b>
+% else:
 <b><a href="/${c.silo_name}/datasets/${c.id}/${c.zipfile}">${c.zipfile}</a></b>
+% endif
 % if c.newid:
 <label for="id">Id (optional) : </label><input type="text" name="id" value="${c.newid}"/>&nbsp;&nbsp;
 % else:

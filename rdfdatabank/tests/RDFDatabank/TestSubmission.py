@@ -171,9 +171,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             expect_status=200, expect_reason="OK", expect_type="application/json")
         # check silo name and base_uri
         silo_name = RDFDatabankConfig.endpointpath.strip('/')
-        silo_base = 'http://%s%sdatasets/'%(RDFDatabankConfig.endpointhost, RDFDatabankConfig.endpointpath)
+        silo_base  = URIRef(self.getRequestUri("datasets/"))
         self.assertEqual(data['silo'], silo_name, 'Silo name is %s not %s' %(data['silo'], silo_name))
-        self.assertEqual(data['uri_base'], silo_base, 'Silo uri_base is %s not %s' %(data['uri_base'], silo_base))
+        self.assertEqual(data['uri_base'].strip(), silo_base.strip(), 'Silo uri_base is %s not %s' %(data['uri_base'], silo_base))
         self.failUnless(len(data['datasets'])>0, "No datasets returned")
         # Save initial list of datasets
         datasetlist = data['datasets']

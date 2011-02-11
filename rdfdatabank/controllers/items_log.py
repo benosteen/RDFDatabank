@@ -1,5 +1,5 @@
 import logging
-import os
+import os, time
 import simplejson
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
@@ -63,10 +63,14 @@ class ItemsController(BaseController):
             #Whoops nothing satisfies - return text/html            
             return render("/list_of_zipfiles.html")
         elif http_method == "POST":
+            logstr = []
+            logstr.append("="*80)
+            logstr.append("Items - datasetview of %s, %s"%(silo, id))
             params = request.POST
             if not (params.has_key("filename") and params['filename']):
                 abort(400, "You must supply a filename to unpack")
 
+            logstr.append("POSTED filename %s"%params['filename'])
             item_real_filepath = dataset.to_dirpath()
             target_filepath = "%s/%s"%(item_real_filepath, params['filename'])
             if not os.path.isfile(target_filepath):
@@ -82,16 +86,35 @@ class ItemsController(BaseController):
                 target_dataset_name = "%s-%s"%(id,fn)
 
             #step 1: Create / initialize target dataset 
+            tic = time.mktime(time.gmtime())
             if not rdfsilo.exists(target_dataset_name):
                 target_dataset = create_new(rdfsilo, target_dataset_name, ident['repoze.who.userid'])
             else:
                 target_dataset = rdfsilo.get_item(target_dataset_name)
+            toc = time.mktime(time.gmtime())
+            logstr.append("1. Time to create / initialize target dataset: %d"%(toc-tic))
 
             #step 2: Unpack zip item 
+            logstr.append("Start unpacking zip item : %s"%(time.strftime("%d %b %Y %H:%M:%S", time.gmtime())))
+            logstr.append("")
+            logstr = '\n'.join(logstr)
+            f = open('/opt/rdfdatabank/src/logs/runtimes.log', 'a')
+            f.write(logstr)
+            f.close()
             try:
                 unpack_zip_item(target_dataset, dataset, params['filename'], rdfsilo, ident['repoze.who.userid'])
             except BadZipfile:
                 abort(400, "Couldn't unpack zipfile")
+            logstr = []
+            logstr.append("End unpacking zip item : %s"%(time.strftime("%d %b %Y %H:%M:%S", time.gmtime())))
+            logstr.append("="*80)
+            logstr.append("")
+            logstr.append("")
+            logstr.append("")
+            logstr = '\n'.join(logstr)
+            f = open('/opt/rdfdatabank/src/logs/runtimes.log', 'a')
+            f.write(logstr)
+            f.close()
 
             target_dataset.sync()
             target_dataset.sync()

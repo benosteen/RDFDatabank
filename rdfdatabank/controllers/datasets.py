@@ -318,7 +318,8 @@ class DatasetsController(BaseController):
                     elif str(mimetype).lower() in ["text/plain", "application/json"]:
                         response.content_type = "text/plain"
                         response.status_int = 204
-                        return "204 Updated embargo information"
+                        response.status = "204 Updated"
+                        return "204 Updated"
                     try:
                         mimetype = accept_list.pop(0)
                     except IndexError:
@@ -326,7 +327,8 @@ class DatasetsController(BaseController):
                 #Whoops - nothing satisfies - return text / plain
                 response.content_type = "text/plain"
                 response.status_int = 204
-                return "204 Updated embargo information"
+                response.status = "204 Updated"
+                return "204 Updated"
             elif params.has_key('file'):
                 # File upload by a not-too-savvy method - Service-orientated fallback:
                 # Assume file upload to 'filename'
@@ -483,14 +485,14 @@ class DatasetsController(BaseController):
                         redirect_to(controller="datasets", action="datasetview", id=id, silo=silo)
                     elif str(mimetype).lower() in ["text/plain", "application/json"]:
                         response.content_type = "text/plain"
-                        response.status_int = 200
+                        response.status_int = code
                         return "Added file %s to item %s" % (filename, id)
                     try:
                         mimetype = accept_list.pop(0)
                     except IndexError:
                         mimetype = None
                 #Whoops - nothing satisfies - return text / plain
-                response.status_int = 200
+                response.status_int = code
                 response.content_type = "text/plain"
                 return "Added file %s to item %s" % (filename, id)
             else:
@@ -515,8 +517,7 @@ class DatasetsController(BaseController):
         c_silo = ag.granary.get_rdf_silo(silo)
         
         if not c_silo.exists(id):
-            response.status_int = 404
-            return "Dataset %s doesn't exist" % id
+            abort(404)
 
         item = c_silo.get_item(id)
         vnum = str(vnum)
@@ -532,22 +533,18 @@ class DatasetsController(BaseController):
             embargoed = True
         if embargoed:
             if not request.environ.get('repoze.who.identity'):
-                abort(403, "Forbidden")
+                abort(401, "Not Authorized")
             ident = request.environ.get('repoze.who.identity')  
             c.ident = ident
             granary_list = ag.granary.silos
-            if ident:
-                silos = ag.authz(granary_list, ident)
-                c.editor = silo in silos
-            else:
-                abort(403, "Forbidden")
+            silos = ag.authz(granary_list, ident)
+            c.editor = silo in silos
         elif request.environ.get('repoze.who.identity'):
             ident = request.environ.get('repoze.who.identity')  
             c.ident = ident
             granary_list = ag.granary.silos
-            if ident:
-                silos = ag.authz(granary_list, ident)
-                c.editor = silo in silos
+            silos = ag.authz(granary_list, ident)
+            c.editor = silo in silos
 
         # Check to see if embargo is on:        
         c.embargos = {}
@@ -613,8 +610,7 @@ class DatasetsController(BaseController):
             # DECISION FOR POST / PUT : Auto-instantiate dataset and then put file there?
             #           or error out with perhaps a 404?
             # Going with error out...
-            response.status_int = 404
-            return "Dataset %s doesn't exist" % id
+            abort(404)
         
         embargoed = False
         item = c_silo.get_item(id)        
@@ -624,13 +620,13 @@ class DatasetsController(BaseController):
         http_method = request.environ['REQUEST_METHOD']
         
         editor = False
+        granary_list = ag.granary.silos
         if not (http_method == "GET"):
             #identity management if item 
             if not request.environ.get('repoze.who.identity'):
                 abort(401, "Not Authorised")
             ident = request.environ.get('repoze.who.identity')  
             c.ident = ident
-            granary_list = ag.granary.silos
             silos = ag.authz(granary_list, ident)      
             if silo not in silos:
                 abort(403, "Forbidden")
@@ -640,12 +636,10 @@ class DatasetsController(BaseController):
                 abort(401, "Not Authorised")  
             ident = request.environ.get('repoze.who.identity')  
             c.ident = ident
-            granary_list = ag.granary.silos
-            if ident:
-                silos = ag.authz(granary_list, ident)      
-                if silo not in silos:
-                    abort(403, "Forbidden")
-                editor = silo in silos
+            silos = ag.authz(granary_list, ident)      
+            if silo not in silos:
+                abort(403, "Forbidden")
+            editor = silo in silos
         ident = request.environ.get('repoze.who.identity')  
         c.ident = ident
         if ident:
@@ -673,7 +667,7 @@ class DatasetsController(BaseController):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                         return render("/itemview.html")
                     elif str(mimetype).lower() in ["text/plain", "application/json"]:
-                        response.content_type = "text/plain"
+                        response.content_type = 'application/json; charset="UTF-8"'
                         returndata = {}
                         returndata['parts'] = {}
                         for part in c.parts:
@@ -834,8 +828,28 @@ class DatasetsController(BaseController):
             else:
                 ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
                 response.status = "204 Updated"
-            response.status_int = code
+
+            # conneg return
+            accept_list = None
+            if 'HTTP_ACCEPT' in request.environ:
+                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+            if not accept_list:
+                accept_list= [MT("text", "html")]
+            mimetype = accept_list.pop(0)
+            while(mimetype):
+                if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                    redirect_to(controller="datasets", action="itemview", id=id, silo=silo, path=path)
+                elif str(mimetype).lower() in ["text/plain", "application/json"]:
+                    response.content_type = "text/plain"
+                    response.status_int = code
+                    return response.status
+                try:
+                    mimetype = accept_list.pop(0)
+                except IndexError:
+                    mimetype = None
+            #Whoops - nothing satisfies - return text / plain
             response.content_type = "text/plain"
+            response.status_int = code
             return response.status
         elif http_method == "DELETE" and editor:
             item = c_silo.get_item(id)
@@ -889,8 +903,7 @@ class DatasetsController(BaseController):
 
         if not c_silo.exists(id):
             # dataset doesn't exist
-            response.status_int = 404
-            return "Dataset %s doesn't exist" % id
+            abort(404)
         
         item = c_silo.get_item(id)
         vnum = str(vnum)
@@ -932,7 +945,7 @@ class DatasetsController(BaseController):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                     return render("/itemview_version.html")
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
-                    response.content_type = "text/plain"
+                    response.content_type = 'application/json; charset="UTF-8"'
                     returndata = {}
                     returndata['parts'] = {}
                     for part in c.parts:

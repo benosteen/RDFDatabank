@@ -1,0 +1,44 @@
+# -*- coding: utf-8 -*-
+<div id="globalWrapper">
+<h2>Silos</h2>
+<!-- ========== /silos ========== -->
+<h3 class="Section-">/silos</h3>
+<i><b>Controller: silos &nbsp;&nbsp;&nbsp;&nbsp;action: index</b></i>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: text/html, authd - Returns text/HTML 
+listing the ’silos’ your account can see, with links to dataset view</span>
+</div>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: text/plain, application/json, authd -
+Returns a JSON-encoded list of exising silos your account can see</span>
+</div>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: * / none, authd - Returns text/HTML 
+listing the ’silos’ your account can see, with links to dataset view</span>
+</div>
+<div class="List">
+<span class="List-entry">POST,PUT,DELETE</span><span class="List-contents">NOOP</span>
+</div>
+
+<!-- ========== /{silo name} ========== -->
+<h3 class="Section-">/{silo name}</h3>
+<i><b>Controller: silos &nbsp;&nbsp;&nbsp;&nbsp;action: siloview</b></i>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept:text/html - Returns text/HTML  
+listing the ids of each dataset, along with a form for changing the embargo information and deleting the dataset. 
+A form for dataset creation is also available. </span>
+</div>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: text/plain, application/json -
+Returns a JSON-encoded list of dataset ids in that silo</span>
+</div>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept:text/html - Returns text/HTML  
+listing the ids of each dataset, along with a form for changing the embargo information and deleting the dataset. 
+A form for dataset creation is also available. </span>
+</div>
+<div class="List">
+<span class="List-entry">POST, PUT,DELETE</span><span class="List-contents">NOOP</span>
+</div>
+<!-- ========== END ========== -->
+</div>

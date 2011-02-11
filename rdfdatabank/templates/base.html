@@ -3,8 +3,8 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
   <head>  
-  ${ h.stylesheet_link( '/style.css' ) }
-  ${ h.javascript_link( '/jquery.js' ) }
+  ${ h.stylesheet_link( '/static/style.css' ) }
+  ${ h.javascript_link( '/static/jquery.js' ) }
   ${self.head_tags()}
   <script type="text/javascript">
   $(document).ready( function() {
@@ -44,7 +44,7 @@
 % endif 
 <li><a href="/admin">Admin pages</a></li>
 %   if c.silo_name:
-<li><a href="/admin/${c.silo_name}">Admin ${c.silo_name}</a></li>
+<li><a href="/${c.silo_name}/admin">Admin ${c.silo_name}</a></li>
 %   endif
 </ul>
 </div>

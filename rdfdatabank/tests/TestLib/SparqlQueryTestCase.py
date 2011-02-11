@@ -131,6 +131,7 @@ class SparqlQueryTestCase(unittest.TestCase):
         return urlparse.urljoin(self._endpointpath,rel)
 
     def getRequestUri(self, rel):
+        #return "http://databank.ora.ox.ac.uk"+self.getRequestPath(rel)
         return "http://"+self._endpointhost+self.getRequestPath(rel)
 
     def doRequest(self, command, resource, reqdata=None, reqheaders={}, expect_status=200, expect_reason="OK"):

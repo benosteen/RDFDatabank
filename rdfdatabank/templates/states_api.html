@@ -1,0 +1,26 @@
+# -*- coding: utf-8 -*-
+<div id="globalWrapper">
+<h2>States</h2>
+<!-- ========== /{silo name}/states ========== -->
+<h3 class="Section-">/{silo name}/states</h3>
+<i><b>Controller: states &nbsp;&nbsp;&nbsp;&nbsp;action: siloview</b></i>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: * / none, authd - Returns a JSON-encoded hash/dict, keys map 
+with the silo name, base uri and embargo information for each of the datasets in the silo <i>{silo name}</i> as text/plain</span>
+</div>
+<div class="List">
+<span class="List-entry">POST,PUT,DELETE</span><span class="List-contents">NOOP</span>
+</div>
+
+<!-- ========== /{silo name}/states/{id} ========== -->
+<h3 class="Section-">/{silo name}/states/{id}</h3>
+<i><b>Controller: states &nbsp;&nbsp;&nbsp;&nbsp;action: datasetview</b></i>
+<div class="List">
+<span class="List-entry">GET</span><span class="List-contents">Accept: */ none, authd - 
+Returns a JSON-encoded hash/dict, keys map with the detailed state information of the dataset <i>id</i> as text/plain</span>
+</div>
+<div class="List">
+<span class="List-entry">POST, PUT,DELETE</span><span class="List-contents">NOOP</span>
+</div>
+<!-- ========== END ========== -->
+</div>

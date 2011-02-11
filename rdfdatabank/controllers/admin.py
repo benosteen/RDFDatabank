@@ -26,6 +26,7 @@ class AdminController(BaseController):
             http_method = request.environ['REQUEST_METHOD']
             if http_method == "GET":
                 #c.granary = ag.granary
+                # conneg return
                 accept_list = None
                 if 'HTTP_ACCEPT' in request.environ:
                     accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
@@ -66,17 +67,28 @@ class AdminController(BaseController):
                     ag.granary.sync()
                     # conneg return
                     accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                    if 'HTTP_ACCEPT' in request.environ:
+                        accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
                     if not accept_list:
                         accept_list= [MT("text", "html")]
                     mimetype = accept_list.pop(0)
                     while(mimetype):
                         if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                             redirect_to(controller="admin", action="index")
-                        else:
+                        elif str(mimetype).lower() in ["text/plain", "application/json"]:
                             response.content_type = "text/plain"
                             response.status_int = 201
                             response.status = "201 Created"
                             return "201 Created Silo %s" % silo_name
+                        try:
+                            mimetype = accept_list.pop(0)
+                        except IndexError:
+                            mimetype = None
+                    # Whoops - nothing satisfies - return text/plain
+                    response.content_type = "text/plain"
+                    response.status_int = 201
+                    response.status = "201 Created"
+                    return "201 Created Silo %s" % silo_name
             else:
                 abort(403)
         else:
@@ -132,6 +144,8 @@ class AdminController(BaseController):
                     ag.granary.sync()
                     # conneg return
                     accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                    if 'HTTP_ACCEPT' in request.environ:
+                        accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
                     if not accept_list:
                         accept_list= [MT("text", "html")]
                     mimetype = accept_list.pop(0)
@@ -140,9 +154,20 @@ class AdminController(BaseController):
                             c.message = "Metadata updated"
                             c.kw = ag.granary.describe_silo(silo_name)
                             return render("/admin_siloview.html")
-                        else:
+                        elif str(mimetype).lower() in ["text/plain", "application/json"]:
+                            response.content_type = "text/plain"
                             response.status_int = 204
+                            response.status = "204 Updated"
                             return "Updated Silo %s" % silo_name
+                        try:
+                            mimetype = accept_list.pop(0)
+                        except IndexError:
+                            mimetype = None
+                    # Whoops - nothing satisfies - return text/plain
+                    response.content_type = "text/plain"
+                    response.status_int = 204
+                    response.status = "204 Updated"
+                    return "Updated Silo %s" % silo_name
                 else:
                     # Create new silo
                     g_root = config.get("granary.uri_root", "info:")
@@ -154,6 +179,27 @@ class AdminController(BaseController):
                             kw[term] = params[term]
                     ag.granary.describe_silo(silo_name, **kw)
                     ag.granary.sync()
+                     
+                    # conneg return
+                    accept_list = None
+                    if 'HTTP_ACCEPT' in request.environ:
+                        accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                    if not accept_list:
+                        accept_list= [MT("text", "html")]
+                    mimetype = accept_list.pop(0)
+                    while(mimetype):
+                        if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                            redirect_to(controller="datasets", action="siloview", silo=silo_name)
+                        elif str(mimetype).lower() in ["text/plain", "application/json"]:
+                            response.content_type = "text/plain"
+                            response.status_int = 201
+                            response.status = "201 Created"
+                            return "201 Created Silo %s" % silo_name
+                        try:
+                            mimetype = accept_list.pop(0)
+                        except IndexError:
+                            mimetype = None
+                    # Whoops - nothing satisfies - return text/plain
                     response.content_type = "text/plain"
                     response.status_int = 201
                     response.status = "201 Created"
@@ -177,15 +223,24 @@ class AdminController(BaseController):
                     ag.granary._register_silos()
                     # conneg return
                     accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                    if 'HTTP_ACCEPT' in request.environ:
+                        accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
                     if not accept_list:
                         accept_list= [MT("text", "html")]
                     mimetype = accept_list.pop(0)
                     while(mimetype):
                         if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                             redirect_to(controller="admin", action="index")
-                        else:
+                        elif str(mimetype).lower() in ["text/plain", "application/json"]:
+                            response.content_type = "text/plain"
                             response.status_int = 200
+                            response.status = "200 OK"
                             return """{'status':'Silo %s deleted'}""" % silo_name
+                    # Whoops - nothing satisfies - return text/plain
+                    response.content_type = "text/plain"
+                    response.status_int = 200
+                    response.status = "200 OK"
+                    return """{'status':'Silo %s deleted'}""" % silo_name
                 else:
                     abort(404)
             else:
@@ -241,14 +296,34 @@ class AdminController(BaseController):
                     owners = owners.strip().strip(',').strip()
                     owners = owners + ',%s'%params['username']
                     c.kw['owners'] = owners
-                    ag.granary.describe_silo(silo_name, **kw)
+                    ag.granary.describe_silo(silo_name, **c.kw)
                     ag.granary.sync()
-            response.content_type = "text/plain"
+
             if code == 201:
                 response.status_int = 201
                 response.status = "201 Created"
-                return "201 Created"
             if code == 204:
                 response.status_int = 204
                 response.status = "204 Updated"
-                return "204 created"
+            # conneg return
+            accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+            if 'HTTP_ACCEPT' in request.environ:
+                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+            if not accept_list:
+                accept_list= [MT("text", "html")]
+            mimetype = accept_list.pop(0)
+            while(mimetype):
+                if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                    redirect_to(controller="admin", action="archive", silo_name=silo_name)
+                elif str(mimetype).lower() in ["text/plain", "application/json"]:
+                    response.content_type = "text/plain"
+                    return response.status
+                try:
+                    mimetype = accept_list.pop(0)
+                except IndexError:
+                    mimetype = None
+            # Whoops - nothing satisfies - return text/plain
+            response.content_type = "text/plain"
+            return response.status
+        else:
+            abort(403)
