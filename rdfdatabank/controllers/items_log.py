@@ -98,7 +98,7 @@ class ItemsController(BaseController):
             logstr.append("Start unpacking zip item : %s"%(time.strftime("%d %b %Y %H:%M:%S", time.gmtime())))
             logstr.append("")
             logstr = '\n'.join(logstr)
-            f = open('/opt/rdfdatabank/src/logs/runtimes.log', 'a')
+            f = open('/opt/rdfdatabank/src/logs/runtimes_items.log', 'a')
             f.write(logstr)
             f.close()
             try:
@@ -112,7 +112,7 @@ class ItemsController(BaseController):
             logstr.append("")
             logstr.append("")
             logstr = '\n'.join(logstr)
-            f = open('/opt/rdfdatabank/src/logs/runtimes.log', 'a')
+            f = open('/opt/rdfdatabank/src/logs/runtimes_items.log', 'a')
             f.write(logstr)
             f.close()
 
