@@ -139,7 +139,7 @@ def get_items_in_dir(items_list, dirname, fnames):
     return
 
 def unpack_zip_item(target_dataset, current_dataset, zip_item, silo, ident):
-    f = open('/opt/rdfdatabank/src/logs/runtimes.log', 'a')
+    f = open('/opt/rdfdatabank/src/logs/runtimes_items.log', 'a')
     hr = "-"*80 + '\n'
     f.write(hr)
     f.write("file_unpack - unpack_zip_item\n")
@@ -156,7 +156,7 @@ def unpack_zip_item(target_dataset, current_dataset, zip_item, silo, ident):
     f.close()
 
     # -- Step 2 -----------------------------
-    f = open('/opt/rdfdatabank/src/logs/runtimes.log', 'a')
+    f = open('/opt/rdfdatabank/src/logs/runtimes_items.log', 'a')
     tic = time.mktime(time.gmtime())    
     file_uri = current_dataset.uri
     if not file_uri.endswith('/'):
@@ -170,7 +170,7 @@ def unpack_zip_item(target_dataset, current_dataset, zip_item, silo, ident):
     f.close()
 
     # -- Step 3 -----------------------------
-    f = open('/opt/rdfdatabank/src/logs/runtimes.log', 'a')
+    f = open('/opt/rdfdatabank/src/logs/runtimes_items.log', 'a')
     tic = time.mktime(time.gmtime())    
     manifest_str = None
     #Read manifest    
@@ -187,7 +187,7 @@ def unpack_zip_item(target_dataset, current_dataset, zip_item, silo, ident):
     f.close()
 
     # -- Step 4 -----------------------------
-    f = open('/opt/rdfdatabank/src/logs/runtimes.log', 'a')
+    f = open('/opt/rdfdatabank/src/logs/runtimes_items.log', 'a')
     tic = time.mktime(time.gmtime())    
     #Copy unpacked dir as new version
     target_dataset.move_directory_as_new_version(unpacked_dir)
@@ -196,7 +196,7 @@ def unpack_zip_item(target_dataset, current_dataset, zip_item, silo, ident):
     f.close()
 
     # -- Step 5 -----------------------------
-    f = open('/opt/rdfdatabank/src/logs/runtimes.log', 'a')
+    f = open('/opt/rdfdatabank/src/logs/runtimes_items.log', 'a')
     tic = time.mktime(time.gmtime())    
     #Add type and isVersionOf metadata
     target_dataset.add_namespace('oxds', "http://vocab.ox.ac.uk/dataset/schema#")
@@ -227,7 +227,7 @@ def unpack_zip_item(target_dataset, current_dataset, zip_item, silo, ident):
     f.close()
 
     # -- Step 6 -----------------------------
-    f = open('/opt/rdfdatabank/src/logs/runtimes.log', 'a')
+    f = open('/opt/rdfdatabank/src/logs/runtimes_items.log', 'a')
     tic = time.mktime(time.gmtime())    
     #Munge rdf
     #TODO: If manifest is not well formed rdf - inform user. Currently just ignored.
