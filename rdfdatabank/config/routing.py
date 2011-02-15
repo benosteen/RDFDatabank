@@ -42,8 +42,9 @@ def make_map():
 
     map.connect('/{silo}/items', controller='items', action='siloview')
     map.connect('/{silo}/items/{id}', controller='items', action='datasetview')
-    map.connect('/{silo}/items/{id}/{path}', controller='items', action='itemview')
-    map.connect('/{silo}/items/{id}/{path}/{subpath:.*}', controller='items', action='subitemview')
+    map.connect('/{silo}/items/{id}/{path:.*?\.zip}', controller='items', action='itemview')
+    map.connect('/{silo}/items/{id}/{path:.*?\.zip}/{subpath:.*}', controller='items', action='subitemview')
+    #map.connect('/{silo}/items/{id}/{path:.*}', controller='items', action='itemview') # Use verb dataset instead
     
     map.connect('/{silo}/states', controller='states', action='siloview')
     map.connect('/{silo}/states/{id}', controller='states', action='datasetview')
