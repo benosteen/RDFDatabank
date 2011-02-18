@@ -28,7 +28,7 @@ def check_file_mimetype(real_filepath, mimetype):
     else:
         return False
         
-def get_zipfiles_in_dataset(dataset):
+def get_zipfiles_in_dataset_old(dataset):
     derivative = dataset.list_rdf_objects("*", "ore:aggregates")
     #print "derivative values", derivative.values()[0]
     zipfiles = {}
@@ -41,6 +41,21 @@ def get_zipfiles_in_dataset(dataset):
             if check_file_mimetype(real_filepath, 'application/zip'): 
                 (fn, ext) = os.path.splitext(filepath)
                 zipfiles[filepath]="%s-%s"%(dataset.item_id, fn)
+    return zipfiles
+
+def get_zipfiles_in_dataset(dataset):
+    p = subprocess.Popen("""file -iL `find %s -name '*.zip'` | grep  "application/zip" | awk -F":" '{print $1}'""" %dataset.to_dirpath(), shell=True, stdout=subprocess.PIPE)
+    stdout_value = p.communicate()[0]
+    zipfiles = {}
+    if p.returncode == 0:
+        files = stdout_value.split('\n')
+        for z in files:
+            if not len(z.strip()) > 0:
+                continue
+            filepath = z.replace(dataset.to_dirpath(), '').strip(' ').strip('/')
+            (head, fn) = os.path.split(z)
+            (fn, ext) = os.path.splitext(fn)
+            zipfiles[filepath]="%s-%s"%(dataset.item_id, fn)
     return zipfiles
         
 def store_zipfile(silo, target_item_uri, POSTED_file, ident):

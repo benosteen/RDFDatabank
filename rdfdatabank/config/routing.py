@@ -20,10 +20,11 @@ def make_map():
 
     # CUSTOM ROUTES HERE
 
-    map.redirect("/", "/silos")
+    #map.redirect("/", "/silos")
     map.redirect('/*(url)/', '/{url}',
              _redirect_code='301 Moved Permanently')
 
+    map.connect('/', controller='home', action='index')
     map.connect('/api', controller='api', action='index')
     map.connect('/api/{api_name}', controller='api', action='apiview')
    
