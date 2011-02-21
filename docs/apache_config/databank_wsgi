@@ -1,0 +1,20 @@
+<VirtualHost *:80>
+    ServerName databank.bodleian.ox.ac.uk
+
+    # Logfiles
+    ErrorLog  /opt/rdfdatabank/apachelog/error.log
+    CustomLog /opt/rdfdatabank/apachelog/access.log combined
+ 
+    # Use only 1 Python sub-interpreter.  Multiple sub-interpreters
+    # play badly with C extensions.
+    WSGIApplicationGroup %{GLOBAL}
+    WSGIPassAuthorization On
+    # Setup mod_wsgi
+    WSGIScriptAlias / /opt/rdfdatabank/src/mod_wsgi/dispatch.wsgi
+
+    <Directory /opt/rdfdatabank/src/mod_wsgi>
+    Order deny,allow
+    Allow from all
+    </Directory>
+
+</VirtualHost>
