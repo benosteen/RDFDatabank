@@ -1087,7 +1087,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Put zip file, check response
         zipdata = open("data/testdir.zip").read()       
         self.doHTTP_PUT(zipdata, resource="datasets/TestSubmission/testdir.zip", 
-            expect_status=201, expect_reason="Created", expect_type="*/*")
+            expect_status=201, expect_reason="Created", expect_type="text/plain")
         # Access and check list of contents
         rdfdata = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
@@ -1156,7 +1156,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Put zip file, check response
         zipdata2 = open("data/testrdf3.zip").read()       
         self.doHTTP_PUT(zipdata2, resource="datasets/TestSubmission/testrdf3.zip", 
-            expect_status=201, expect_reason="Created", expect_type="*/*")
+            expect_status=201, expect_reason="Created", expect_type="text/plain")
         # Access and check list of contents
         rdfdata = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
@@ -1180,7 +1180,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Put zip file again, check response
         zipdata3 = open("data/testdir2.zip").read()       
         self.doHTTP_PUT(zipdata3, resource="datasets/TestSubmission/testdir.zip", 
-            expect_status=204, expect_reason="No Content", expect_type="*/*")
+            expect_status=204, expect_reason="No Content", expect_type="text/plain")
         # Access and check list of contents
         rdfdata = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
@@ -1262,7 +1262,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Put manifest file, check response
         zipdata = open("data/manifest.rdf").read()       
         self.doHTTP_PUT(zipdata, resource="datasets/TestSubmission/manifest.rdf", 
-            expect_status=204, expect_reason="No Content", expect_type="*/*")
+            expect_status=204, expect_reason="No Content", expect_type="text/plain")
         # Access and check list of contents
         rdfdata = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
@@ -1291,7 +1291,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Update metadata file, check response
         zipdata = open("data/manifest2.rdf").read()       
         self.doHTTP_PUT(zipdata, resource="datasets/TestSubmission/manifest.rdf", 
-            expect_status=204, expect_reason="No Content", expect_type="*/*")
+            expect_status=204, expect_reason="No Content", expect_type="text/plain")
         # Access and check list of contents
         rdfdata = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
@@ -1532,7 +1532,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Access and check content of a resource
         filedata = self.doHTTP_GET(
             resource="datasets/TestSubmission-testdir/directory/file1.b",
-            expect_status=200, expect_reason="OK", expect_type="*/*")
+            expect_status=200, expect_reason="OK", expect_type="text/plain")
         checkdata = open("data/testdir/directory/file1.b").read()
         self.assertEqual(filedata, checkdata, "Difference between local and remote data!")
         #Access state information of TestSubmission-testdir
@@ -1644,7 +1644,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Access and check content of a resource
         filedata = self.doHTTP_GET(
             resource="datasets/TestSubmission-testdir/directory/file1.b",
-            expect_status=200, expect_reason="OK", expect_type="*/*")
+            expect_status=200, expect_reason="OK", expect_type="text/plain")
         checkdata = open("data/testdir/directory/file1.b").read()
         self.assertEqual(filedata, checkdata, "Difference between local and remote data!")
         #Access state information of TestSubmission-testdir

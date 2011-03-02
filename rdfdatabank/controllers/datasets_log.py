@@ -44,10 +44,13 @@ class DatasetsController(BaseController):
             # conneg return
             accept_list = None
             if 'HTTP_ACCEPT' in request.environ:
-                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                try:
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                except:
+                    accept_list= [MT("text", "html")]
             if not accept_list:
                 accept_list= [MT("text", "html")]
-            mimetype = accept_list.pop(0)
+            mimetype = accept_list.pop()
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                     return render('/siloview.html')
@@ -57,7 +60,7 @@ class DatasetsController(BaseController):
                     response.status = "200 OK"
                     return simplejson.dumps(c.embargos)
                 try:
-                    mimetype = accept_list.pop(0)
+                    mimetype = accept_list.pop()
                 except IndexError:
                     mimetype = None
             #Whoops nothing satisfies - return text/html            
@@ -88,10 +91,13 @@ class DatasetsController(BaseController):
                     # conneg return
                     accept_list = None
                     if 'HTTP_ACCEPT' in request.environ:
-                        accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                        try:
+                            accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                        except:
+                            accept_list= [MT("text", "html")]
                     if not accept_list:
                         accept_list= [MT("text", "html")]
-                    mimetype = accept_list.pop(0)
+                    mimetype = accept_list.pop()
                     while(mimetype):
                         if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                             # probably a browser - redirect to newly created dataset
@@ -104,7 +110,7 @@ class DatasetsController(BaseController):
                             #response.headers.add("Content-Location", item.uri)
                             return "Created"
                         try:
-                            mimetype = accept_list.pop(0)
+                            mimetype = accept_list.pop()
                         except IndexError:
                             mimetype = None
                     # Whoops - nothing satisfies - return text/plain
@@ -240,15 +246,25 @@ class DatasetsController(BaseController):
                 c.view = 'editor'
             else:
                 c.view = 'user'
-                   
+
             # conneg:
             accept_list = None
             if 'HTTP_ACCEPT' in request.environ:
-                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                try:
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                except:
+                    accept_list= [MT("text", "html")]
             if not accept_list:
                 accept_list= [MT("text", "html")]
-            mimetype = accept_list.pop(0)
+            mimetype = accept_list.pop()
+            # -------------------------------
+            f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+            f.write("Accept list: %s\n"%accept_list)
+            f.close()
             while(mimetype):
+                f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                f.write("Trying MIME type %s\n"%mimetype)
+                f.close()
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                     return render('/datasetview.html')
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
@@ -270,23 +286,40 @@ class DatasetsController(BaseController):
                     #items['state'] = state
                     toc = time.mktime(time.gmtime())
                     f.write("9. Accumulate JSON data: %d\n"%(toc-tic))
+                    #f.write("Data returned : \n %s\n\n"%str(returndata))
                     f.close()
+                    response.status_int = 200
+                    response.status = "200 OK"
                     return simplejson.dumps(returndata)
                 elif str(mimetype).lower() in ["application/rdf+xml", "text/xml"]:
+                    # -- Step 9 -----------------------------
+                    f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                    #f.write("Data returned:\n %s\n\n"%str(c.manifest_pretty))
+                    toc2 = time.mktime(time.gmtime())
+                    f.write("9. Accumulate RDF data: %d\n"%(toc2-toc))
+                    f.close()
+                    response.status_int = 200
+                    response.status = "200 OK"
                     response.content_type = 'application/rdf+xml; charset="UTF-8"'
-                    return item.rdf_to_string(format="pretty-xml")
+                    return c.manifest_pretty
                 elif str(mimetype).lower() == "text/rdf+n3":
                     response.content_type = 'text/rdf+n3; charset="UTF-8"'
+                    response.status_int = 200
+                    response.status = "200 OK"
                     return item.rdf_to_string(format="n3")
                 elif str(mimetype).lower() == "application/x-turtle":
                     response.content_type = 'application/x-turtle; charset="UTF-8"'
+                    response.status_int = 200
+                    response.status = "200 OK"
                     return item.rdf_to_string(format="turtle")
                 elif str(mimetype).lower() in ["text/rdf+ntriples", "text/rdf+nt"]:
                     response.content_type = 'text/rdf+ntriples; charset="UTF-8"'
+                    response.status_int = 200
+                    response.status = "200 OK"
                     return item.rdf_to_string(format="nt")
                 # Whoops - nothing satisfies
                 try:
-                    mimetype = accept_list.pop(0)
+                    mimetype = accept_list.pop()
                 except IndexError:
                     mimetype = None
             #Whoops - nothing staisfies - default to text/html
@@ -309,10 +342,13 @@ class DatasetsController(BaseController):
                 # conneg return
                 accept_list = None
                 if 'HTTP_ACCEPT' in request.environ:
-                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                    try:
+                        accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                    except:
+                        accept_list= [MT("text", "html")]
                 if not accept_list:
                     accept_list= [MT("text", "html")]
-                mimetype = accept_list.pop(0)
+                mimetype = accept_list.pop()
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                         # probably a browser - redirect to newly created dataset
@@ -325,7 +361,7 @@ class DatasetsController(BaseController):
                         #response.headers.add("Content-Location", item.uri)
                         return "Created"
                     try:
-                        mimetype = accept_list.pop(0)
+                        mimetype = accept_list.pop()
                     except IndexError:
                         mimetype = None
                 # Whoops - nothing satisfies - return text/plain
@@ -372,10 +408,13 @@ class DatasetsController(BaseController):
                 # conneg return
                 accept_list = None
                 if 'HTTP_ACCEPT' in request.environ:
-                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                    try:
+                        accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                    except:
+                        accept_list= [MT("text", "html")]
                 if not accept_list:
                     accept_list= [MT("text", "html")]
-                mimetype = accept_list.pop(0)
+                mimetype = accept_list.pop()
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                         redirect_to(controller="datasets", action="datasetview", id=id, silo=silo)
@@ -385,7 +424,7 @@ class DatasetsController(BaseController):
                         response.status = "204 Updated"
                         return "204 Updated"
                     try:
-                        mimetype = accept_list.pop(0)
+                        mimetype = accept_list.pop()
                     except IndexError:
                         mimetype = None
                 #Whoops - nothing satisfies - return text / plain
@@ -463,10 +502,13 @@ class DatasetsController(BaseController):
                 # conneg return
                 accept_list = None
                 if 'HTTP_ACCEPT' in request.environ:
-                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                    try:
+                        accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                    except:
+                        accept_list= [MT("text", "html")]
                 if not accept_list:
                     accept_list= [MT("text", "html")]
-                mimetype = accept_list.pop(0)
+                mimetype = accept_list.pop()
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                         redirect_to(controller="datasets", action="datasetview", id=id, silo=silo)
@@ -475,7 +517,7 @@ class DatasetsController(BaseController):
                         response.status_int = code
                         return "Added file %s to item %s" % (filename, id)
                     try:
-                        mimetype = accept_list.pop(0)
+                        mimetype = accept_list.pop()
                     except IndexError:
                         mimetype = None
                 #Whoops - nothing satisfies - return text / plain
@@ -540,10 +582,13 @@ class DatasetsController(BaseController):
                 # conneg return
                 accept_list = None
                 if 'HTTP_ACCEPT' in request.environ:
-                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                    try:
+                        accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                    except:
+                        accept_list= [MT("text", "html")]
                 if not accept_list:
                     accept_list= [MT("text", "html")]
-                mimetype = accept_list.pop(0)
+                mimetype = accept_list.pop()
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                         redirect_to(controller="datasets", action="datasetview", id=id, silo=silo)
@@ -552,7 +597,7 @@ class DatasetsController(BaseController):
                         response.status_int = code
                         return "Added file %s to item %s" % (filename, id)
                     try:
-                        mimetype = accept_list.pop(0)
+                        mimetype = accept_list.pop()
                     except IndexError:
                         mimetype = None
                 #Whoops - nothing satisfies - return text / plain
@@ -621,16 +666,21 @@ class DatasetsController(BaseController):
                  
         accept_list = None
         if 'HTTP_ACCEPT' in request.environ:
-            accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+            try:
+                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+            except:
+                accept_list= [MT("text", "html")]
         if not accept_list:
             accept_list= [MT("text", "html")]
-        mimetype = accept_list.pop(0)
+        mimetype = accept_list.pop()
         
         while(mimetype):
             if str(mimetype).lower() in ["text/html", "text/xhtml"]:                    
                 return render('/datasetview_version.html')
             elif str(mimetype).lower() in ["text/plain", "application/json"]:
                 response.content_type = 'application/json; charset="UTF-8"'
+                response.status_int = 200
+                response.status = "200 OK"
                 returndata = {}
                 returndata['embargos'] = c.embargos
                 returndata['view'] = c.view
@@ -643,19 +693,27 @@ class DatasetsController(BaseController):
                 return simplejson.dumps(items)
             elif str(mimetype).lower() in ["application/rdf+xml", "text/xml"]:
                 response.content_type = 'application/rdf+xml; charset="UTF-8"'
-                return item.rdf_to_string(format="pretty-xml")
+                response.status_int = 200
+                response.status = "200 OK"
+                return c.manifest_pretty
             elif str(mimetype).lower() == "text/rdf+n3":
                 response.content_type = 'text/rdf+n3; charset="UTF-8"'
+                response.status_int = 200
+                response.status = "200 OK"
                 return item.rdf_to_string(format="n3")
             elif str(mimetype).lower() == "application/x-turtle":
                 response.content_type = 'application/x-turtle; charset="UTF-8"'
+                response.status_int = 200
+                response.status = "200 OK"
                 return item.rdf_to_string(format="turtle")
             elif str(mimetype).lower() in ["text/rdf+ntriples", "text/rdf+nt"]:
                 response.content_type = 'text/rdf+ntriples; charset="UTF-8"'
+                response.status_int = 200
+                response.status = "200 OK"
                 return item.rdf_to_string(format="nt")
             # Whoops - nothing satisfies
             try:
-                mimetype = accept_list.pop(0)
+                mimetype = accept_list.pop()
             except IndexError:
                 mimetype = None
         #Whoops - nothing staisfies - default to text/html
@@ -723,15 +781,20 @@ class DatasetsController(BaseController):
                     
                 accept_list = None
                 if 'HTTP_ACCEPT' in request.environ:
-                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                    try:
+                        accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                    except:
+                        accept_list= [MT("text", "html")]
                 if not accept_list:
                     accept_list= [MT("text", "html")]
-                mimetype = accept_list.pop(0)
+                mimetype = accept_list.pop()
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                         return render("/itemview.html")
                     elif str(mimetype).lower() in ["text/plain", "application/json"]:
                         response.content_type = 'application/json; charset="UTF-8"'
+                        response.status_int = 200
+                        response.status = "200 OK"
                         returndata = {}
                         returndata['parts'] = {}
                         for part in c.parts:
@@ -739,7 +802,7 @@ class DatasetsController(BaseController):
                         returndata['readme_text'] = c.readme_text
                         return simplejson.dumps(returndata)
                     try:
-                        mimetype = accept_list.pop(0)
+                        mimetype = accept_list.pop()
                     except IndexError:
                         mimetype = None
                 #Whoops - nothing satisfies - return text/html
@@ -804,10 +867,13 @@ class DatasetsController(BaseController):
             # conneg return
             accept_list = None
             if 'HTTP_ACCEPT' in request.environ:
-                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                try:
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                except:
+                    accept_list= [MT("text", "html")]
             if not accept_list:
                 accept_list= [MT("text", "html")]
-            mimetype = accept_list.pop(0)
+            mimetype = accept_list.pop()
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                     redirect_to(controller="datasets", action="itemview", id=id, silo=silo, path=path)
@@ -816,7 +882,7 @@ class DatasetsController(BaseController):
                     response.status_int = code
                     return response.status
                 try:
-                    mimetype = accept_list.pop(0)
+                    mimetype = accept_list.pop()
                 except IndexError:
                     mimetype = None
             #Whoops - nothing satisfies - return text / plain
@@ -896,10 +962,13 @@ class DatasetsController(BaseController):
             # conneg return
             accept_list = None
             if 'HTTP_ACCEPT' in request.environ:
-                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                try:
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                except:
+                    accept_list= [MT("text", "html")]
             if not accept_list:
                 accept_list= [MT("text", "html")]
-            mimetype = accept_list.pop(0)
+            mimetype = accept_list.pop()
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                     redirect_to(controller="datasets", action="itemview", id=id, silo=silo, path=path)
@@ -908,7 +977,7 @@ class DatasetsController(BaseController):
                     response.status_int = code
                     return response.status
                 try:
-                    mimetype = accept_list.pop(0)
+                    mimetype = accept_list.pop()
                 except IndexError:
                     mimetype = None
             #Whoops - nothing satisfies - return text / plain
@@ -1001,15 +1070,20 @@ class DatasetsController(BaseController):
                     
             accept_list = None
             if 'HTTP_ACCEPT' in request.environ:
-                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                try:
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                except:
+                    accept_list= [MT("text", "html")]
             if not accept_list:
                 accept_list= [MT("text", "html")]
-            mimetype = accept_list.pop(0)
+            mimetype = accept_list.pop()
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                     return render("/itemview_version.html")
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = 'application/json; charset="UTF-8"'
+                    response.status_int = 200
+                    response.status = "200 OK"
                     returndata = {}
                     returndata['parts'] = {}
                     for part in c.parts:
@@ -1017,7 +1091,7 @@ class DatasetsController(BaseController):
                     returndata['readme_text'] = c.readme_text
                     return simplejson.dumps(returndata)
                 try:
-                    mimetype = accept_list.pop(0)
+                    mimetype = accept_list.pop()
                 except IndexError:
                     mimetype = None
             #Whoops - nothing satisfies - return text/html

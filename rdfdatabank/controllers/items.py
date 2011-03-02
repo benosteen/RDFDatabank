@@ -44,10 +44,13 @@ class ItemsController(BaseController):
             # conneg return
             accept_list = None
             if 'HTTP_ACCEPT' in request.environ:
-                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                try:
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                except:
+                    accept_list= [MT("text", "html")]
             if not accept_list:
                 accept_list= [MT("text", "html")]
-            mimetype = accept_list.pop(0)
+            mimetype = accept_list.pop()
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                     return render("/list_of_zipfiles.html")
@@ -57,7 +60,7 @@ class ItemsController(BaseController):
                     response.status = "200 OK"
                     return simplejson.dumps(dict(c.zipfiles))
                 try:
-                    mimetype = accept_list.pop(0)
+                    mimetype = accept_list.pop()
                 except IndexError:
                     mimetype = None
             #Whoops nothing satisfies - return text/html            
@@ -100,10 +103,13 @@ class ItemsController(BaseController):
             # conneg return
             accept_list = None
             if 'HTTP_ACCEPT' in request.environ:
-                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                try:
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                except:
+                    accept_list= [MT("text", "html")]
             if not accept_list:
                 accept_list= [MT("text", "html")]
-            mimetype = accept_list.pop(0)
+            mimetype = accept_list.pop()
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                     # probably a browser - redirect to newly created dataset 
@@ -120,7 +126,7 @@ class ItemsController(BaseController):
                     #response.location = item.uri
                     return "Created"
                 try:
-                    mimetype = accept_list.pop(0)
+                    mimetype = accept_list.pop()
                 except IndexError:
                     mimetype = None
             # Whoops - nothing satisfies - return text/plain
@@ -174,10 +180,13 @@ class ItemsController(BaseController):
             # conneg return
             accept_list = None
             if 'HTTP_ACCEPT' in request.environ:
-                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                try:
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                except:
+                    accept_list= [MT("text", "html")]
             if not accept_list:
                 accept_list= [MT("text", "html")]
-            mimetype = accept_list.pop(0)
+            mimetype = accept_list.pop()
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                     return render("/zipfileview.html")
@@ -187,7 +196,7 @@ class ItemsController(BaseController):
                     response.status = "200 OK"
                     return simplejson.dumps(c.zipfile_contents)
                 try:
-                    mimetype = accept_list.pop(0)
+                    mimetype = accept_list.pop()
                 except IndexError:
                     mimetype = None
             # Whoops - nothing satisfies - return text/html
@@ -215,10 +224,13 @@ class ItemsController(BaseController):
             # conneg return
             accept_list = None
             if 'HTTP_ACCEPT' in request.environ:
-                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                try:
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                except:
+                    accept_list= [MT("text", "html")]
             if not accept_list:
                 accept_list= [MT("text", "html")]
-            mimetype = accept_list.pop(0)
+            mimetype = accept_list.pop()
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                     # probably a browser - redirect to newly created dataset
@@ -231,7 +243,7 @@ class ItemsController(BaseController):
                     #response.headers.add("Content-Location", new_item.uri)
                     return "Created"
                 try:
-                    mimetype = accept_list.pop(0)
+                    mimetype = accept_list.pop()
                 except IndexError:
                     mimetype = None
             # Whoops - nothing satisfies - return text/plain

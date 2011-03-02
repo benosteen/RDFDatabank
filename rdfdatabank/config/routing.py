@@ -24,6 +24,11 @@ def make_map():
     map.redirect('/*(url)/', '/{url}',
              _redirect_code='301 Moved Permanently')
 
+    #Special redirect for datasets from databank.ouls to databank.ora
+    map.redirect('/objects/dataset%3A1.html', '/general/datasets/Tick1AudioCorpus', _redirect_code='301 Moved Permanently')
+    map.redirect('/objects/dataset%3A2.html', '/general/datasets/RobertDarnton', _redirect_code='301 Moved Permanently')
+    map.redirect('/objects/dataset%3A3.html', '/general/datasets/MostynBrown', _redirect_code='301 Moved Permanently')
+
     map.connect('/', controller='home', action='index')
     map.connect('/api', controller='api', action='index')
     map.connect('/api/{api_name}', controller='api', action='apiview')

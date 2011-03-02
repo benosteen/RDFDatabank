@@ -30,10 +30,13 @@ class SilosController(BaseController):
         # conneg return
         accept_list = None
         if 'HTTP_ACCEPT' in request.environ:
-            accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+            try:
+                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+            except:
+                accept_list= [MT("text", "html")]
         if not accept_list:
             accept_list= [MT("text", "html")]
-        mimetype = accept_list.pop(0)
+        mimetype = accept_list.pop()
         while(mimetype):
             if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                 return render('/list_of_silos.html')
@@ -46,7 +49,7 @@ class SilosController(BaseController):
                     list_of_silos.append(silo_id)
                 return simplejson.dumps(list_of_silos)
             try:
-                mimetype = accept_list.pop(0)
+                mimetype = accept_list.pop()
             except IndexError:
                 mimetype = None
         #Whoops nothing satisfies - return text/html            
@@ -74,10 +77,13 @@ class SilosController(BaseController):
         # conneg return
         accept_list = None
         if 'HTTP_ACCEPT' in request.environ:
-            accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+            try:
+                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+            except:
+                accept_list= [MT("text", "html")]
         if not accept_list:
             accept_list= [MT("text", "html")]
-        mimetype = accept_list.pop(0)
+        mimetype = accept_list.pop()
         while(mimetype):
             if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                 return render('/siloview.html')
@@ -87,7 +93,7 @@ class SilosController(BaseController):
                 response.status = "200 OK"
                 return simplejson.dumps(c.embargos)
             try:
-                mimetype = accept_list.pop(0)
+                mimetype = accept_list.pop()
             except IndexError:
                 mimetype = None
         #Whoops nothing satisfies - return text/html            

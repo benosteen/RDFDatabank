@@ -148,6 +148,7 @@ class SparqlQueryTestCase(unittest.TestCase):
         while path and repeat > 0:
             repeat -= 1
             #print "Request "+command+", path "+path
+            #print "Request haeders:", reqheaders
             hc.request(command, path, reqdata, reqheaders)
             response = hc.getresponse()
             if response.status != 301: break
@@ -169,7 +170,7 @@ class SparqlQueryTestCase(unittest.TestCase):
     def doHTTP_GET(self,
             endpointhost=None, endpointpath=None, resource=None,
             expect_status=200, expect_reason="OK",
-            expect_type="*/*"):
+            expect_type="text/plain"):
         reqheaders   = {
             "Accept":       expect_type
             }
@@ -195,7 +196,7 @@ class SparqlQueryTestCase(unittest.TestCase):
     def doHTTP_POST(self, data, data_type="application/octet-strem",
             endpointhost=None, endpointpath=None, resource=None,
             expect_status=200, expect_reason="OK",
-            expect_type="*/*"):
+            expect_type="text/plain"):
         reqheaders   = {
             "Content-type": data_type,
             "Accept":       expect_type
@@ -225,7 +226,7 @@ class SparqlQueryTestCase(unittest.TestCase):
     def doHTTP_PUT(self, data, data_type="application/octet-strem",
             endpointhost=None, endpointpath=None, resource=None,
             expect_status=200, expect_reason="OK",
-            expect_type="*/*"):
+            expect_type="text/plain"):
         reqheaders   = {
             "Content-type": data_type,
             "Accept":       expect_type
