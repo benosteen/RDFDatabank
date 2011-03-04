@@ -266,6 +266,9 @@ class DatasetsController(BaseController):
                 f.write("Trying MIME type %s\n"%mimetype)
                 f.close()
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                    f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                    f.write("--END-- Data returned for text/html, text/xhtml\n")
+                    f.close()
                     return render('/datasetview.html')
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     # -- Step 9 -----------------------------
@@ -287,35 +290,43 @@ class DatasetsController(BaseController):
                     toc = time.mktime(time.gmtime())
                     f.write("9. Accumulate JSON data: %d\n"%(toc-tic))
                     #f.write("Data returned : \n %s\n\n"%str(returndata))
+                    f.write("--END-- Data returned for application/json, text/plain\n")
                     f.close()
                     response.status_int = 200
                     response.status = "200 OK"
                     return simplejson.dumps(returndata)
                 elif str(mimetype).lower() in ["application/rdf+xml", "text/xml"]:
                     # -- Step 9 -----------------------------
-                    f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
-                    #f.write("Data returned:\n %s\n\n"%str(c.manifest_pretty))
-                    toc2 = time.mktime(time.gmtime())
-                    f.write("9. Accumulate RDF data: %d\n"%(toc2-toc))
-                    f.close()
                     response.status_int = 200
                     response.status = "200 OK"
                     response.content_type = 'application/rdf+xml; charset="UTF-8"'
+                    f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                    f.write("--END-- Data returned for application/rdf+xml, text/xml\n")
+                    f.close()
                     return c.manifest_pretty
                 elif str(mimetype).lower() == "text/rdf+n3":
                     response.content_type = 'text/rdf+n3; charset="UTF-8"'
                     response.status_int = 200
                     response.status = "200 OK"
+                    f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                    f.write("--END-- Data returned for text/rdf+n3\n")
+                    f.close()
                     return item.rdf_to_string(format="n3")
                 elif str(mimetype).lower() == "application/x-turtle":
                     response.content_type = 'application/x-turtle; charset="UTF-8"'
                     response.status_int = 200
                     response.status = "200 OK"
+                    f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                    f.write("--END-- Data returned for application/x-turtle\n")
+                    f.close()
                     return item.rdf_to_string(format="turtle")
                 elif str(mimetype).lower() in ["text/rdf+ntriples", "text/rdf+nt"]:
                     response.content_type = 'text/rdf+ntriples; charset="UTF-8"'
                     response.status_int = 200
                     response.status = "200 OK"
+                    f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                    f.write("--END-- Data returned for text/rdf+ntriples, text/rdf+nt\n")
+                    f.close()
                     return item.rdf_to_string(format="nt")
                 # Whoops - nothing satisfies
                 try:
@@ -323,6 +334,9 @@ class DatasetsController(BaseController):
                 except IndexError:
                     mimetype = None
             #Whoops - nothing staisfies - default to text/html
+            f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+            f.write("--END-- Data returned for Default (text/html)\n")
+            f.close()
             return render('/datasetview.html')
         elif http_method == "POST" and c.editor:
             params = request.POST
@@ -348,9 +362,18 @@ class DatasetsController(BaseController):
                         accept_list= [MT("text", "html")]
                 if not accept_list:
                     accept_list= [MT("text", "html")]
+                f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                f.write("Accept list: %s\n"%accept_list)
+                f.close()
                 mimetype = accept_list.pop()
                 while(mimetype):
+                    f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                    f.write("Trying MIME type %s\n"%mimetype)
+                    f.close()
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                        f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                        f.write("--END-- Data returned for text/html, text/xhtml\n")
+                        f.close()
                         # probably a browser - redirect to newly created dataset
                         redirect_to(controller="datasets", action="datasetview", silo=silo, id=id)
                     elif str(mimetype).lower() in ["text/plain", "application/json"]:
@@ -359,6 +382,9 @@ class DatasetsController(BaseController):
                         response.status = "201 Created"
                         #response.headers["Content-Location"] = item.uri
                         #response.headers.add("Content-Location", item.uri)
+                        f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                        f.write("--END-- Data returned for text/plain, application/json\n")
+                        f.close()
                         return "Created"
                     try:
                         mimetype = accept_list.pop()
@@ -370,6 +396,9 @@ class DatasetsController(BaseController):
                 #response.headers["Content-Location"] = item.uri
                 #response.headers.add("Content-Location", item.uri)
                 response.status = "201 Created"
+                f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                f.write("--END-- Data returned for default (text/plain)\n")
+                f.close()
                 return "Created"
             elif params.has_key('embargo_change'):
                 item = c_silo.get_item(id)
@@ -414,14 +443,26 @@ class DatasetsController(BaseController):
                         accept_list= [MT("text", "html")]
                 if not accept_list:
                     accept_list= [MT("text", "html")]
+                f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                f.write("Accept list: %s\n"%accept_list)
+                f.close()
                 mimetype = accept_list.pop()
                 while(mimetype):
+                    f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                    f.write("Trying MIME type %s\n"%mimetype)
+                    f.close()
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                        f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                        f.write("--END-- Data returned for text/html, text/xhtml\n")
+                        f.close()
                         redirect_to(controller="datasets", action="datasetview", id=id, silo=silo)
                     elif str(mimetype).lower() in ["text/plain", "application/json"]:
                         response.content_type = "text/plain"
                         response.status_int = 204
                         response.status = "204 Updated"
+                        f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                        f.write("--END-- Data returned for text/plain, application/json\n")
+                        f.close()
                         return "204 Updated"
                     try:
                         mimetype = accept_list.pop()
@@ -431,6 +472,9 @@ class DatasetsController(BaseController):
                 response.content_type = "text/plain"
                 response.status_int = 204
                 response.status = "204 Updated"
+                f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                f.write("--END-- Data returned for default (text/plain)\n")
+                f.close()
                 return "204 Updated"
             elif params.has_key('file'):
                 # File upload by a not-too-savvy method - Service-orientated fallback:
@@ -508,13 +552,25 @@ class DatasetsController(BaseController):
                         accept_list= [MT("text", "html")]
                 if not accept_list:
                     accept_list= [MT("text", "html")]
+                f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                f.write("Accept list: %s\n"%accept_list)
+                f.close()
                 mimetype = accept_list.pop()
                 while(mimetype):
+                    f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                    f.write("Trying MIME type %s\n"%mimetype)
+                    f.close()
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                        f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                        f.write("--END-- Data returned for text/html, text/xhtml\n")
+                        f.close()
                         redirect_to(controller="datasets", action="datasetview", id=id, silo=silo)
                     elif str(mimetype).lower() in ["text/plain"]:
                         response.content_type = "text/plain"
                         response.status_int = code
+                        f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                        f.write("--END-- Data returned for text/plain, application/json\n")
+                        f.close()
                         return "Added file %s to item %s" % (filename, id)
                     try:
                         mimetype = accept_list.pop()
@@ -523,6 +579,9 @@ class DatasetsController(BaseController):
                 #Whoops - nothing satisfies - return text / plain
                 response.content_type = "text/plain"
                 response.status_int = code
+                f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                f.write("--END-- Data returned for default (text/plain)\n")
+                f.close()
                 return "Added file %s to item %s" % (filename, id)
             elif params.has_key('text'):
                 # Text upload convenience service
@@ -588,13 +647,25 @@ class DatasetsController(BaseController):
                         accept_list= [MT("text", "html")]
                 if not accept_list:
                     accept_list= [MT("text", "html")]
+                f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                f.write("Accept list: %s\n"%accept_list)
+                f.close()
                 mimetype = accept_list.pop()
                 while(mimetype):
+                    f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                    f.write("Trying MIME type %s\n"%mimetype)
+                    f.close()
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                        f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                        f.write("--END-- Data returned for text/html, text/xhtml\n")
+                        f.close()
                         redirect_to(controller="datasets", action="datasetview", id=id, silo=silo)
                     elif str(mimetype).lower() in ["text/plain", "application/json"]:
                         response.content_type = "text/plain"
                         response.status_int = code
+                        f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                        f.write("--END-- Data returned for text/plain, application/json\n")
+                        f.close()
                         return "Added file %s to item %s" % (filename, id)
                     try:
                         mimetype = accept_list.pop()
@@ -603,6 +674,9 @@ class DatasetsController(BaseController):
                 #Whoops - nothing satisfies - return text / plain
                 response.status_int = code
                 response.content_type = "text/plain"
+                f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                f.write("--END-- Data returned for default (text/plain)\n")
+                f.close()
                 return "Added file %s to item %s" % (filename, id)
             else:
                 response.status_int = 403
