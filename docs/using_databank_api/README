@@ -1,0 +1,20 @@
+RDFDatabank was developed by Ben O'Steen and Anusha Ranganathan at the Bodleian Libraries, Universiy of Oxford 
+
+The purpose of DataBank is to provide a robust and efficient system for the safe storage of and open access to research data.
+
+The API documentation for using RDFdatabank is at
+http://databank.ora.ox.ac.uk/api or 
+https://github.com/anusharanganathan/RDFDatabank/tree/master/rdfdatabank/public/static/api_files
+
+The source code for databank is available at https://github.com/anusharanganathan/RDFDatabank.
+The test code for databank can be found in https://github.com/anusharanganathan/RDFDatabank/tree/master/rdfdatabank/tests/RDFDatabank
+
+Note:
+    DataBank is not intended to store large-scale data sets such as grid data or other vast data sets. 
+    
+    All of the metadata relating to the dataset is in the file manifest.rdf. The system generated metadata will contain a listing of the files in the dataset, date of submission and the current version
+
+    If the dataset contains a README file in the top level (i.e. not within a folder), the contents of this file will be displayed at the top of the page for that dataset within databank.ora.ox.ac.uk
+
+    If the dataset contains a file called 'manifest.rdf' and it is valid rdf, the metadata in this file will be merged with the system geenrated metadata, when the dataset is unpacked within databnak.ora.ox.ac.uk
+
