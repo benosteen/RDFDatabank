@@ -2,7 +2,7 @@
 
 """
 Below is a guide on how to do HTTP GET, POST, PUT and DELETE in python.
-To run the pyhon code here, you would also need the file datastore_link.py.
+To run the pyhon code here, you would also need the file HTTP_request.py.
 
 The full functionality of RDFDatabank is detailed in the API documentation at
 http://databank.ora.ox.ac.uk/api 
@@ -10,13 +10,13 @@ https://github.com/anusharanganathan/RDFDatabank/tree/master/rdfdatabank/public/
 """
 
 import json as simplejson
-from datastore_link import DatastoreLink
+from HTTP_request import HTTPRequest
 
 #--CONFIG-------------------------------------------------------
 host = 'databank.ora.ox.ac.uk'
 user_name = ''
 password = ''
-datastore = DatastoreLink(endpointhost=host)
+datastore = HTTPRequest(endpointhost=host)
 datastore.setRequestUserPass(endpointuser=user_name, endpointpass=password)
 
 #--HTTP GET-------------------------------------------------------

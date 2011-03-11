@@ -7,7 +7,7 @@ import json as simplejson
 
 logger = logging.getLogger('Dataset')
 
-class DatastoreLink():
+class HTTPRequest():
     def __init__(self, endpointhost=None):
         if endpointhost:
             self._endpointhost = endpointhost
