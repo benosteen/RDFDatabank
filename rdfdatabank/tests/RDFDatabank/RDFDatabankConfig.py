@@ -13,8 +13,8 @@ class RDFDatabankConfig:
     endpointpath="/admiral-test/packages/"
 
     # Access via IP address
-    endpointhost="163.1.127.173"
-    #endpointhost="databank.ora.ox.ac.uk"
+    #endpointhost="163.1.127.173"
+    endpointhost="databank.ora.ox.ac.uk"
     endpointpath="/admiral-test/"
 
     # Access credentials for testing
@@ -22,8 +22,7 @@ class RDFDatabankConfig:
     endpointpass="admiral"
 
     #Access to local dev VM
-    #endpointhost="192.168.23.129:3000"
-    #endpointhost="127.0.0.1:5000"
+    #endpointhost="192.168.23.133"
     endpointpath="/sandbox/"
     
     # Access credentials for testing from local dev VM
