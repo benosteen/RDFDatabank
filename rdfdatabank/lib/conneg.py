@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-
+from pylons import app_globals as ag
+from datetime import datetime
 def skipws(next):
     skip = 1
     if not skip:
@@ -231,8 +232,20 @@ def best(client, server):
 
 def parse(data):
     lex = MiniLex(data)
+
     p = Parser(lex)
     mts = p.process()
+
+    #Accept headers added using javascript are appended to the end of the list of default accept headers
+    #This behaviour observed in Opera 9.80, Chrome 10.0, MSIE 7.0, MSIE 8.0. 
+    #In Firefox 3.6.14 and Firefox 3.6.15, only the new headers set in ajax is sent
+    #See doc accessLogEWithHeaderInfo_2011_03_16
+    #So moving the last accept header to the front
+    tmp = str(mts[-1]).lower()
+    if tmp in ag.formats_served:
+        last_mt = mts.pop()
+        mts.insert(0, last_mt)
+
     mts.sort(key=lambda x: x.sort2(), reverse=True)
     mts.sort(key=lambda x: x.qval, reverse=True)
     return mts

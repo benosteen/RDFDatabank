@@ -48,4 +48,8 @@ class Globals(object):
         self.passwdfile = HtpasswdFile(pwdfile)
         self.passwdfile.load()
         self.userfile = config['granary.store'].replace('silos', 'rdfdatabank/config/users.py')
-
+        
+        if config.has_key("formats_served"):
+            self.formats_served = config['formats_served']
+        else:
+            self.formats_served = ["text/html", "text/xhtml", "text/plain", "application/json", "application/rdf+xml", "text/xml"]

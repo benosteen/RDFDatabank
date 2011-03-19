@@ -1,26 +1,24 @@
 import logging
+import re, os, shutil
+import simplejson
+from datetime import datetime, timedelta
+import time
 
-from pylons import request, response, session, tmpl_context as c
+from pylons import request, response, session, tmpl_context as c, url, app_globals as ag
 from pylons.controllers.util import abort, redirect_to
-from pylons import app_globals as ag
+from pylons.decorators import rest
+from paste.fileapp import FileApp
 from rdfdatabank.lib.base import BaseController, render
 from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text, test_rdf, munge_manifest, manifest_type, serialisable_stat, allowable_id2
 from rdfdatabank.lib.file_unpack import get_zipfiles_in_dataset
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 
-from datetime import datetime, timedelta
-import time
-from paste.fileapp import FileApp
-
-import re, os, shutil
-
 JAILBREAK = re.compile("[\/]*\.\.[\/]*")
-
-import simplejson
 
 log = logging.getLogger(__name__)
 
 class DatasetsController(BaseController):      
+    @rest.restrict('GET', 'POST')
     def siloview(self, silo):
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
@@ -33,8 +31,17 @@ class DatasetsController(BaseController):
         
         c.silo_name = silo
         c_silo = ag.granary.get_rdf_silo(silo)
+
+        f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+        hr = "-"*80 + '\n'
+        f.write(hr)
+        f.write("%s :: datasets - siloview : silo=%s\n"%(str(datetime.now()), silo))      
         
         http_method = request.environ['REQUEST_METHOD']
+
+        f.write("Http method = %s\n"%http_method)
+        f.close()
+
         if http_method == "GET":
             c.embargos = {}
             for item in c_silo.list_items():
@@ -44,13 +51,19 @@ class DatasetsController(BaseController):
             # conneg return
             accept_list = None
             if 'HTTP_ACCEPT' in request.environ:
+                f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                f.write("Received accept list: %s\n"%str(request.environ['HTTP_ACCEPT']))
+                f.close()
                 try:
                     accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
                 except:
                     accept_list= [MT("text", "html")]
             if not accept_list:
                 accept_list= [MT("text", "html")]
-            mimetype = accept_list.pop()
+            f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+            f.write("Parsed accept list: %s\n"%str(accept_list))
+            f.close()
+            mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                     return render('/siloview.html')
@@ -60,7 +73,7 @@ class DatasetsController(BaseController):
                     response.status = "200 OK"
                     return simplejson.dumps(c.embargos)
                 try:
-                    mimetype = accept_list.pop()
+                    mimetype = accept_list.pop(0)
                 except IndexError:
                     mimetype = None
             #Whoops nothing satisfies - return text/html            
@@ -80,7 +93,7 @@ class DatasetsController(BaseController):
                     if not allowable_id2(id):
                         response.content_type = "text/plain"
                         response.status_int = 403
-                        #response.status = "Forbidden Dataset name can contain only the following characters - %s"%ag.naming_rule
+                        response.status = "403 Forbidden"
                         return "Dataset name can contain only the following characters - %s and has to be more than 1 character"%ag.naming_rule
                     del params['id']
                     item = create_new(c_silo, id, ident['repoze.who.userid'], **params)
@@ -91,36 +104,40 @@ class DatasetsController(BaseController):
                     # conneg return
                     accept_list = None
                     if 'HTTP_ACCEPT' in request.environ:
+                        f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                        f.write("Received accept list: %s\n"%str(request.environ['HTTP_ACCEPT']))
+                        f.close()
                         try:
                             accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
                         except:
                             accept_list= [MT("text", "html")]
                     if not accept_list:
                         accept_list= [MT("text", "html")]
-                    mimetype = accept_list.pop()
+                    f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                    f.write("Parsed accept list: %s\n"%str(accept_list))
+                    f.close()
+                    mimetype = accept_list.pop(0)
                     while(mimetype):
                         if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                            # probably a browser - redirect to newly created dataset
                             redirect_to(controller="datasets", action="datasetview", silo=silo, id=id)
                         elif str(mimetype).lower() in ["text/plain", "application/json"]:
                             response.content_type = "text/plain"
                             response.status_int = 201
                             response.status = "201 Created"
-                            #response.headers["Content-Location"] = item.uri
-                            #response.headers.add("Content-Location", item.uri)
-                            return "Created"
+                            response.headers["Content-Location"] = url(controller="datasets", action="datasetview", silo=silo, id=id)
+                            return "201 Created"
                         try:
-                            mimetype = accept_list.pop()
+                            mimetype = accept_list.pop(0)
                         except IndexError:
                             mimetype = None
                     # Whoops - nothing satisfies - return text/plain
                     response.content_type = "text/plain"
                     response.status_int = 201
-                    #response.headers["Content-Location"] = item.uri
-                    #response.headers.add("Content-Location", item.uri)
+                    response.headers["Content-Location"] = url(controller="datasets", action="datasetview", silo=silo, id=id)
                     response.status = "201 Created"
-                    return "Created"
+                    return "201 Created"
                     
+    @rest.restrict('GET', 'POST', 'DELETE')
     def datasetview(self, silo, id):       
         # Check to see if embargo is on:
         c.silo_name = silo
@@ -128,7 +145,7 @@ class DatasetsController(BaseController):
         f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
         hr = "-"*80 + '\n'
         f.write(hr)
-        f.write("datasets - datasetview : silo=%s, id=%s\n"%(silo, id))
+        f.write("%s :: datasets - datasetview : silo=%s, id=%s\n"%(str(datetime.now()), silo, id))
        
         http_method = request.environ['REQUEST_METHOD']
         f.write("Http method = %s\n"%http_method)
@@ -250,17 +267,20 @@ class DatasetsController(BaseController):
             # conneg:
             accept_list = None
             if 'HTTP_ACCEPT' in request.environ:
+                f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                f.write("Received accept list: %s\n"%str(request.environ['HTTP_ACCEPT']))
+                f.close()
                 try:
                     accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
                 except:
                     accept_list= [MT("text", "html")]
             if not accept_list:
                 accept_list= [MT("text", "html")]
-            mimetype = accept_list.pop()
-            # -------------------------------
             f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
-            f.write("Accept list: %s\n"%accept_list)
+            f.write("Parsed accept list: %s\n"%str(accept_list))
             f.close()
+            mimetype = accept_list.pop(0)
+            # -------------------------------
             while(mimetype):
                 f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
                 f.write("Trying MIME type %s\n"%mimetype)
@@ -301,7 +321,8 @@ class DatasetsController(BaseController):
                     response.status = "200 OK"
                     response.content_type = 'application/rdf+xml; charset="UTF-8"'
                     f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
-                    f.write("--END-- Data returned for application/rdf+xml, text/xml\n")
+                    f.write("Data returned for application/rdf+xml, text/xml\n")
+                    #f.write(c.manifest_pretty + '\n')
                     f.close()
                     return c.manifest_pretty
                 elif str(mimetype).lower() == "text/rdf+n3":
@@ -330,7 +351,7 @@ class DatasetsController(BaseController):
                     return item.rdf_to_string(format="nt")
                 # Whoops - nothing satisfies
                 try:
-                    mimetype = accept_list.pop()
+                    mimetype = accept_list.pop(0)
                 except IndexError:
                     mimetype = None
             #Whoops - nothing staisfies - default to text/html
@@ -344,7 +365,7 @@ class DatasetsController(BaseController):
                 if not allowable_id2(id):
                     response.content_type = "text/plain"
                     response.status_int = 403
-                    #response.status = "Forbidden"
+                    response.status = "403 Forbidden"
                     return "Dataset name can contain only the following characters - %s and has to be more than 1 character"%ag.naming_rule
                 if 'id' in params.keys():
                     del params['id']
@@ -356,6 +377,9 @@ class DatasetsController(BaseController):
                 # conneg return
                 accept_list = None
                 if 'HTTP_ACCEPT' in request.environ:
+                    f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                    f.write("Received accept list: %s\n"%str(request.environ['HTTP_ACCEPT']))
+                    f.close()
                     try:
                         accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
                     except:
@@ -363,9 +387,9 @@ class DatasetsController(BaseController):
                 if not accept_list:
                     accept_list= [MT("text", "html")]
                 f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
-                f.write("Accept list: %s\n"%accept_list)
+                f.write("Parsed accept list: %s\n"%str(accept_list))
                 f.close()
-                mimetype = accept_list.pop()
+                mimetype = accept_list.pop(0)
                 while(mimetype):
                     f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
                     f.write("Trying MIME type %s\n"%mimetype)
@@ -374,32 +398,29 @@ class DatasetsController(BaseController):
                         f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
                         f.write("--END-- Data returned for text/html, text/xhtml\n")
                         f.close()
-                        # probably a browser - redirect to newly created dataset
                         redirect_to(controller="datasets", action="datasetview", silo=silo, id=id)
                     elif str(mimetype).lower() in ["text/plain", "application/json"]:
                         response.content_type = "text/plain"
                         response.status_int = 201
                         response.status = "201 Created"
-                        #response.headers["Content-Location"] = item.uri
-                        #response.headers.add("Content-Location", item.uri)
+                        response.headers["Content-Location"] = url(controller="datasets", action="datasetview", silo=silo, id=id) 
                         f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
                         f.write("--END-- Data returned for text/plain, application/json\n")
                         f.close()
-                        return "Created"
+                        return "201 Created"
                     try:
-                        mimetype = accept_list.pop()
+                        mimetype = accept_list.pop(0)
                     except IndexError:
                         mimetype = None
                 # Whoops - nothing satisfies - return text/plain
                 response.content_type = "text/plain"
                 response.status_int = 201
-                #response.headers["Content-Location"] = item.uri
-                #response.headers.add("Content-Location", item.uri)
+                response.headers["Content-Location"] = url(controller="datasets", action="datasetview", silo=silo, id=id) 
                 response.status = "201 Created"
                 f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
                 f.write("--END-- Data returned for default (text/plain)\n")
                 f.close()
-                return "Created"
+                return "201 Created"
             elif params.has_key('embargo_change'):
                 item = c_silo.get_item(id)
                 item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
@@ -437,6 +458,9 @@ class DatasetsController(BaseController):
                 # conneg return
                 accept_list = None
                 if 'HTTP_ACCEPT' in request.environ:
+                    f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                    f.write("Received accept list: %s\n"%str(request.environ['HTTP_ACCEPT']))
+                    f.close()
                     try:
                         accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
                     except:
@@ -444,9 +468,9 @@ class DatasetsController(BaseController):
                 if not accept_list:
                     accept_list= [MT("text", "html")]
                 f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
-                f.write("Accept list: %s\n"%accept_list)
+                f.write("Parsed accept list: %s\n"%str(accept_list))
                 f.close()
-                mimetype = accept_list.pop()
+                mimetype = accept_list.pop(0)
                 while(mimetype):
                     f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
                     f.write("Trying MIME type %s\n"%mimetype)
@@ -463,9 +487,9 @@ class DatasetsController(BaseController):
                         f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
                         f.write("--END-- Data returned for text/plain, application/json\n")
                         f.close()
-                        return "204 Updated"
+                        return
                     try:
-                        mimetype = accept_list.pop()
+                        mimetype = accept_list.pop(0)
                     except IndexError:
                         mimetype = None
                 #Whoops - nothing satisfies - return text / plain
@@ -475,7 +499,7 @@ class DatasetsController(BaseController):
                 f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
                 f.write("--END-- Data returned for default (text/plain)\n")
                 f.close()
-                return "204 Updated"
+                return
             elif params.has_key('file'):
                 # File upload by a not-too-savvy method - Service-orientated fallback:
                 # Assume file upload to 'filename'
@@ -492,7 +516,9 @@ class DatasetsController(BaseController):
                 if item.isfile(target_path):
                     code = 204
                 elif item.isdir(target_path):
+                    response.content_type = "text/plain"
                     response.status_int = 403
+                    response.status = "403 Forbidden"
                     return "Cannot POST a file on to an existing directory"
                 else:
                     code = 201
@@ -535,17 +561,21 @@ class DatasetsController(BaseController):
                 if code == 201:
                     ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
                     response.status = "201 Created"
-                    target_url = str(item.uri).strip('/') + '/' + target_path.strip('/')
-                    #response.headers["Content-Location"] = target_url
-                    #response.headers.add("Content-Location", item.uri)
+                    response.status_int = 201
+                    response.headers["Content-Location"] = url(controller="datasets", action="datasetview", id=id, silo=silo)
+                    response_message = "201 Created. Added file %s to item %s" % (filename, id)
                 else:
                     ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
                     response.status = "204 Updated"
+                    response.status_int = 204
+                    response_message = None
 
-                response.status_int = code
                 # conneg return
                 accept_list = None
                 if 'HTTP_ACCEPT' in request.environ:
+                    f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                    f.write("Received accept list: %s\n"%str(request.environ['HTTP_ACCEPT']))
+                    f.close()
                     try:
                         accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
                     except:
@@ -553,9 +583,9 @@ class DatasetsController(BaseController):
                 if not accept_list:
                     accept_list= [MT("text", "html")]
                 f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
-                f.write("Accept list: %s\n"%accept_list)
+                f.write("Parsed accept list: %s\n"%str(accept_list))
                 f.close()
-                mimetype = accept_list.pop()
+                mimetype = accept_list.pop(0)
                 while(mimetype):
                     f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
                     f.write("Trying MIME type %s\n"%mimetype)
@@ -567,22 +597,20 @@ class DatasetsController(BaseController):
                         redirect_to(controller="datasets", action="datasetview", id=id, silo=silo)
                     elif str(mimetype).lower() in ["text/plain"]:
                         response.content_type = "text/plain"
-                        response.status_int = code
                         f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
                         f.write("--END-- Data returned for text/plain, application/json\n")
                         f.close()
-                        return "Added file %s to item %s" % (filename, id)
+                        return response_message
                     try:
-                        mimetype = accept_list.pop()
+                        mimetype = accept_list.pop(0)
                     except IndexError:
                         mimetype = None
                 #Whoops - nothing satisfies - return text / plain
                 response.content_type = "text/plain"
-                response.status_int = code
                 f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
                 f.write("--END-- Data returned for default (text/plain)\n")
                 f.close()
-                return "Added file %s to item %s" % (filename, id)
+                return response_message
             elif params.has_key('text'):
                 # Text upload convenience service
                 params = request.POST
@@ -598,7 +626,9 @@ class DatasetsController(BaseController):
                 if item.isfile(target_path):
                     code = 204
                 elif item.isdir(target_path):
+                    response.content_type = "text/plain"
                     response.status_int = 403
+                    response.status = "403 forbidden"
                     return "Cannot POST a file on to an existing directory"
                 else:
                     code = 201
@@ -631,16 +661,20 @@ class DatasetsController(BaseController):
                 if code == 201:
                     ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
                     response.status = "201 Created"
-                    target_url = str(item.uri).strip('/') + '/' + target_path.strip('/')
-                    #response.headers["Content-Location"] = target_url
-                    #response.headers.add("Content-Location", item.uri)
+                    response.status_int = 201
+                    response.headers["Content-Location"] = url(controller="datasets", action="datasetview", id=id, silo=silo)
+                    response_message = "201 Created. Added file %s to item %s" % (filename, id)
                 else:
                     ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
                     response.status = "204 Updated"
-                response.status_int = code
+                    response.status_int = 204
+                    response_message = None
                 # conneg return
                 accept_list = None
                 if 'HTTP_ACCEPT' in request.environ:
+                    f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                    f.write("Received accept list: %s\n"%str(request.environ['HTTP_ACCEPT']))
+                    f.close()
                     try:
                         accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
                     except:
@@ -648,9 +682,9 @@ class DatasetsController(BaseController):
                 if not accept_list:
                     accept_list= [MT("text", "html")]
                 f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
-                f.write("Accept list: %s\n"%accept_list)
+                f.write("Parsed accept list: %s\n"%str(accept_list))
                 f.close()
-                mimetype = accept_list.pop()
+                mimetype = accept_list.pop(0)
                 while(mimetype):
                     f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
                     f.write("Trying MIME type %s\n"%mimetype)
@@ -662,24 +696,24 @@ class DatasetsController(BaseController):
                         redirect_to(controller="datasets", action="datasetview", id=id, silo=silo)
                     elif str(mimetype).lower() in ["text/plain", "application/json"]:
                         response.content_type = "text/plain"
-                        response.status_int = code
                         f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
                         f.write("--END-- Data returned for text/plain, application/json\n")
                         f.close()
-                        return "Added file %s to item %s" % (filename, id)
+                        return response_message
                     try:
-                        mimetype = accept_list.pop()
+                        mimetype = accept_list.pop(0)
                     except IndexError:
                         mimetype = None
                 #Whoops - nothing satisfies - return text / plain
-                response.status_int = code
                 response.content_type = "text/plain"
                 f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
                 f.write("--END-- Data returned for default (text/plain)\n")
                 f.close()
-                return "Added file %s to item %s" % (filename, id)
+                return response_message
             else:
+                response.content_type = "text/plain"
                 response.status_int = 403
+                response.status = "403 Forbidden"
                 return "403 Forbidden"
         elif http_method == "DELETE" and c.editor:
             if c_silo.exists(id):
@@ -688,12 +722,14 @@ class DatasetsController(BaseController):
                 # Broadcast deletion
                 ag.b.deletion(silo, id, ident=ident['repoze.who.userid'])
                 
+                response.content_type = "text/plain"
                 response.status_int = 200
                 response.status = "200 OK"
                 return "{'ok':'true'}"   # required for the JQuery magic delete to succede.
             else:
                 abort(404)
 
+    @rest.restrict('GET') 
     def datasetview_vnum(self, silo, id, vnum):       
         c.silo_name = silo
         c.id = id
@@ -746,7 +782,7 @@ class DatasetsController(BaseController):
                 accept_list= [MT("text", "html")]
         if not accept_list:
             accept_list= [MT("text", "html")]
-        mimetype = accept_list.pop()
+        mimetype = accept_list.pop(0)
         
         while(mimetype):
             if str(mimetype).lower() in ["text/html", "text/xhtml"]:                    
@@ -787,12 +823,13 @@ class DatasetsController(BaseController):
                 return item.rdf_to_string(format="nt")
             # Whoops - nothing satisfies
             try:
-                mimetype = accept_list.pop()
+                mimetype = accept_list.pop(0)
             except IndexError:
                 mimetype = None
         #Whoops - nothing staisfies - default to text/html
         return render('/datasetview_version.html')
 
+    @rest.restrict('GET', 'POST', 'PUT', 'DELETE')
     def itemview(self, silo, id, path):
         # Check to see if embargo is on:
         c.silo_name = silo
@@ -855,13 +892,19 @@ class DatasetsController(BaseController):
                     
                 accept_list = None
                 if 'HTTP_ACCEPT' in request.environ:
+                    f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                    f.write("Received accept list: %s\n"%str(request.environ['HTTP_ACCEPT']))
+                    f.close()
                     try:
                         accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
                     except:
                         accept_list= [MT("text", "html")]
                 if not accept_list:
                     accept_list= [MT("text", "html")]
-                mimetype = accept_list.pop()
+                f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                f.write("Parsed accept list: %s\n"%str(accept_list))
+                f.close()
+                mimetype = accept_list.pop(0)
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                         return render("/itemview.html")
@@ -876,7 +919,7 @@ class DatasetsController(BaseController):
                         returndata['readme_text'] = c.readme_text
                         return simplejson.dumps(returndata)
                     try:
-                        mimetype = accept_list.pop()
+                        mimetype = accept_list.pop(0)
                     except IndexError:
                         mimetype = None
                 #Whoops - nothing satisfies - return text/html
@@ -897,7 +940,9 @@ class DatasetsController(BaseController):
             if item.isfile(path):
                 code = 204
             elif item.isdir(path):
+                response.content_type = "text/plain"
                 response.status_int = 403
+                response.status = "403 Forbidden"
                 return "Cannot PUT a file on to an existing directory"
             else:
                 code = 201
@@ -931,38 +976,44 @@ class DatasetsController(BaseController):
             if code == 201:
                 ag.b.creation(silo, id, path, ident=ident['repoze.who.userid'])
                 response.status = "201 Created"
-                target_url = str(item.uri).strip('/') + '/' + path.strip('/')
-                #response.headers["Content-Location"] = target_url
-                #response.headers.add("Content-Location", item.uri)
+                response.status_int = 201
+                response.headers["Content-Location"] = url(controller="datasets", action="itemview", id=id, silo=silo, path=path)
+                response_message = "201 Created"
             else:
                 ag.b.change(silo, id, path, ident=ident['repoze.who.userid'])
                 response.status = "204 Updated"
+                response.status_int = 204
+                response_message = None
             
             # conneg return
             accept_list = None
             if 'HTTP_ACCEPT' in request.environ:
+                f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                f.write("Received accept list: %s\n"%str(request.environ['HTTP_ACCEPT']))
+                f.close()
                 try:
                     accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
                 except:
                     accept_list= [MT("text", "html")]
             if not accept_list:
                 accept_list= [MT("text", "html")]
-            mimetype = accept_list.pop()
+            f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+            f.write("Parsed accept list: %s\n"%str(accept_list))
+            f.close()
+            mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                     redirect_to(controller="datasets", action="itemview", id=id, silo=silo, path=path)
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = "text/plain"
-                    response.status_int = code
-                    return response.status
+                    return response_message
                 try:
-                    mimetype = accept_list.pop()
+                    mimetype = accept_list.pop(0)
                 except IndexError:
                     mimetype = None
             #Whoops - nothing satisfies - return text / plain
             response.content_type = "text/plain"
-            response.status_int = code
-            return response.status
+            return response_message
         elif http_method == "POST" and editor:
             # POST... differences from PUT:
             # path = filepath that this acts on, should be dir, or non-existant
@@ -982,7 +1033,9 @@ class DatasetsController(BaseController):
             if item.isfile(target_path):
                 code = 204
             elif item.isdir(target_path):
+                response.content_type = "text/plain"
                 response.status_int = 403
+                response.status = "403 Forbidden"
                 return "Cannot POST a file on to an existing directory"
             else:
                 code = 201
@@ -1025,45 +1078,51 @@ class DatasetsController(BaseController):
             if code == 201:
                 ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
                 response.status = "201 Created"
-                #TODO: The uri here should be the target path, not the item uri
-                target_url = urljoin(item.uri, target_path)
-                #response.headers["Content-Location"] = target_url
-                #response.headers.add("Content-Location", item.uri)
+                response.status_int = 201
+                response.headers["Content-Location"] = url(controller="datasets", action="itemview", id=id, silo=silo, path=path)
+                response_message = "201 Created"
             else:
                 ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
                 response.status = "204 Updated"
+                response.status_int = 204
+                response_message = None
 
             # conneg return
             accept_list = None
             if 'HTTP_ACCEPT' in request.environ:
+                f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                f.write("Received accept list: %s\n"%str(request.environ['HTTP_ACCEPT']))
+                f.close()
                 try:
                     accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
                 except:
                     accept_list= [MT("text", "html")]
             if not accept_list:
                 accept_list= [MT("text", "html")]
-            mimetype = accept_list.pop()
+                f = open('/opt/rdfdatabank/src/logs/runtimes_dataset.log', 'a')
+                f.write("Parsed accept list: %s\n"%str(accept_list))
+                f.close()
+            mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                     redirect_to(controller="datasets", action="itemview", id=id, silo=silo, path=path)
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = "text/plain"
-                    response.status_int = code
-                    return response.status
+                    return response_message
                 try:
-                    mimetype = accept_list.pop()
+                    mimetype = accept_list.pop(0)
                 except IndexError:
                     mimetype = None
             #Whoops - nothing satisfies - return text / plain
             response.content_type = "text/plain"
-            response.status_int = code
-            return response.status
+            return response_message
         elif http_method == "DELETE" and editor:
             item = c_silo.get_item(id)
             if item.isfile(path):
                 if 'manifest.rdf' in path:
+                    response.content_type = "text/plain"
                     response.status_int = 403
-                    #response.status = "403 Forbidden"
+                    response.status = "403 Forbidden"
                     return "Forbidden - Cannot delete the manifest"
                 item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                 item.del_stream(path)
@@ -1073,6 +1132,7 @@ class DatasetsController(BaseController):
                 item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
                 item.sync()
                 ag.b.deletion(silo, id, path, ident=ident['repoze.who.userid'])
+                response.content_type = "text/plain"
                 response.status_int = 200
                 response.status = "200 OK"
                 return "{'ok':'true'}"   # required for the JQuery magic delete to succede.
@@ -1094,12 +1154,14 @@ class DatasetsController(BaseController):
                 item.add_triple(item.uri, u"dcterms:modified", datetime.now())
                 item.sync()
                 ag.b.deletion(silo, id, path, ident=ident['repoze.who.userid'])
+                response.content_type = "text/plain"
                 response.status_int = 200
                 response.status = "200 OK"
                 return "{'ok':'true'}"   # required for the JQuery magic delete to succede.
             else:
                 abort(404)
 
+    @rest.restrict('GET')
     def itemview_vnum(self, silo, id, path, vnum):
         # Check to see if embargo is on:
         c.silo_name = silo
@@ -1150,7 +1212,7 @@ class DatasetsController(BaseController):
                     accept_list= [MT("text", "html")]
             if not accept_list:
                 accept_list= [MT("text", "html")]
-            mimetype = accept_list.pop()
+            mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                     return render("/itemview_version.html")
@@ -1165,7 +1227,7 @@ class DatasetsController(BaseController):
                     returndata['readme_text'] = c.readme_text
                     return simplejson.dumps(returndata)
                 try:
-                    mimetype = accept_list.pop()
+                    mimetype = accept_list.pop(0)
                 except IndexError:
                     mimetype = None
             #Whoops - nothing satisfies - return text/html

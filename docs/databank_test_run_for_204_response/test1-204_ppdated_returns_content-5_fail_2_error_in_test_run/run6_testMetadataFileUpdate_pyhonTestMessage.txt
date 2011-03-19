@@ -1,0 +1,37 @@
+databankadmin@databank:/opt/RDFDatabank/rdfdatabank/tests/RDFDatabank$ python TestSubmission.py testMetadataFileUpdate
+/opt/RDFDatabank/rdfdatabank/tests/RDFDatabank/rdflib/plugin.py:94: UserWarning: Module rdflib was already imported from /opt/RDFDatabank/rdfdatabank/tests/RDFDatabank/rdflib/__init__.pyc, but /usr/local/lib/python2.6/dist-packages/rdflib-2.4.2-py2.6-linux-i686.egg is being added to sys.path
+  from pkg_resources import iter_entry_points
+POST manifest to dataset - POST manifest.rdf to /silo_name/datasets/dataset_name ... DEBUG:SparqlQueryTestCase:setRequestEndPoint: endpointhost databank.ora.ox.ac.uk:
+DEBUG:SparqlQueryTestCase:setRequestEndPoint: endpointpath /sandbox/:
+DEBUG:SparqlQueryTestCase:setRequestEndPoint: endpointuser admin:
+DEBUG:SparqlQueryTestCase:setRequestEndPoint: endpointpass test:
+DEBUG:SparqlQueryTestCase:DELETE http://databank.ora.ox.ac.uk/sandbox/datasets/TestSubmission
+DEBUG:SparqlQueryTestCase:Status: 200 OK
+DEBUG:SparqlQueryTestCase:POST http://databank.ora.ox.ac.uk/sandbox/datasets/
+DEBUG:SparqlQueryTestCase:Status: 201 Created
+DEBUG:SparqlQueryTestCase:POST http://databank.ora.ox.ac.uk/sandbox/datasets/TestSubmission/
+DEBUG:SparqlQueryTestCase:Status: 204 No Content
+DEBUG:SparqlQueryTestCase:GET http://databank.ora.ox.ac.uk/sandbox/datasets/TestSubmission
+DEBUG:SparqlQueryTestCase:Status: 200 OK
+DEBUG:SparqlQueryTestCase:POST http://databank.ora.ox.ac.uk/sandbox/datasets/TestSubmission/
+DEBUG:SparqlQueryTestCase:Status: 200 OK
+FAIL
+
+======================================================================
+FAIL: POST manifest to dataset - POST manifest.rdf to /silo_name/datasets/dataset_name
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "TestSubmission.py", line 1006, in testMetadataFileUpdate
+    zipdata = self.updateTestSubmissionZipfile(file_to_upload="manifest2.rdf", filename="manifest.rdf")
+  File "TestSubmission.py", line 111, in updateTestSubmissionZipfile
+    expect_status=204, expect_reason="No Content")
+  File "../TestLib/SparqlQueryTestCase.py", line 207, in doHTTP_POST
+    expect_status=expect_status, expect_reason=expect_reason)
+  File "../TestLib/SparqlQueryTestCase.py", line 164, in doRequest
+    if expect_status != "*": self.assertEqual(response.status, expect_status)
+AssertionError: 200 != 204
+
+----------------------------------------------------------------------
+Ran 1 test in 0.437s
+
+FAILED (failures=1)

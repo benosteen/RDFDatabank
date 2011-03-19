@@ -55,7 +55,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.setRequestUserPass(
             endpointuser=RDFDatabankConfig.endpointuser,
             endpointpass=RDFDatabankConfig.endpointpass)
-        self.doHTTP_DELETE(
+        resp = self.doHTTP_DELETE(
             resource="datasets/TestSubmission", 
             expect_status="*", expect_reason="*")
         return
@@ -71,11 +71,13 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             ]
         files =[]
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
-        self.doHTTP_POST(
+        (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="datasets/", 
             expect_status=201, expect_reason="Created")
-        #TODO: TEST FOR LOCATION HEADER
+        LHobtained = resp.getheader('Content-Location', None)
+        LHexpected = "%sdatasets/TestSubmission"%self._endpointpath
+        self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
         return
 
     def uploadTestSubmissionZipfile(self, file_to_upload="testdir.zip"):
@@ -86,11 +88,13 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             [ ("file", file_to_upload, zipdata, "application/zip") 
             ]
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
-        self.doHTTP_POST(
+        (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="datasets/TestSubmission/", 
             expect_status=201, expect_reason="Created")
-        #TODO: TEST FOR LOCATION HEADER
+        LHobtained = resp.getheader('Content-Location', None)
+        LHexpected = "%sdatasets/TestSubmission/%s"%(self._endpointpath, file_to_upload)
+        self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
         return zipdata
 
     def updateTestSubmissionZipfile(self, file_to_upload="testdir.zip", filename=None):
@@ -105,7 +109,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             [ ("file", file_to_upload, zipdata, "application/zip") 
             ]
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
-        self.doHTTP_POST(
+        (resp,respdata)= self.doHTTP_POST(
             reqdata, reqtype, 
             resource="datasets/TestSubmission/", 
             expect_status=204, expect_reason="No Content")
@@ -116,7 +120,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         """List all silos your account has access to - GET /silo"""
         #Write a test to list all the silos. Test to see if it returns 200 OK and the list of silos is not empty
         # Access list silos, check response
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             endpointpath=None,
             resource="/silos/", 
             expect_status=200, expect_reason="OK", expect_type="application/JSON")
@@ -126,7 +130,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
     def testListDatasets(self):
         """List all datasets in a silo - GET /silo_name/datasets"""
         # Access list of datasets in the silo, check response
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="datasets/", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         # Save initial list of datasets
@@ -136,7 +140,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Create a new dataset
         self.createTestSubmissionDataset()
         # Read list of datasets, check that new list is original + new dataset
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="datasets/", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         newlist = []
@@ -148,11 +152,11 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         for ds in newlist: self.failUnless((ds in datasetlist) or (ds == "TestSubmission"), "Datset "+ds+" in new list, not in original list")
         self.failUnless("TestSubmission" in newlist, "testSubmission in new list")
         # Delete new dataset
-        self.doHTTP_DELETE(
+        resp = self.doHTTP_DELETE(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK")
         # read list of datasets, check result is same as original list
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="datasets/", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         newlist = []
@@ -166,7 +170,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
     def testSiloState(self):
         """Get state informaton of a silo - GET /silo_name/states"""
         # Access state information of silo, check response
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         # check silo name and base_uri
@@ -180,7 +184,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Create a new dataset
         self.createTestSubmissionDataset()
         # Read list of datasets, check that new list is original + new dataset
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         newlist = data['datasets']
@@ -190,11 +194,11 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         for ds in newlist: self.failUnless((ds in datasetlist) or (ds == "TestSubmission"), "Datset "+ds+" in new list, not in original list")
         self.failUnless("TestSubmission" in newlist, "testSubmission in new list")
         # Delete new dataset
-        self.doHTTP_DELETE(
+        resp = self.doHTTP_DELETE(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK")
         # read list of datasets, check result is same as original list
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         newlist = data['datasets']
@@ -205,14 +209,14 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
 
     def testDatasetNotPresent(self):
         """Verify dataset is not present - GET /silo_name/dataset_name"""
-        self.doHTTP_GET(resource="TestSubmission", expect_status=404, expect_reason="Not Found")
+        (resp, respdata) = self.doHTTP_GET(resource="TestSubmission", expect_status=404, expect_reason="Not Found")
 
     def testDatasetCreation(self):
         """Create dataset - POST id to /silo_name"""
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Access dataset, check response
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -237,12 +241,15 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         fields = []
         files =[]
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
-        self.doHTTP_POST(
+        (resp,respdata)= self.doHTTP_POST(
             reqdata, reqtype, 
             resource="datasets/TestSubmission", 
             expect_status=201, expect_reason="Created")
+        LHobtained = resp.getheader('Content-Location', None)
+        LHexpected = "%sdatasets/TestSubmission"%self._endpointpath
+        self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
         # Access dataset, check response
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -266,7 +273,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Access dataset, check response
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -279,7 +286,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             ]
         files =[]
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
-        self.doHTTP_POST(
+        (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="datasets",
             expect_status=409, expect_reason="Conflict: Dataset Already Exists")
@@ -287,12 +294,12 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         fields = []
         files =[]
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
-        self.doHTTP_POST(
+        (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="datasets/TestSubmission", 
             expect_status=403, expect_reason="Forbidden")
         # Access dataset, check response
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -305,15 +312,15 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Access dataset, check response
-        data = self.doHTTP_GET(
+        (resp, respdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         # Delete dataset, check response
-        self.doHTTP_DELETE(
+        resp = self.doHTTP_DELETE(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK")
         # Access dataset, test response indicating non-existent
-        data = self.doHTTP_GET(
+        (resp, respdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=404, expect_reason="Not Found")
 
@@ -339,13 +346,16 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
         for name, status, reason in names:
             #Create a new dataset, check response
-            self.doHTTP_POST(
+            (resp,respdata) = self.doHTTP_POST(
                 reqdata, reqtype, 
                 resource="datasets/%s"%name, 
                 expect_status=status, expect_reason=reason)
             # Access dataset, check response
             if status == 201:
-                rdfdata = self.doHTTP_GET(
+                LHobtained = urllib.unquote(resp.getheader('Content-Location', None))
+                LHexpected = "%sdatasets/%s"%(self._endpointpath, name)
+                self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
+                (resp, rdfdata) = self.doHTTP_GET(
                     resource="datasets/%s"%name, 
                     expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
                 rdfgraph = Graph()
@@ -353,14 +363,14 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
                 rdfgraph.parse(rdfstream) 
                 self.assertEqual(len(rdfgraph),7,'Graph length %i' %len(rdfgraph))
             elif status == 403:
-                rdfdata = self.doHTTP_GET(
+                (resp, respdata) = self.doHTTP_GET(
                     resource="datasets/%s"%name, 
                     expect_status=404, expect_reason="Not Found")
         #Delete Datasets
         for name, status, reason in names:
             if not status == 201:
                 continue
-            self.doHTTP_DELETE(
+            resp = self.doHTTP_DELETE(
                 resource="datasets/%s"%name, 
                 expect_status=200, expect_reason="OK")
 
@@ -369,7 +379,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Access state info
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -397,13 +407,13 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         #Access state information
-        data = self.doHTTP_GET(
+        (resp, respdata) = self.doHTTP_GET(
             resource="states/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         # Upload zip file, check response
         zipdata = self.uploadTestSubmissionZipfile()
         # Access and check list of contents
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -426,12 +436,12 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access and check zip file content
-        zipfile = self.doHTTP_GET(
+        (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
         self.assertEqual(zipdata, zipfile, "Difference between local and remote zipfile!")
         #Access state information and check
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -464,7 +474,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Upload zip file, check response
         zipdata = self.uploadTestSubmissionZipfile()
         # Access and check list of contents
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -475,20 +485,20 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(rdfgraph),9,'Graph length %i' %len(rdfgraph))
         self.failUnless((subj,URIRef(oxds+"currentVersion"),"1") in rdfgraph, 'oxds:currentVersion')
         # Access and check zip file content and version
-        zipfile = self.doHTTP_GET(
+        (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
         self.assertEqual(zipdata, zipfile, "Difference between local and remote zipfile!")
         # Delete file, check response
-        self.doHTTP_DELETE(
+        resp = self.doHTTP_DELETE(
             resource="datasets/TestSubmission/testdir.zip", 
             expect_status=200, expect_reason="OK")
         # Access and check zip file does not exist
-        zipfile = self.doHTTP_GET(
+        (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip",
             expect_status=404, expect_reason="Not Found")
        # Access and check list of contents
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -509,7 +519,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         #Access state information and check
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -545,7 +555,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Upload zip file, check response (uploads the file testdir.zip)
         zipdata = self.uploadTestSubmissionZipfile()
         # Access and check list of contents
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -556,14 +566,14 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(rdfgraph),9,'Graph length %i' %len(rdfgraph))
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         # Access and check zip file content and version
-        zipfile = self.doHTTP_GET(
+        (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
         self.assertEqual(zipdata, zipfile, "Difference between local and remote zipfile!")
         # Upload zip file again, check response
         zipdata = self.updateTestSubmissionZipfile(file_to_upload="testdir2.zip", filename="testdir.zip")
         # Access and check list of contents
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -586,12 +596,12 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')  
         # Access and check zip file content
-        zipfile = self.doHTTP_GET(
+        (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
         self.assertEqual(zipdata, zipfile, "Difference between local and remote zipfile!")
         #Access state information and check
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -634,7 +644,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Access and check list of contents
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -642,7 +652,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         rdfgraph.parse(rdfstream) 
         self.assertEqual(len(rdfgraph),7,'Graph length %i' %len(rdfgraph))
         #Access state information and check
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -653,7 +663,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Upload zip file, check response
         zipdata = self.uploadTestSubmissionZipfile()
         # Access and check list of contents
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -661,12 +671,12 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         rdfgraph.parse(rdfstream) 
         self.assertEqual(len(rdfgraph),9,'Graph length %i' %len(rdfgraph))
         # Access and check zip file content
-        zipfile = self.doHTTP_GET(
+        (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
         self.assertEqual(zipdata, zipfile, "Difference between local and remote zipfile!")
         #Access state information and check
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -674,7 +684,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(state.keys()), 11, "States")
         self.assertEqual(len(parts.keys()), 4, "Parts")
         # Access and check list of contents of version 0
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission/version0", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -685,7 +695,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Upload zip file, check response
         zipdata2 = self.uploadTestSubmissionZipfile(file_to_upload="testdir2.zip")
         # Access and check list of contents
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -693,16 +703,16 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         rdfgraph.parse(rdfstream) 
         self.assertEqual(len(rdfgraph),10,'Graph length %i' %len(rdfgraph))
         # Access and check zip file content
-        zipfile = self.doHTTP_GET(
+        (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
         self.assertEqual(zipdata, zipfile, "Difference between local and remote zipfile - testdir.zip!")
-        zipfile2 = self.doHTTP_GET(
+        (resp, zipfile2) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir2.zip",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
         self.assertEqual(zipdata2, zipfile2, "Difference between local and remote zipfile - testdir2.zip!")
         #Access state information and check
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -711,11 +721,11 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts.keys()), 5, "Parts")
         #---------Version 3
         # Delete file, check response
-        self.doHTTP_DELETE(
+        resp = self.doHTTP_DELETE(
             resource="datasets/TestSubmission/testdir.zip", 
             expect_status=200, expect_reason="OK")
         # Access and check list of contents
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -723,15 +733,15 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         rdfgraph.parse(rdfstream) 
         self.assertEqual(len(rdfgraph),9,'Graph length %i' %len(rdfgraph))
         # Access and check zip file content
-        zipfile = self.doHTTP_GET(
+        (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip",
             expect_status=404, expect_reason="Not Found")
-        zipfile2 = self.doHTTP_GET(
+        (resp, zipfile2) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir2.zip",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
         self.assertEqual(zipdata2, zipfile2, "Difference between local and remote zipfile - testdir2.zip!")
         #Access state information and check
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -742,7 +752,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Update zip file, check response
         zipdata3 = self.updateTestSubmissionZipfile(file_to_upload="testrdf4.zip", filename="testdir2.zip")
         # Access and check list of contents
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -750,15 +760,15 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         rdfgraph.parse(rdfstream) 
         self.assertEqual(len(rdfgraph),9,'Graph length %i' %len(rdfgraph))
         # Access and check zip file content
-        zipfile = self.doHTTP_GET(
+        (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip",
             expect_status=404, expect_reason="Not Found")
-        zipfile2 = self.doHTTP_GET(
+        (resp, zipfile2) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir2.zip",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
         self.assertEqual(zipdata3, zipfile2, "Difference between local and remote zipfile - testdir2.zip!")
         #Access state information and check
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -768,7 +778,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         #=========Access each of the versions
         #---------Version 0
         # Access and check list of contents of version 0
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission/version0", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -783,7 +793,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'0') in rdfgraph, 'oxds:currentVersion')
         #Access state information and check
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission/version0", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -794,7 +804,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['manifest.rdf'].keys()), 13, "File stats for manifest.rdf")
         #---------Version 1
         # Access and check list of contents of version 1
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission/version1", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -811,12 +821,12 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access and check zip file content
-        zipfile = self.doHTTP_GET(
+        (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip/version1",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
         self.assertEqual(zipdata, zipfile, "Difference between local and remote zipfile - Version 1!")
         #Access state information and check
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission/version1", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -828,7 +838,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['testdir.zip'].keys()), 13, "File stats for testdir.zip")
         #---------Version 2
         # Access and check list of contents of version 2
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission/version2", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -846,16 +856,16 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access and check zip file content
-        zipfile = self.doHTTP_GET(
+        (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip/version2",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
         self.assertEqual(zipdata, zipfile, "Difference between local and remote zipfile - Version 2!")
-        zipfile2 = self.doHTTP_GET(
+        (resp, zipfile2) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir2.zip/version2",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
         self.assertEqual(zipdata2, zipfile2, "Difference between local and remote zipfile - Version 2!")
         #Access state information and check
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission/version2", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -868,7 +878,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['testdir2.zip'].keys()), 13, "File stats for testdir2.zip")
         #---------Version 3
         # Access and check list of contents of version 3
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission/version3", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -885,15 +895,15 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'3') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access and check zip file content
-        zipfile = self.doHTTP_GET(
+        (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir2.zip/version3",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
         self.assertEqual(zipdata2, zipfile, "Difference between local and remote zipfile - Version 3!")
-        zipfile = self.doHTTP_GET(
+        (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip/version3",
             expect_status=404, expect_reason="Not Found")
         #Access state information and check
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission/version3", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -905,7 +915,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['testdir2.zip'].keys()), 13, "File stats for testdir2.zip")
         #---------Version 4
         # Access and check list of contents of version 4
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission/version4", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -922,15 +932,15 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'4') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access and check zip file content
-        zipfile = self.doHTTP_GET(
+        (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir2.zip/version4",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
         self.assertEqual(zipdata3, zipfile, "Difference between local and remote zipfile - Version 4!")
-        zipfile = self.doHTTP_GET(
+        (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip/version4",
             expect_status=404, expect_reason="Not Found")
         #Access state information and check
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission/version4", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -964,10 +974,10 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['manifest.rdf'].keys()), 13, "File stats for manifest.rdf")
         self.assertEqual(len(parts['testdir2.zip'].keys()), 13, "File stats for testdir2.zip")
         # Access and check list of contents of version 5
-        rdfdata = self.doHTTP_GET(
+        (resp, respdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission/version5", 
             expect_status=404, expect_reason="Not Found")
-        zipfile = self.doHTTP_GET(
+        (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir2.zip/version5",
             expect_status=404, expect_reason="Not Found")
 
@@ -978,7 +988,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Upload metadata file, check response
         zipdata = self.updateTestSubmissionZipfile(file_to_upload="manifest.rdf")
         # Access and check list of contents
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -1005,7 +1015,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Update metadata file, check response
         zipdata = self.updateTestSubmissionZipfile(file_to_upload="manifest2.rdf", filename="manifest.rdf")
         # Access and check list of contents
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -1023,7 +1033,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"title"),'Test dataset with updated and merged metadata') in rdfgraph, 'dcterms:title')
         self.failUnless((subj,URIRef(owl+"sameAs"),URIRef("http://example.org/testrdf/")) in rdfgraph, 'owl:sameAs')
         #Access state information and check
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -1057,11 +1067,11 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Delete metadata file, check response
-        self.doHTTP_DELETE(
+        resp = self.doHTTP_DELETE(
             resource="datasets/TestSubmission/manifest.rdf", 
             expect_status=403, expect_reason="Forbidden")
         # Access and check list of contents
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -1086,10 +1096,13 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.createTestSubmissionDataset()
         # Put zip file, check response
         zipdata = open("data/testdir.zip").read()       
-        self.doHTTP_PUT(zipdata, resource="datasets/TestSubmission/testdir.zip", 
+        (resp, respdata) = self.doHTTP_PUT(zipdata, resource="datasets/TestSubmission/testdir.zip", 
             expect_status=201, expect_reason="Created", expect_type="text/plain")
+        LHobtained = resp.getheader('Content-Location', None)
+        LHexpected = "%sdatasets/TestSubmission/testdir.zip"%self._endpointpath
+        self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
         # Access and check list of contents
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -1112,12 +1125,12 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access and check zip file content
-        zipfile = self.doHTTP_GET(
+        (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
         self.assertEqual(zipdata, zipfile, "Difference between local and remote zipfile!")
         #Access state information and check
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -1150,15 +1163,18 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Upload zip file, check response
         zipdata = self.uploadTestSubmissionZipfile(file_to_upload="testdir.zip")
         # Access content
-        rdfdata = self.doHTTP_GET(
+        (resp, respdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         # Put zip file, check response
         zipdata2 = open("data/testrdf3.zip").read()       
-        self.doHTTP_PUT(zipdata2, resource="datasets/TestSubmission/testrdf3.zip", 
+        (resp, respdata) = self.doHTTP_PUT(zipdata2, resource="datasets/TestSubmission/testrdf3.zip", 
             expect_status=201, expect_reason="Created", expect_type="text/plain")
+        LHobtained = resp.getheader('Content-Location', None)
+        LHexpected = "%sdatasets/TestSubmission/testrdf3.zip"%self._endpointpath
+        self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
         # Access and check list of contents
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -1169,20 +1185,20 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(rdfgraph),10,'Graph length %i' %len(rdfgraph))
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
         # Access and check zip file content and version
-        zipfile = self.doHTTP_GET(
+        (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
         self.assertEqual(zipdata, zipfile, "Difference between local and remote zipfile!")
-        zipfile2 = self.doHTTP_GET(
+        (resp, zipfile2) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testrdf3.zip",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
         self.assertEqual(zipdata2, zipfile2, "Difference between local and remote zipfile!")
         # Put zip file again, check response
         zipdata3 = open("data/testdir2.zip").read()       
-        self.doHTTP_PUT(zipdata3, resource="datasets/TestSubmission/testdir.zip", 
+        (resp, respdata) = self.doHTTP_PUT(zipdata3, resource="datasets/TestSubmission/testdir.zip", 
             expect_status=204, expect_reason="No Content", expect_type="text/plain")
         # Access and check list of contents
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -1206,16 +1222,16 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'3') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')  
         # Access and check zip file content
-        zipfile = self.doHTTP_GET(
+        (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
         self.assertEqual(zipdata3, zipfile, "Difference between local and remote zipfile!")
-        zipfile2 = self.doHTTP_GET(
+        (resp, zipfile2) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testrdf3.zip",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
         self.assertEqual(zipdata2, zipfile2, "Difference between local and remote zipfile!")
         #Access state information and check
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -1250,7 +1266,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['testdir.zip'].keys()), 13, "File stats for testdir.zip")
         self.assertEqual(len(parts['testrdf3.zip'].keys()), 13, "File stats for testrdf3.zip")
         # Access and check zip file content of version 1
-        zipfile = self.doHTTP_GET(
+        (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip/version1",
             expect_status=200, expect_reason="OK", expect_type="application/zip")
         self.assertEqual(zipdata, zipfile, "Difference between local and remote zipfile!")
@@ -1261,10 +1277,10 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.createTestSubmissionDataset()
         # Put manifest file, check response
         zipdata = open("data/manifest.rdf").read()       
-        self.doHTTP_PUT(zipdata, resource="datasets/TestSubmission/manifest.rdf", 
+        (resp, respdata) = self.doHTTP_PUT(zipdata, resource="datasets/TestSubmission/manifest.rdf", 
             expect_status=204, expect_reason="No Content", expect_type="text/plain")
         # Access and check list of contents
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -1290,10 +1306,10 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(owl+"sameAs"),URIRef("http://example.org/testrdf/")) in rdfgraph, 'owl:sameAs')
         # Update metadata file, check response
         zipdata = open("data/manifest2.rdf").read()       
-        self.doHTTP_PUT(zipdata, resource="datasets/TestSubmission/manifest.rdf", 
+        (resp, respdata) = self.doHTTP_PUT(zipdata, resource="datasets/TestSubmission/manifest.rdf", 
             expect_status=204, expect_reason="No Content", expect_type="text/plain")
         # Access and check list of contents
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -1311,7 +1327,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(owl+"sameAs"),URIRef("http://example.org/testrdf/")) in rdfgraph, 'owl:sameAs')
         self.failUnless((subj,URIRef(dcterms+"title"),'Test dataset with updated and merged metadata') in rdfgraph, 'dcterms:title')
         #Access state information and check
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -1345,7 +1361,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         #Access dataset and check content
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -1365,12 +1381,12 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             ]
         files =[]
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
-        self.doHTTP_POST(
+        (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="datasets/TestSubmission", 
             expect_status=204, expect_reason="Updated")
         #Access dataset and check content
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -1389,7 +1405,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         #Access state information and check
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -1401,7 +1417,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         #Access dataset and check content
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -1427,12 +1443,12 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             ]
         files =[]
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
-        self.doHTTP_POST(
+        (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="datasets/TestSubmission", 
             expect_status=204, expect_reason="Updated")
         #Access dataset and check content
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -1452,7 +1468,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         #Access state information and check
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -1471,17 +1487,19 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             ]
         files = []
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
-        self.doHTTP_POST(
+        (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="items/TestSubmission", 
             expect_status=201, expect_reason="Created")
-        #TODO: TEST FOR LOCATION HEADER
+        LHobtained = resp.getheader('Content-Location', None)
+        LHexpected = "%sdatasets/TestSubmission-testdir"%self._endpointpath
+        self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
         # Access parent dataset, check response
-        data = self.doHTTP_GET(
+        (resp, respdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         # Access and check list of contents in TestSubmission
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -1505,7 +1523,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"currentVersion"),"1") in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access new dataset, check response
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission-testdir",  
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -1530,13 +1548,13 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"test-csv.csv")) in rdfgraph)
         self.failUnless((subj,URIRef(oxds+"currentVersion"),"1") in rdfgraph, 'oxds:currentVersion')
         # Access and check content of a resource
-        filedata = self.doHTTP_GET(
+        (resp, filedata) = self.doHTTP_GET(
             resource="datasets/TestSubmission-testdir/directory/file1.b",
             expect_status=200, expect_reason="OK", expect_type="text/plain")
         checkdata = open("data/testdir/directory/file1.b").read()
         self.assertEqual(filedata, checkdata, "Difference between local and remote data!")
         #Access state information of TestSubmission-testdir
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission-testdir", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -1564,7 +1582,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['test-csv.csv'].keys()), 13, "File stats for test-csv.csv")
         
         # Delete the dataset TestSubmission-testdir
-        self.doHTTP_DELETE(
+        resp = self.doHTTP_DELETE(
             resource="datasets/TestSubmission-testdir", 
             expect_status="*", expect_reason="*")
 
@@ -1582,17 +1600,19 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             ]
         files = []
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
-        self.doHTTP_POST(
+        (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="items/TestSubmission", 
             expect_status=201, expect_reason="Created")
-        #TODO: TEST FOR LOCATION HEADER
+        LHobtained = resp.getheader('Content-Location', None)
+        LHexpected = "%sdatasets/TestSubmission-testdir"%self._endpointpath 
+        self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
         # Access parent dataset, check response
-        data = self.doHTTP_GET(
+        (resp, respdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         # Access and check list of contents in TestSubmission
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -1617,7 +1637,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"currentVersion"),"2") in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access new dataset, check response
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission-testdir",  
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -1642,13 +1662,13 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"test-csv.csv")) in rdfgraph)
         self.failUnless((subj,URIRef(oxds+"currentVersion"),"1") in rdfgraph, 'oxds:currentVersion')
         # Access and check content of a resource
-        filedata = self.doHTTP_GET(
+        (resp, filedata) = self.doHTTP_GET(
             resource="datasets/TestSubmission-testdir/directory/file1.b",
             expect_status=200, expect_reason="OK", expect_type="text/plain")
         checkdata = open("data/testdir/directory/file1.b").read()
         self.assertEqual(filedata, checkdata, "Difference between local and remote data!")
         #Access state information of TestSubmission-testdir
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission-testdir", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -1675,7 +1695,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['directory'].keys()), 0, "File stats for directory")
         self.assertEqual(len(parts['test-csv.csv'].keys()), 13, "File stats for test-csv.csv")
         # Delete the dataset TestSubmission-testdir
-        self.doHTTP_DELETE(
+        resp = self.doHTTP_DELETE(
             resource="datasets/TestSubmission-testdir", 
             expect_status="*", expect_reason="*")
 
@@ -1691,13 +1711,15 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             ]
         files = []
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
-        self.doHTTP_POST(
+        (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="items/TestSubmission", 
             expect_status=201, expect_reason="Created")
-        #TODO: TEST FOR LOCATION HEADER
+        LHobtained = resp.getheader('Content-Location', None)
+        LHexpected = "%sdatasets/TestSubmission-testdir"%self._endpointpath
+        self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
         # Access and check list of contents in TestSubmission
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -1705,7 +1727,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         rdfgraph.parse(rdfstream) 
         self.assertEqual(len(rdfgraph),10,'Graph length %i' %len(rdfgraph))
         # Access new dataset TestSubmission-testdir, check response
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission-testdir",  
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -1741,12 +1763,15 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             [ ("file", "testdir2.zip", zipdata, "application/zip") 
             ]
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
-        self.doHTTP_POST(
+        (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="datasets/TestSubmission-testdir/", 
             expect_status=201, expect_reason="Created")
+        LHobtained = resp.getheader('Content-Location', None)
+        LHexpected = "%sdatasets/TestSubmission-testdir/testdir2.zip"%self._endpointpath
+        self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
         # Access dataset TestSubmission-testdir, check response
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission-testdir",  
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -1772,7 +1797,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"testdir2.zip")) in rdfgraph)
         self.failUnless((subj,URIRef(oxds+"currentVersion"),"2") in rdfgraph, 'oxds:currentVersion')
         #Access state information of TestSubmission-testdir
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission-testdir", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -1804,11 +1829,11 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['test-csv.csv'].keys()), 13, "File stats for test-csv.csv")
         self.assertEqual(len(parts['testdir2.zip'].keys()), 13, "File stats for testdir2.zip")
         # Delete the dataset TestSubmission-testdir
-        self.doHTTP_DELETE(
+        resp = self.doHTTP_DELETE(
             resource="datasets/TestSubmission-testdir", 
             expect_status="*", expect_reason="*")
         # Delete the dataset TestSubmission
-        self.doHTTP_DELETE(
+        resp = self.doHTTP_DELETE(
             resource="datasets/TestSubmission", 
             expect_status="*", expect_reason="*")
 
@@ -1826,13 +1851,15 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             ]
         files = []
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
-        self.doHTTP_POST(
+        (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="items/TestSubmission", 
             expect_status=201, expect_reason="Created")
-        #TODO: TEST FOR LOCATION HEADER
+        LHobtained = resp.getheader('Content-Location', None)
+        LHexpected = "%sdatasets/TestSubmission-testdir"%self._endpointpath
+        self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
         # Access and check response for TestSubmission
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -1840,7 +1867,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         rdfgraph.parse(rdfstream) 
         self.assertEqual(len(rdfgraph),11,'Graph length %i' %len(rdfgraph))
         # Access and check list of contents in TestSubmission-testdir
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission-testdir",  
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -1874,12 +1901,15 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             ]
         files = []
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
-        self.doHTTP_POST(
+        (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="items/TestSubmission", 
             expect_status=201, expect_reason="Created") 
+        LHobtained = resp.getheader('Content-Location', None)
+        LHexpected = "%sdatasets/TestSubmission-testdir"%self._endpointpath
+        self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
         # Access and check list of contents in TestSubmission
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -1905,7 +1935,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"currentVersion"),"2") in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access dataset TestSubmission-testdir, check response
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission-testdir",  
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -1937,7 +1967,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"test-csv.csv")) in rdfgraph)
         self.failUnless((subj,URIRef(oxds+"currentVersion"),"2") in rdfgraph, 'oxds:currentVersion')
         #Access state information of TestSubmission-testdir
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission-testdir", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -1969,7 +1999,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['directory1'].keys()), 0, "File stats for directory1")
         self.assertEqual(len(parts['directory2'].keys()), 0, "File stats for directory2")
         # Access dataset TestSubmission-testdir version 1
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission-testdir/version1",  
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -1991,7 +2021,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"test-csv.csv")) in rdfgraph)
         self.failUnless((subj,URIRef(oxds+"currentVersion"),"1") in rdfgraph, 'oxds:currentVersion')
         #Access state information of TestSubmission-testdir version 1
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission-testdir/version1", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -2003,7 +2033,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['test-csv.csv'].keys()), 13, "File stats for test-csv.csv")
         self.assertEqual(len(parts['directory'].keys()), 0, "File stats for directory")
         # Access and check list of contents in TestSubmission-testdir version 0
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission-testdir/version0",  
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -2018,7 +2048,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
         self.failUnless((subj,URIRef(oxds+"currentVersion"),"0") in rdfgraph, 'oxds:currentVersion')
         #Access state information of TestSubmission-testdir version 0
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission-testdir/version0", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -2028,7 +2058,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['4=TestSubmission-testdir'].keys()), 13, "File stats for 4=TestSubmission-testdir")
         self.assertEqual(len(parts['manifest.rdf'].keys()), 13, "File stats for manifest.rdf")
         # Access dataset TestSubmission-testdir version 2
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission-testdir/version2",  
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -2055,7 +2085,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(ore+"aggregates"),URIRef(base+"test-csv.csv")) in rdfgraph)
         self.failUnless((subj,URIRef(oxds+"currentVersion"),"2") in rdfgraph, 'oxds:currentVersion')
         #Access state information of TestSubmission-testdir version 2
-        data = self.doHTTP_GET(
+        (resp, data) = self.doHTTP_GET(
             resource="states/TestSubmission-testdir/version2", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         state = data['state']
@@ -2087,11 +2117,11 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts['directory1'].keys()), 0, "File stats for directory1")
         self.assertEqual(len(parts['directory2'].keys()), 0, "File stats for directory2")
         # Delete the dataset TestSubmission-testdir
-        self.doHTTP_DELETE(
+        resp = self.doHTTP_DELETE(
             resource="datasets/TestSubmission-testdir", 
             expect_status="*", expect_reason="*")
         # Delete the dataset TestSubmission
-        self.doHTTP_DELETE(
+        resp = self.doHTTP_DELETE(
             resource="datasets/TestSubmission", 
             expect_status="*", expect_reason="*")
 
@@ -2107,28 +2137,32 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             [ ("file", "testrdf.zip", zipdata, "application/zip") 
             ]
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
-        self.doHTTP_POST(
+        (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="datasets/TestSubmission/", 
             expect_status=201, expect_reason="Created")
-        #TODO: TEST FOR LOCATION HEADER
+        LHobtained = resp.getheader('Content-Location', None)
+        LHexpected = "%sdatasets/TestSubmission/testrdf.zip"%self._endpointpath
+        self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
         # Unpack ZIP file into a new dataset, check response
         fields = \
             [ ("filename", "testrdf.zip")
             ]
         files = []
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
-        self.doHTTP_POST(
+        (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="items/TestSubmission", 
             expect_status=201, expect_reason="Created")
-        #TODO: TEST FOR LOCATION HEADER
+        LHobtained = resp.getheader('Content-Location', None)
+        LHexpected = "%sdatasets/TestSubmission-testrdf"%self._endpointpath
+        self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
         # Access parent dataset, check response
-        data = self.doHTTP_GET(
+        (resp, respdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         # Access and check list of contents in parent dataset - TestSubmission
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -2152,7 +2186,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access and check list of contents in child dataset - TestSubmission-testrdf
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission-testrdf", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -2180,7 +2214,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         # Delete the dataset TestSubmission-testrdf
-        self.doHTTP_DELETE(
+        resp = self.doHTTP_DELETE(
             resource="datasets/TestSubmission-testrdf", 
             expect_status="*", expect_reason="*")
 
@@ -2197,28 +2231,32 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             [ ("file", "testrdf2.zip", zipdata, "application/zip") 
             ]
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
-        self.doHTTP_POST(
+        (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="datasets/TestSubmission/", 
             expect_status=201, expect_reason="Created")
-        #TODO: TEST FOR LOCATION HEADER
+        LHobtained = resp.getheader('Content-Location', None)
+        LHexpected = "%sdatasets/TestSubmission/testrdf2.zip"%self._endpointpath
+        self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
         # Unpack ZIP file into a new dataset, check response
         fields = \
             [ ("filename", "testrdf2.zip")
             ]
         files = []
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
-        self.doHTTP_POST(
+        (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="items/TestSubmission", 
             expect_status=201, expect_reason="Created")
-        #TODO: TEST FOR LOCATION HEADER
+        LHobtained = resp.getheader('Content-Location', None)
+        LHexpected = "%sdatasets/TestSubmission-testrdf2"%self._endpointpath
+        self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
         # Access parent dataset, check response
-        data = self.doHTTP_GET(
+        (resp, respdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         # Access and check list of contents in parent dataset - TestSubmission
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -2242,7 +2280,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access and check list of contents in child dataset - TestSubmission-testrdf
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission-testrdf2", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -2271,7 +2309,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         # Delete the dataset TestSubmission-testrdf2
-        self.doHTTP_DELETE(
+        resp = self.doHTTP_DELETE(
             resource="datasets/TestSubmission-testrdf2", 
             expect_status="*", expect_reason="*")
 
@@ -2290,28 +2328,32 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             [ ("file", "testrdf3.zip", zipdata, "application/zip") 
             ]
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
-        self.doHTTP_POST(
+        (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="datasets/TestSubmission/", 
             expect_status=201, expect_reason="Created")
-        #TODO: TEST FOR LOCATION HEADER
+        LHobtained = resp.getheader('Content-Location', None)
+        LHexpected = "%sdatasets/TestSubmission/testrdf3.zip"%self._endpointpath
+        self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
         # Unpack ZIP file into a new dataset, check response
         fields = \
             [ ("filename", "testrdf3.zip")
             ]
         files = []
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
-        self.doHTTP_POST(
+        (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="items/TestSubmission", 
             expect_status=201, expect_reason="Created")
-        #TODO: TEST FOR LOCATION HEADER
+        LHobtained = resp.getheader('Content-Location', None)
+        LHexpected = "%sdatasets/TestSubmission-testrdf3"%self._endpointpath
+        self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
         # Access parent dataset, check response
-        data = self.doHTTP_GET(
+        (resp, respdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         # Access and check list of contents in parent dataset - TestSubmission
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -2335,7 +2377,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access and check list of contents in child dataset - TestSubmission-testrdf3
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission-testrdf3", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -2367,7 +2409,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         # Delete the dataset TestSubmission-testrdf3
-        self.doHTTP_DELETE(
+        resp = self.doHTTP_DELETE(
             resource="datasets/TestSubmission-testrdf3", 
             expect_status="*", expect_reason="*")
 
@@ -2386,28 +2428,32 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             [ ("file", "testrdf4.zip", zipdata, "application/zip") 
             ]
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
-        self.doHTTP_POST(
+        (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="datasets/TestSubmission/", 
             expect_status=201, expect_reason="Created")
-        #TODO: TEST FOR LOCATION HEADER
+        LHobtained = resp.getheader('Content-Location', None)
+        LHexpected = "%sdatasets/TestSubmission/testrdf4.zip"%self._endpointpath
+        self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
         # Unpack ZIP file into a new dataset, check response
         fields = \
             [ ("filename", "testrdf4.zip")
             ]
         files = []
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
-        self.doHTTP_POST(
+        (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="items/TestSubmission", 
             expect_status=201, expect_reason="Created")
-        #TODO: TEST FOR LOCATION HEADER
+        LHobtained = resp.getheader('Content-Location', None)
+        LHexpected = "%sdatasets/TestSubmission-testrdf4"%self._endpointpath
+        self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
         # Access parent dataset, check response
-        data = self.doHTTP_GET(
+        (resp, respdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/json")
         # Access and check list of contents in parent dataset - TestSubmission
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -2431,7 +2477,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         # Access and check list of contents in child dataset - TestSubmission-testrdf3
-        rdfdata = self.doHTTP_GET(
+        (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission-testrdf4", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         rdfgraph = Graph()
@@ -2477,12 +2523,12 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj3,URIRef(dcterms+"title"),"Test item 1b") in rdfgraph, 'dcterms:title')
         
         # Delete the dataset TestSubmission-testrdf4
-        self.doHTTP_DELETE(
+        resp = self.doHTTP_DELETE(
             resource="datasets/TestSubmission-testrdf4", 
             expect_status="*", expect_reason="*")
 
         # Delete the dataset TestSubmission
-        self.doHTTP_DELETE(
+        resp = self.doHTTP_DELETE(
             resource="datasets/TestSubmission", 
             expect_status="*", expect_reason="*")
 
@@ -2498,7 +2544,6 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         assert (True)
 
     def testPending(self):
-        #Need to return location headers for 201
         #Need to have performance tests and analyse performance
         #Need to set the permission of file being uploaded
         assert (False), "Pending tests follow"

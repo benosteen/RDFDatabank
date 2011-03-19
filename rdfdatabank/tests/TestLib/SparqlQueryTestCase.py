@@ -162,6 +162,8 @@ class SparqlQueryTestCase(unittest.TestCase):
                 response.read()  # Seems to be needed to free up connection for new request
         logger.debug("Status: %i %s" % (response.status, response.reason))
         if expect_status != "*": self.assertEqual(response.status, expect_status)
+        if expect_status == 201: 
+            self.assertTrue(response.getheader('Content-Location', None))
         if expect_reason != "*": self.assertEqual(response.reason, expect_reason)
         responsedata = response.read()
         hc.close()
@@ -180,7 +182,7 @@ class SparqlQueryTestCase(unittest.TestCase):
             expect_status=expect_status, expect_reason=expect_reason)
         #print responsedata
         if (expect_type.lower() == "application/json"): responsedata = simplejson.loads(responsedata)
-        return responsedata
+        return (response, responsedata)
 
     def doQueryGET(self, query, 
             endpointhost=None, endpointpath=None, 
@@ -206,7 +208,7 @@ class SparqlQueryTestCase(unittest.TestCase):
             reqdata=data, reqheaders=reqheaders,
             expect_status=expect_status, expect_reason=expect_reason)
         if (expect_type.lower() == "application/json"): responsedata = simplejson.loads(responsedata)
-        return responsedata
+        return (response, responsedata)
 
     def doQueryPOST(self, query, 
             endpointhost=None, endpointpath=None, 
@@ -235,7 +237,7 @@ class SparqlQueryTestCase(unittest.TestCase):
         (response, responsedata) = self.doRequest("PUT", resource,
             reqdata=data, reqheaders=reqheaders,
             expect_status=expect_status, expect_reason=expect_reason)
-        return response.status
+        return (response, responsedata)
 
     def doHTTP_DELETE(self,
             endpointhost=None, endpointpath=None, resource=None,
@@ -243,7 +245,7 @@ class SparqlQueryTestCase(unittest.TestCase):
         self.setRequestEndPoint(endpointhost, endpointpath)
         (response, _) = self.doRequest("DELETE", resource,
             expect_status=expect_status, expect_reason=expect_reason)
-        return response.status
+        return response
 
     def assertVarBinding(self, data, var, type, value):
         """

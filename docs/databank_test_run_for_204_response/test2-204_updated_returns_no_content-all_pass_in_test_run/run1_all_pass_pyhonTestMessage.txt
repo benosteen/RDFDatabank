@@ -1,0 +1,8 @@
+databankadmin@databank:/opt/RDFDatabank/rdfdatabank/tests/RDFDatabank$ python TestSubmission.py
+/opt/RDFDatabank/rdfdatabank/tests/RDFDatabank/rdflib/plugin.py:94: UserWarning: Module rdflib was already imported from /opt/RDFDatabank/rdfdatabank/tests/RDFDatabank/rdflib/__init__.pyc, but /usr/local/lib/python2.6/dist-packages/rdflib-2.4.2-py2.6-linux-i686.egg is being added to sys.path
+  from pkg_resources import iter_entry_points
+..............................
+----------------------------------------------------------------------
+Ran 30 tests in 21.088s
+
+OK

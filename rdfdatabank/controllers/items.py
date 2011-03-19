@@ -1,9 +1,10 @@
 import logging
-import os
+import os, time
+from datetime import datetime, timedelta
 import simplejson
-from pylons import request, response, session, tmpl_context as c
+from pylons import request, response, session, tmpl_context as c, url, app_globals as ag
 from pylons.controllers.util import abort, redirect_to
-from pylons import app_globals as ag
+from pylons.decorators import rest
 
 from rdfdatabank.lib.base import BaseController, render
 from rdfdatabank.lib.utils import create_new
@@ -16,9 +17,9 @@ class ItemsController(BaseController):
     def siloview(self, silo):
         abort(403, "Forbidden")
 
+    @rest.restrict('GET', 'POST')
     def datasetview(self, silo, id):
         #tmpl_context variables needed: c.silo_name, c.zipfiles, c.ident, c.id, c.path
-
         c.silo_name = silo
         c.id = id
         
@@ -50,7 +51,7 @@ class ItemsController(BaseController):
                     accept_list= [MT("text", "html")]
             if not accept_list:
                 accept_list= [MT("text", "html")]
-            mimetype = accept_list.pop()
+            mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                     return render("/list_of_zipfiles.html")
@@ -60,7 +61,7 @@ class ItemsController(BaseController):
                     response.status = "200 OK"
                     return simplejson.dumps(dict(c.zipfiles))
                 try:
-                    mimetype = accept_list.pop()
+                    mimetype = accept_list.pop(0)
                 except IndexError:
                     mimetype = None
             #Whoops nothing satisfies - return text/html            
@@ -109,34 +110,28 @@ class ItemsController(BaseController):
                     accept_list= [MT("text", "html")]
             if not accept_list:
                 accept_list= [MT("text", "html")]
-            mimetype = accept_list.pop()
+            mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                    # probably a browser - redirect to newly created dataset 
                     redirect_to(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = "text/plain"
                     response.status_int = 201
                     response.status = "201 Created"
-                    #new_item = rdfsilo.get_item(target_dataset_name)
-                    #response.headers["Content-Location"] = new_item.uri
-                    #response.headers.add("Content-Location", new_item.uri)
-                    #response.content_location = item.uri
-                    #response.headers['location'] = item.uri
-                    #response.location = item.uri
-                    return "Created"
+                    response.headers["Content-Location"] = url(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
+                    return "201 Created"
                 try:
-                    mimetype = accept_list.pop()
+                    mimetype = accept_list.pop(0)
                 except IndexError:
                     mimetype = None
             # Whoops - nothing satisfies - return text/plain
             response.content_type = "text/plain"
             response.status_int = 201
             response.status = "201 Created"
-            #new_item = rdfsilo.get_item(target_dataset_name)
-            #response.headers.add("Content-Location", new_item.uri)
-            return "Created"
+            response.headers["Content-Location"] = url(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
+            return "201 Created"
             
+    @rest.restrict('GET', 'POST')
     def itemview(self, silo, id, path):
         #tmpl_context variables needed: c.silo_name, c.zipfile_contents c.ident, c.id, c.path
         c.silo_name = silo
@@ -186,7 +181,7 @@ class ItemsController(BaseController):
                     accept_list= [MT("text", "html")]
             if not accept_list:
                 accept_list= [MT("text", "html")]
-            mimetype = accept_list.pop()
+            mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                     return render("/zipfileview.html")
@@ -196,7 +191,7 @@ class ItemsController(BaseController):
                     response.status = "200 OK"
                     return simplejson.dumps(c.zipfile_contents)
                 try:
-                    mimetype = accept_list.pop()
+                    mimetype = accept_list.pop(0)
                 except IndexError:
                     mimetype = None
             # Whoops - nothing satisfies - return text/html
@@ -230,30 +225,28 @@ class ItemsController(BaseController):
                     accept_list= [MT("text", "html")]
             if not accept_list:
                 accept_list= [MT("text", "html")]
-            mimetype = accept_list.pop()
+            mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                    # probably a browser - redirect to newly created dataset
                     redirect_to(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = "text/plain"
                     response.status_int = 201
                     response.status = "201 Created"
-                    #new_item = rdfsilo.get_item(target_dataset_name)
-                    #response.headers.add("Content-Location", new_item.uri)
-                    return "Created"
+                    response.headers['Content-Location'] = url(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
+                    return "201 Created"
                 try:
-                    mimetype = accept_list.pop()
+                    mimetype = accept_list.pop(0)
                 except IndexError:
                     mimetype = None
             # Whoops - nothing satisfies - return text/plain
             response.content_type = "text/plain"
             response.status_int = 201
-            #new_item = rdfsilo.get_item(target_dataset_name)
-            #response.headers.add("Content-Location", new_item.uri)
             response.status = "201 Created"
-            return "Created"
+            response.headers["Content-Location"] = url(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
+            return "201 Created"
 
+    @rest.restrict('GET')
     def subitemview(self, silo, id, path, subpath):
         #tmpl_context variables needed: c.silo_name, c.zipfile_contents c.ident, c.id, c.path
         c.silo_name = silo

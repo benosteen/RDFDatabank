@@ -1,7 +1,8 @@
 import logging
 import simplejson
-from pylons import request, response, session, config, tmpl_context as c
+from pylons import request, response, session, config, tmpl_context as c, url
 from pylons.controllers.util import abort, redirect_to
+from pylons.decorators import rest
 from pylons import app_globals as ag
 from rdfdatabank.lib.base import BaseController, render
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
@@ -13,6 +14,7 @@ accepted_params = ['title', 'description', 'notes', 'owners', 'disk_allocation']
 
 class AdminController(BaseController):
 
+    @rest.restrict('GET', 'POST')
     def index(self):
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
@@ -21,11 +23,56 @@ class AdminController(BaseController):
         granary_list = ag.granary.silos
         c.granary_list = ag.authz(granary_list, ident)
         
+        if not ident.get('role') == "admin":
+            abort(401, "Do not have admin credentials")
+
         # Admin only
-        if ident.get('role') == "admin":
-            http_method = request.environ['REQUEST_METHOD']
-            if http_method == "GET":
-                #c.granary = ag.granary
+        http_method = request.environ['REQUEST_METHOD']
+
+        if http_method == "GET":
+            #c.granary = ag.granary
+            # conneg return
+            accept_list = None
+            if 'HTTP_ACCEPT' in request.environ:
+                try:
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                except:
+                    accept_list= [MT("text", "html")]
+            if not accept_list:
+                accept_list= [MT("text", "html")]
+            mimetype = accept_list.pop(0)
+            while(mimetype):
+                if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                    return render("/silo_admin.html")
+                elif str(mimetype).lower() in ["text/plain", "application/json"]:
+                    response.content_type = 'application/json; charset="UTF-8"'
+                    response.status_int = 200
+                    response.status = "200 OK"
+                    return simplejson.dumps(list(c.granary_list))
+                try:
+                    mimetype = accept_list.pop(0)
+                except IndexError:
+                    mimetype = None
+            #Whoops nothing satisfies - return text/html            
+            return render("/silo_admin.html")
+        elif http_method == "POST":
+            params = request.POST
+            if 'silo' in params:
+                if ag.granary.issilo(params['silo']):
+                    abort(403)
+                # Create new silo
+                silo_name = params['silo']
+                g_root = config.get("granary.uri_root", "info:")
+                c.silo = ag.granary.get_rdf_silo(silo_name, uri_base="%s%s/datasets/" % (g_root, silo_name))
+                ag.granary._register_silos()
+                kw = {}
+                for term in accepted_params:
+                    if term in params:
+                        kw[term] = params[term]
+                du = ag.granary.disk_usage_silo(silo_name)
+                kw['disk_usage'] = du
+                ag.granary.describe_silo(silo_name, **kw)
+                ag.granary.sync()
                 # conneg return
                 accept_list = None
                 if 'HTTP_ACCEPT' in request.environ:
@@ -35,71 +82,28 @@ class AdminController(BaseController):
                         accept_list= [MT("text", "html")]
                 if not accept_list:
                     accept_list= [MT("text", "html")]
-                mimetype = accept_list.pop()
+                mimetype = accept_list.pop(0)
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                        return render("/silo_admin.html")
+                        redirect_to(controller="admin", action="index")
                     elif str(mimetype).lower() in ["text/plain", "application/json"]:
-                        response.content_type = 'application/json; charset="UTF-8"'
-                        response.status_int = 200
-                        response.status = "200 OK"
-                        return simplejson.dumps(list(c.granary_list))
+                        response.content_type = "text/plain"
+                        response.status_int = 201
+                        response.status = "201 Created"
+                        response.headers['Content-Location'] = url(controller="silos", action="siloview", silo=silo_name)
+                        return "201 Created Silo %s" % silo_name
                     try:
-                        mimetype = accept_list.pop()
+                        mimetype = accept_list.pop(0)
                     except IndexError:
                         mimetype = None
-                #Whoops nothing satisfies - return text/html            
-                return render("/silo_admin.html")
-            elif http_method == "POST":
-                params = request.POST
-                if 'silo' in params:
-                    if ag.granary.issilo(params['silo']):
-                        abort(403)
-                    # Create new silo
-                    silo_name = params['silo']
-                    g_root = config.get("granary.uri_root", "info:")
-                    c.silo = ag.granary.get_rdf_silo(silo_name, uri_base="%s%s/datasets/" % (g_root, silo_name))
-                    ag.granary._register_silos()
-                    kw = {}
-                    for term in accepted_params:
-                        if term in params:
-                            kw[term] = params[term]
-                    du = ag.granary.disk_usage_silo(silo_name)
-                    kw['disk_usage'] = du
-                    ag.granary.describe_silo(silo_name, **kw)
-                    ag.granary.sync()
-                    # conneg return
-                    accept_list = None
-                    if 'HTTP_ACCEPT' in request.environ:
-                        try:
-                            accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
-                        except:
-                            accept_list= [MT("text", "html")]
-                    if not accept_list:
-                        accept_list= [MT("text", "html")]
-                    mimetype = accept_list.pop()
-                    while(mimetype):
-                        if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                            redirect_to(controller="admin", action="index")
-                        elif str(mimetype).lower() in ["text/plain", "application/json"]:
-                            response.content_type = "text/plain"
-                            response.status_int = 201
-                            response.status = "201 Created"
-                            return "201 Created Silo %s" % silo_name
-                        try:
-                            mimetype = accept_list.pop()
-                        except IndexError:
-                            mimetype = None
-                    # Whoops - nothing satisfies - return text/plain
-                    response.content_type = "text/plain"
-                    response.status_int = 201
-                    response.status = "201 Created"
-                    return "201 Created Silo %s" % silo_name
-            else:
-                abort(403)
-        else:
-            abort(403)
+                # Whoops - nothing satisfies - return text/plain
+                response.content_type = "text/plain"
+                response.status_int = 201
+                response.status = "201 Created"
+                response.headers['Content-Location'] = url(controller="silos", action="siloview", silo=silo_name)
+                return "201 Created Silo %s" % silo_name
 
+    @rest.restrict('GET', 'POST', 'DELETE')
     def archive(self, silo_name):
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
@@ -108,164 +112,165 @@ class AdminController(BaseController):
         #c.granary_list = ag.granary.silos
         c.silo_name = silo_name
         # Admin only
-        if ident.get('role') == "admin":
-            granary_list = ag.granary.silos
-            silos = ag.authz(granary_list, ident)
-            if not silo_name in silos:
-                abort(403)
-            http_method = request.environ['REQUEST_METHOD']
-            if http_method == "GET":
-                if ag.granary.issilo(silo_name):
-                    c.kw = ag.granary.describe_silo(silo_name)
-                    accept_list = None
-                    if 'HTTP_ACCEPT' in request.environ:
-                        try:
-                            accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
-                        except:
-                            accept_list= [MT("text", "html")]
-                    if not accept_list:
-                        accept_list= [MT("text", "html")]
-                    mimetype = accept_list.pop()
-                    while(mimetype):
-                        if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                            return render("/admin_siloview.html")
-                        elif str(mimetype).lower() in ["text/plain", "application/json"]:
-                            response.content_type = 'application/json; charset="UTF-8"'
-                            response.status_int = 200
-                            response.status = "200 OK"
-                            return simplejson.dumps(dict(c.kw))
-                        try:
-                            mimetype = accept_list.pop()
-                        except IndexError:
-                            mimetype = None
-                    #Whoops nothing satisfies - return text/html            
+        if not ident.get('role') == "admin":
+            abort(401, "Do not have admin credentials")
+
+        granary_list = ag.granary.silos
+        silos = ag.authz(granary_list, ident)
+        if not silo_name in silos:
+            abort(403)
+        http_method = request.environ['REQUEST_METHOD']
+
+        if http_method == "GET":
+            if not ag.granary.issilo(silo_name):
+                abort(404)
+            c.kw = ag.granary.describe_silo(silo_name)
+            accept_list = None
+            if 'HTTP_ACCEPT' in request.environ:
+                try:
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                except:
+                    accept_list= [MT("text", "html")]
+            if not accept_list:
+                accept_list= [MT("text", "html")]
+            mimetype = accept_list.pop(0)
+            while(mimetype):
+                if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                     return render("/admin_siloview.html")
-                else:
-                    abort(404)
-            elif http_method == "POST":
-                params = request.POST
-                if ag.granary.issilo(silo_name):
-                    kw = {}
-                    for term in accepted_params:
-                        if term in params:
-                            kw[term] = params[term]
-                    ag.granary.describe_silo(silo_name, **kw)
-                    ag.granary.sync()
-                    # conneg return
-                    accept_list = None
-                    if 'HTTP_ACCEPT' in request.environ:
-                        try:
-                            accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
-                        except:
-                            accept_list= [MT("text", "html")]
-                    if not accept_list:
-                        accept_list= [MT("text", "html")]
-                    mimetype = accept_list.pop()
-                    while(mimetype):
-                        if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                            c.message = "Metadata updated"
-                            c.kw = ag.granary.describe_silo(silo_name)
-                            return render("/admin_siloview.html")
-                        elif str(mimetype).lower() in ["text/plain", "application/json"]:
-                            response.content_type = "text/plain"
-                            response.status_int = 204
-                            response.status = "204 Updated"
-                            return "Updated Silo %s" % silo_name
-                        try:
-                            mimetype = accept_list.pop()
-                        except IndexError:
-                            mimetype = None
-                    # Whoops - nothing satisfies - return text/plain
-                    response.content_type = "text/plain"
-                    response.status_int = 204
-                    response.status = "204 Updated"
-                    return "Updated Silo %s" % silo_name
-                else:
-                    # Create new silo
-                    g_root = config.get("granary.uri_root", "info:")
-                    c.silo = ag.granary.get_rdf_silo(silo_name, uri_base="%s%s/" % (g_root, silo_name))
-                    ag.granary._register_silos()
-                    kw = {}
-                    for term in accepted_params:
-                        if term in params:
-                            kw[term] = params[term]
-                    ag.granary.describe_silo(silo_name, **kw)
-                    ag.granary.sync()
-                     
-                    # conneg return
-                    accept_list = None
-                    if 'HTTP_ACCEPT' in request.environ:
-                        try:
-                            accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
-                        except:
-                            accept_list= [MT("text", "html")]
-                    if not accept_list:
-                        accept_list= [MT("text", "html")]
-                    mimetype = accept_list.pop()
-                    while(mimetype):
-                        if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                            redirect_to(controller="datasets", action="siloview", silo=silo_name)
-                        elif str(mimetype).lower() in ["text/plain", "application/json"]:
-                            response.content_type = "text/plain"
-                            response.status_int = 201
-                            response.status = "201 Created"
-                            return "201 Created Silo %s" % silo_name
-                        try:
-                            mimetype = accept_list.pop()
-                        except IndexError:
-                            mimetype = None
-                    # Whoops - nothing satisfies - return text/plain
-                    response.content_type = "text/plain"
-                    response.status_int = 201
-                    response.status = "201 Created"
-                    return "201 Created Silo %s" % silo_name
-            elif http_method == "DELETE":
-                if ag.granary.issilo(silo_name):
-                    # Deletion of an entire Silo...
-                    # Serious consequences follow this action
-                    # Walk through all the items, emit a delete msg for each
-                    # and then remove the silo
-                    todelete_silo = ag.granary.get_rdf_silo(silo_name)
-                    for item in todelete_silo.list_items():
-                        ag.b.deletion(silo_name, item, ident=ident['repoze.who.userid'])
-                    ag.granary.delete_silo(silo_name)
-                    ag.b.silo_deletion(silo_name, ident=ident['repoze.who.userid'])
+                elif str(mimetype).lower() in ["text/plain", "application/json"]:
+                    response.content_type = 'application/json; charset="UTF-8"'
+                    response.status_int = 200
+                    response.status = "200 OK"
+                    return simplejson.dumps(dict(c.kw))
+                try:
+                    mimetype = accept_list.pop(0)
+                except IndexError:
+                    mimetype = None
+            #Whoops nothing satisfies - return text/html            
+            return render("/admin_siloview.html")
+        elif http_method == "POST":
+            params = request.POST
+            if ag.granary.issilo(silo_name):
+                kw = {}
+                for term in accepted_params:
+                    if term in params:
+                        kw[term] = params[term]
+                ag.granary.describe_silo(silo_name, **kw)
+                ag.granary.sync()
+                # conneg return
+                accept_list = None
+                if 'HTTP_ACCEPT' in request.environ:
                     try:
-                        del ag.granary.state[silo_name]
+                        accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
                     except:
-                        pass
-                    ag.granary.sync()
-                    ag.granary._register_silos()
-                    # conneg return
-                    accept_list = None
-                    if 'HTTP_ACCEPT' in request.environ:
-                        try:
-                            accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
-                        except:
-                            accept_list= [MT("text", "html")]
-                    if not accept_list:
                         accept_list= [MT("text", "html")]
-                    mimetype = accept_list.pop()
-                    while(mimetype):
-                        if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                            redirect_to(controller="admin", action="index")
-                        elif str(mimetype).lower() in ["text/plain", "application/json"]:
-                            response.content_type = "text/plain"
-                            response.status_int = 200
-                            response.status = "200 OK"
-                            return """{'status':'Silo %s deleted'}""" % silo_name
-                    # Whoops - nothing satisfies - return text/plain
+                if not accept_list:
+                    accept_list= [MT("text", "html")]
+                mimetype = accept_list.pop(0)
+                while(mimetype):
+                    if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                        c.message = "Metadata updated"
+                        c.kw = ag.granary.describe_silo(silo_name)
+                        return render("/admin_siloview.html")
+                    elif str(mimetype).lower() in ["text/plain", "application/json"]:
+                        response.content_type = "text/plain"
+                        response.status_int = 204
+                        response.status = "204 Updated"
+                        #return "Updated Silo %s" % silo_name
+                        return
+                    try:
+                        mimetype = accept_list.pop(0)
+                    except IndexError:
+                        mimetype = None
+                # Whoops - nothing satisfies - return text/plain
+                response.content_type = "text/plain"
+                response.status_int = 204
+                response.status = "204 Updated"
+                return
+            else:
+                # Create new silo
+                g_root = config.get("granary.uri_root", "info:")
+                c.silo = ag.granary.get_rdf_silo(silo_name, uri_base="%s%s/" % (g_root, silo_name))
+                ag.granary._register_silos()
+                kw = {}
+                for term in accepted_params:
+                    if term in params:
+                        kw[term] = params[term]
+                ag.granary.describe_silo(silo_name, **kw)
+                ag.granary.sync()
+                 
+                # conneg return
+                accept_list = None
+                if 'HTTP_ACCEPT' in request.environ:
+                    try:
+                        accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                    except:
+                        accept_list= [MT("text", "html")]
+                if not accept_list:
+                    accept_list= [MT("text", "html")]
+                mimetype = accept_list.pop(0)
+                while(mimetype):
+                    if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                        redirect_to(controller="datasets", action="siloview", silo=silo_name)
+                    elif str(mimetype).lower() in ["text/plain", "application/json"]:
+                        response.content_type = "text/plain"
+                        response.status_int = 201
+                        response.status = "201 Created"
+                        response.headers['Content-Location'] = url(controller="datasets", action="siloview", silo=silo_name)
+                        return "201 Created Silo %s" % silo_name
+                    try:
+                        mimetype = accept_list.pop(0)
+                    except IndexError:
+                        mimetype = None
+                # Whoops - nothing satisfies - return text/plain
+                response.content_type = "text/plain"
+                response.status_int = 201
+                response.status = "201 Created"
+                response.headers['Content-Location'] = url(controller="datasets", action="siloview", silo=silo_name)
+                return "201 Created Silo %s" % silo_name
+        elif http_method == "DELETE":
+            if not ag.granary.issilo(silo_name):
+                abort(404)
+            # Deletion of an entire Silo...
+            # Serious consequences follow this action
+            # Walk through all the items, emit a delete msg for each
+            # and then remove the silo
+            todelete_silo = ag.granary.get_rdf_silo(silo_name)
+            for item in todelete_silo.list_items():
+                ag.b.deletion(silo_name, item, ident=ident['repoze.who.userid'])
+            ag.granary.delete_silo(silo_name)
+            ag.b.silo_deletion(silo_name, ident=ident['repoze.who.userid'])
+            try:
+                del ag.granary.state[silo_name]
+            except:
+                pass
+            ag.granary.sync()
+            ag.granary._register_silos()
+            # conneg return
+            accept_list = None
+            if 'HTTP_ACCEPT' in request.environ:
+                try:
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                except:
+                    accept_list= [MT("text", "html")]
+            if not accept_list:
+                accept_list= [MT("text", "html")]
+            mimetype = accept_list.pop(0)
+            while(mimetype):
+                if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                    redirect_to(controller="admin", action="index")
+                elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = "text/plain"
                     response.status_int = 200
                     response.status = "200 OK"
                     return """{'status':'Silo %s deleted'}""" % silo_name
-                else:
-                    abort(404)
-            else:
-                abort(403)
-        else:
-            abort(403)
+            # Whoops - nothing satisfies - return text/plain
+            response.content_type = "text/plain"
+            response.status_int = 200
+            response.status = "200 OK"
+            return """{'status':'Silo %s deleted'}""" % silo_name
 
+    @rest.restrict('POST')
     def register(self, silo_name):
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
@@ -275,7 +280,7 @@ class AdminController(BaseController):
         c.silo_name = silo_name
         # Admin only
         if not ident.get('role') == "admin":
-            abort(403)
+            abort(401, "Do not have admin credentials")
         granary_list = ag.granary.silos
         silos = ag.authz(granary_list, ident)
         if not silo_name in silos:
@@ -320,9 +325,12 @@ class AdminController(BaseController):
             if code == 201:
                 response.status_int = 201
                 response.status = "201 Created"
+                response.headers['Content-Location'] = url(controller="admin", action="archive", silo_name=silo_name)
+                response_message = "201 Created"
             if code == 204:
                 response.status_int = 204
                 response.status = "204 Updated"
+                response_message = None
             # conneg return
             accept_list = None
             if 'HTTP_ACCEPT' in request.environ:
@@ -332,19 +340,17 @@ class AdminController(BaseController):
                     accept_list= [MT("text", "html")]
             if not accept_list:
                 accept_list= [MT("text", "html")]
-            mimetype = accept_list.pop()
+            mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                     redirect_to(controller="admin", action="archive", silo_name=silo_name)
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = "text/plain"
-                    return response.status
+                    return response_message
                 try:
-                    mimetype = accept_list.pop()
+                    mimetype = accept_list.pop(0)
                 except IndexError:
                     mimetype = None
             # Whoops - nothing satisfies - return text/plain
             response.content_type = "text/plain"
-            return response.status
-        else:
-            abort(403)
+            return response_message

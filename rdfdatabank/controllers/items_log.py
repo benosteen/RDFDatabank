@@ -1,9 +1,10 @@
 import logging
 import os, time
+from datetime import datetime, timedelta
 import simplejson
-from pylons import request, response, session, tmpl_context as c
+from pylons import request, response, session, tmpl_context as c, url, app_globals as ag
 from pylons.controllers.util import abort, redirect_to
-from pylons import app_globals as ag
+from pylons.decorators import rest
 
 from rdfdatabank.lib.base import BaseController, render
 from rdfdatabank.lib.utils import create_new
@@ -16,9 +17,9 @@ class ItemsController(BaseController):
     def siloview(self, silo):
         abort(403, "Forbidden")
 
+    @rest.restrict('GET', 'POST')
     def datasetview(self, silo, id):
         #tmpl_context variables needed: c.silo_name, c.zipfiles, c.ident, c.id, c.path
-
         c.silo_name = silo
         c.id = id
         
@@ -38,15 +39,33 @@ class ItemsController(BaseController):
 
         dataset = rdfsilo.get_item(id)
 
+        f = open('/opt/rdfdatabank/src/logs/runtimes_item.log', 'a')
+        hr = "-"*80 + '\n'
+        f.write(hr)
+        f.write("%s :: items - datasetview : silo=%s, id=%s\n"%(str(datetime.now()), silo, id))
+
         http_method = request.environ['REQUEST_METHOD']
+
+        f.write("Http method = %s\n"%http_method)
+        f.close()
+
         if http_method == "GET":
             c.zipfiles = get_zipfiles_in_dataset(dataset)
             # conneg return
             accept_list = None
             if 'HTTP_ACCEPT' in request.environ:
-                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                f = open('/opt/rdfdatabank/src/logs/runtimes_item.log', 'a')
+                f.write("Received accept list: %s\n"%str(request.environ['HTTP_ACCEPT']))
+                f.close()
+                try:
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                except:
+                    accept_list= [MT("text", "html")]
             if not accept_list:
                 accept_list= [MT("text", "html")]
+            f = open('/opt/rdfdatabank/src/logs/runtimes_item.log', 'a')
+            f.write("Parsed accept list: %s\n"%str(accept_list))
+            f.close()
             mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
@@ -98,7 +117,7 @@ class ItemsController(BaseController):
             logstr.append("Start unpacking zip item : %s"%(time.strftime("%d %b %Y %H:%M:%S", time.gmtime())))
             logstr.append("")
             logstr = '\n'.join(logstr)
-            f = open('/opt/rdfdatabank/src/logs/runtimes_items.log', 'a')
+            f = open('/opt/rdfdatabank/src/logs/runtimes_item.log', 'a')
             f.write(logstr)
             f.close()
             try:
@@ -112,7 +131,7 @@ class ItemsController(BaseController):
             logstr.append("")
             logstr.append("")
             logstr = '\n'.join(logstr)
-            f = open('/opt/rdfdatabank/src/logs/runtimes_items.log', 'a')
+            f = open('/opt/rdfdatabank/src/logs/runtimes_item.log', 'a')
             f.write(logstr)
             f.close()
 
@@ -123,25 +142,28 @@ class ItemsController(BaseController):
             # conneg return
             accept_list = None
             if 'HTTP_ACCEPT' in request.environ:
-                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                f = open('/opt/rdfdatabank/src/logs/runtimes_item.log', 'a')
+                f.write("Received accept list: %s\n"%str(request.environ['HTTP_ACCEPT']))
+                f.close()
+                try:
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                except:
+                    accept_list= [MT("text", "html")]
             if not accept_list:
                 accept_list= [MT("text", "html")]
+            f = open('/opt/rdfdatabank/src/logs/runtimes_item.log', 'a')
+            f.write("Parsed accept list: %s\n"%str(accept_list))
+            f.close()
             mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                    # probably a browser - redirect to newly created dataset 
                     redirect_to(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = "text/plain"
                     response.status_int = 201
                     response.status = "201 Created"
-                    #new_item = rdfsilo.get_item(target_dataset_name)
-                    #response.headers["Content-Location"] = new_item.uri
-                    #response.headers.add("Content-Location", new_item.uri)
-                    #response.content_location = item.uri
-                    #response.headers['location'] = item.uri
-                    #response.location = item.uri
-                    return "Created"
+                    response.headers["Content-Location"] = url(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
+                    return "201 Created"
                 try:
                     mimetype = accept_list.pop(0)
                 except IndexError:
@@ -150,10 +172,10 @@ class ItemsController(BaseController):
             response.content_type = "text/plain"
             response.status_int = 201
             response.status = "201 Created"
-            #new_item = rdfsilo.get_item(target_dataset_name)
-            #response.headers.add("Content-Location", new_item.uri)
-            return "Created"
+            response.headers["Content-Location"] = url(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
+            return "201 Created"
             
+    @rest.restrict('GET', 'POST')
     def itemview(self, silo, id, path):
         #tmpl_context variables needed: c.silo_name, c.zipfile_contents c.ident, c.id, c.path
         c.silo_name = silo
@@ -188,7 +210,16 @@ class ItemsController(BaseController):
         if not check_file_mimetype(target_filepath, 'application/zip'): 
             abort(415, "File is not of type application/zip")
 
+        f = open('/opt/rdfdatabank/src/logs/runtimes_item.log', 'a')
+        hr = "-"*80 + '\n'
+        f.write(hr)
+        f.write("%s :: datasets - datasetview : silo=%s, id=%s\n"%(str(datetime.now()), silo, id))
+
         http_method = request.environ['REQUEST_METHOD']
+
+        f.write("Http method = %s\n"%http_method)
+        f.close()
+
         if http_method == "GET":
             try:
                 c.zipfile_contents = read_zipfile(target_filepath)
@@ -197,9 +228,18 @@ class ItemsController(BaseController):
             # conneg return
             accept_list = None
             if 'HTTP_ACCEPT' in request.environ:
-                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                f = open('/opt/rdfdatabank/src/logs/runtimes_item.log', 'a')
+                f.write("Received accept list: %s\n"%str(request.environ['HTTP_ACCEPT']))
+                f.close()
+                try:
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                except:
+                    accept_list= [MT("text", "html")]
             if not accept_list:
                 accept_list= [MT("text", "html")]
+            f = open('/opt/rdfdatabank/src/logs/runtimes_item.log', 'a')
+            f.write("Parsed accept list: %s\n"%str(accept_list))
+            f.close()
             mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
@@ -238,21 +278,28 @@ class ItemsController(BaseController):
             # conneg return
             accept_list = None
             if 'HTTP_ACCEPT' in request.environ:
-                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                f = open('/opt/rdfdatabank/src/logs/runtimes_item.log', 'a')
+                f.write("Received accept list: %s\n"%str(request.environ['HTTP_ACCEPT']))
+                f.close()
+                try:
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                except:
+                    accept_list= [MT("text", "html")]
             if not accept_list:
                 accept_list= [MT("text", "html")]
+            f = open('/opt/rdfdatabank/src/logs/runtimes_item.log', 'a')
+            f.write("Parsed accept list: %s\n"%str(accept_list))
+            f.close()
             mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                    # probably a browser - redirect to newly created dataset
                     redirect_to(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = "text/plain"
                     response.status_int = 201
                     response.status = "201 Created"
-                    #new_item = rdfsilo.get_item(target_dataset_name)
-                    #response.headers.add("Content-Location", new_item.uri)
-                    return "Created"
+                    response.headers['Content-Location'] = url(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
+                    return "201 Created"
                 try:
                     mimetype = accept_list.pop(0)
                 except IndexError:
@@ -260,11 +307,11 @@ class ItemsController(BaseController):
             # Whoops - nothing satisfies - return text/plain
             response.content_type = "text/plain"
             response.status_int = 201
-            #new_item = rdfsilo.get_item(target_dataset_name)
-            #response.headers.add("Content-Location", new_item.uri)
             response.status = "201 Created"
-            return "Created"
+            response.headers["Content-Location"] = url(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
+            return "201 Created"
 
+    @rest.restrict('GET')
     def subitemview(self, silo, id, path, subpath):
         #tmpl_context variables needed: c.silo_name, c.zipfile_contents c.ident, c.id, c.path
         c.silo_name = silo

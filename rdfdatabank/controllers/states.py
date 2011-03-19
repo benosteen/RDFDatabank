@@ -1,23 +1,17 @@
 import logging
+import simplejson
 
-from pylons import request, response, session, tmpl_context as c
+from pylons import request, response, app_globals as ag
 from pylons.controllers.util import abort
-from pylons import app_globals as ag
+from pylons.decorators import rest
+
 from rdfdatabank.lib.base import BaseController
 from rdfdatabank.lib.utils import is_embargoed, serialisable_stat
 
-from datetime import datetime, timedelta
-from paste.fileapp import FileApp
-
-import re, os, shutil
-
-JAILBREAK = re.compile("[\/]*\.\.[\/]*")
-
-import simplejson
-
 log = logging.getLogger(__name__)
 
-class StatesController(BaseController):      
+class StatesController(BaseController):
+    @rest.restrict('GET')
     def siloview(self, silo):
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
@@ -47,6 +41,7 @@ class StatesController(BaseController):
         response.status = "200 OK"
         return simplejson.dumps(state_info)
 
+    @rest.restrict('GET')
     def datasetview(self, silo, id):       
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
@@ -75,6 +70,7 @@ class StatesController(BaseController):
         response.status = "200 OK"
         return simplejson.dumps(dataset)
 
+    @rest.restrict('GET')
     def datasetview_vnum(self, silo, id, vnum):       
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
