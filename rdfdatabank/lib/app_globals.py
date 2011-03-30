@@ -53,3 +53,8 @@ class Globals(object):
             self.formats_served = config['formats_served']
         else:
             self.formats_served = ["text/html", "text/xhtml", "text/plain", "application/json", "application/rdf+xml", "text/xml"]
+
+        if config.has_key("publisher"):
+            self.publisher = config['publisher']
+        else:
+            self.publisher = "Bodleian Libraries, University of Oxford"

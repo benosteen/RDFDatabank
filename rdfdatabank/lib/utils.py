@@ -93,7 +93,8 @@ def create_new(silo, id, creator, title=None, embargoed=True, embargoed_until=No
     else:
         item.add_triple(item.uri, u"oxds:isEmbargoed", 'False')
     item.add_triple(item.uri, u"dcterms:identifier", id)
-    item.add_triple(item.uri, u"dcterms:creator", creator)   
+    item.add_triple(item.uri, u"dcterms:mediator", creator)
+    item.add_triple(item.uri, u"dcterms:publisher", ag.publisher)
     item.add_triple(item.uri, u"dcterms:created", datetime.now())
     item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
     
