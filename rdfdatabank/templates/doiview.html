@@ -1,0 +1,19 @@
+# -*- coding: utf-8 -*-
+<%inherit file="/base.html" />
+<%def name="head_tags()">
+  <title> DOI view </title>
+</%def>
+<h1>DOI Information - ${c.silo_name}/%{c.id}</h1>
+
+<p>Version: ${c.version}</p>
+
+%if not c.DOI:
+    <%include file="/create_doi.html"/>
+% endif
+
+%if c.metadata:
+ <pre>${c.metadata}</pre>
+% else:
+  <p>No metadata registered with Datacite</p>
+% endif
+
