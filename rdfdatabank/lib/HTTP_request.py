@@ -8,10 +8,11 @@ import json as simplejson
 logger = logging.getLogger('Dataset')
 
 class HTTPRequest():
-    def __init__(self, endpointhost=None):
+    def __init__(self, endpointhost=None, secure=False):
         if endpointhost:
             self._endpointhost = endpointhost
             self._endpointpath = None
+        self.secure = secure
 
     def get_content_type(self, filename):
         # Originally copied from http://code.activestate.com/recipes/146306/:
@@ -95,11 +96,17 @@ class HTTPRequest():
         if self._endpointuser:
             auth = base64.encodestring("%s:%s" % (self._endpointuser, self._endpointpass)).strip()
             reqheaders["Authorization"] = "Basic %s" % auth
-        hc   = httplib.HTTPConnection(self._endpointhost)
+        if self.secure:
+            hc = httplib.HTTPSConnection(self._endpointhost)
+        else:
+            hc   = httplib.HTTPConnection(self._endpointhost)
         path = self.getRequestPath(resource)
         response     = None
         responsedata = None
         repeat       = 10
+        f = open('/opt/rdfdatabank/src/logs/doi_debug.log', 'a')
+        f.write('Command: %s, path:%s\n'%(command, path))
+        f.close()
         while path and repeat > 0:
             repeat -= 1
             hc.request(command, path, reqdata, reqheaders)
