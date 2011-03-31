@@ -706,7 +706,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         rdfgraph = Graph()
         rdfstream = StringIO(rdfdata)
         rdfgraph.parse(rdfstream) 
-        self.assertEqual(len(rdfgraph),10,'Graph length %i' %len(rdfgraph))
+        self.assertEqual(len(rdfgraph),11,'Graph length %i' %len(rdfgraph))
         # Access and check zip file content
         (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip",
@@ -736,7 +736,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         rdfgraph = Graph()
         rdfstream = StringIO(rdfdata)
         rdfgraph.parse(rdfstream) 
-        self.assertEqual(len(rdfgraph),9,'Graph length %i' %len(rdfgraph))
+        self.assertEqual(len(rdfgraph),10,'Graph length %i' %len(rdfgraph))
         # Access and check zip file content
         (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip",
@@ -763,7 +763,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         rdfgraph = Graph()
         rdfstream = StringIO(rdfdata)
         rdfgraph.parse(rdfstream) 
-        self.assertEqual(len(rdfgraph),9,'Graph length %i' %len(rdfgraph))
+        self.assertEqual(len(rdfgraph),10,'Graph length %i' %len(rdfgraph))
         # Access and check zip file content
         (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip",
