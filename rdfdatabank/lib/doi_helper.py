@@ -98,7 +98,7 @@ def doi_count(increase=True):
     try:
         count = int(count)
     except:
-        count = 0
+        return False
     if increase:
         count += 1
         f = open(doi_conf.doi_count_file, 'w')

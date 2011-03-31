@@ -164,6 +164,7 @@ class DoiController(BaseController):
             #1a. If doi doen not exist for this version, generate doi
             register_doi = False
             if not c.version_doi and c.version_doi[0]:
+                cnt = doi_count()
                 if not cnt:
                     abort(400, "Error generating DOI")
                 register_doi = True
@@ -177,7 +178,7 @@ class DoiController(BaseController):
                 item.sync()
             #1b. Construct XML metadata
             xml_metadata = get_doi_metadata(item)
-            """
+            
             if not xml_metadata and not register_doi:
                 #2a. If the doi already exists and there is no xml metadata to update, return bad request
                 c.message = "Coud not update matadata"
@@ -189,9 +190,12 @@ class DoiController(BaseController):
                 resource = "%s"%doi_conf.endpoint_path_doi
                 body = "%s\n%s"%(c.version_doi, item.uri)
                 body_unicode = unicode(body, "utf-8")
-                (resp, respdata) = doi_api.doHTTP_POST(body_unicode, resource=resource, data_type='text/plain;charset=UTF-8')
-                c.resp_reason = resp.reason
-                c.resp_status = resp.status
+                #(resp, respdata) = doi_api.doHTTP_POST(body_unicode, resource=resource, data_type='text/plain;charset=UTF-8')
+                #c.resp_reason = resp.reason
+                #c.resp_status = resp.status
+                #JUST FOR TESTING - Have commented the lines above to prevent posting to Datacite and displaying the metadata for checking
+                resp.status = 200
+                resp.data = ''
                 if resp.status < 200 or >= 300:
                     response.status_int = 400
                     response.status = "400 Bad Request"
@@ -210,16 +214,19 @@ class DoiController(BaseController):
                 else:
                     response.status_int = 200
                     response.status = "200 OK"
-                    response_msg = 'DOI Registered. %s"%respdata
+                    response_msg = "DOI Registered. %s"%respdata
                     c.metadata = ''
                     c.message = "201 Created - DOI registered. %s"%respdata
             else: 
                 #register the DOI and metadata with Datacite
                 body_unicode = unicode(xml_metadata, "utf-8")
                 resource = "%s?doi=%s&url=%s"%(doi_conf.endpoint_path_metadata, DOI, item.uri)
-                (resp, respdata) = doi_api.doHTTP_POST(body_unicode, resource=resource, data_type='application/xml;charset=UTF-8')
-                c.resp_reason = resp.reason
-                c.resp_status = resp.status
+                #(resp, respdata) = doi_api.doHTTP_POST(body_unicode, resource=resource, data_type='application/xml;charset=UTF-8')
+                #c.resp_reason = resp.reason
+                #c.resp_status = resp.status
+                #JUST FOR TESTING - Have commented the lines above to prevent posting to Datacite and displaying the metadata for checking
+                resp.status = 200
+                resp.data = ''
                 if resp.status < 200 or >= 300:
                     response.status_int = 400
                     response.status = "400 Bad Request"
@@ -265,5 +272,6 @@ class DoiController(BaseController):
             cnt = doi_count()
             c.DOI = DOI
             c.metadata = xml_metadata
+            """
             return render('/doiview.html')
 
