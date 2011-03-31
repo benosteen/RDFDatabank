@@ -695,7 +695,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         rdfgraph = Graph()
         rdfstream = StringIO(rdfdata)
         rdfgraph.parse(rdfstream) 
-        self.assertEqual(len(rdfgraph),7,'Graph length %i' %len(rdfgraph))
+        self.assertEqual(len(rdfgraph),8,'Graph length %i' %len(rdfgraph))
         #---------Version 2
         # Upload zip file, check response
         zipdata2 = self.uploadTestSubmissionZipfile(file_to_upload="testdir2.zip")
