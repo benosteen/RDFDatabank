@@ -104,9 +104,6 @@ class HTTPRequest():
         response     = None
         responsedata = None
         repeat       = 10
-        f = open('/opt/rdfdatabank/src/logs/doi_debug.log', 'a')
-        f.write('Command: %s, path:%s\n'%(command, path))
-        f.close()
         while path and repeat > 0:
             repeat -= 1
             hc.request(command, path, reqdata, reqheaders)

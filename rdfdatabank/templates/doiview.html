@@ -3,21 +3,26 @@
 <%def name="head_tags()">
   <title> DOI view </title>
 </%def>
-<h1>DOI Information - ${c.silo_name}/${c.id}</h1>
-
-<p>Version: ${c.version}</p>
-
+<h1>DOI Information for ${c.silo_name}/${c.id}/version${c.version}</h1>
+%if c.heading:
+    <h2>${c.heading}</h2>
+%endif
+<div id="flash">
 %if c.message:
      <p>${c.message}</p>
 % endif
-%if c.status and c.reason:
-     <p>${c.status}: ${c.reason}</p>
+%if c.resp_status:
+     <p>Response code from Datacite: ${c.status}</p>
 % endif
+%if c.resp_reason:
+     <p>Response message from Datacite: ${c.status}</p>
+% endif
+</div>
 
 %if c.dois:
     <ul><p>DOIs available for this dataset</p>
-    %for d in c.dois:
-        <li>${d}</li>
+    %for v, d in c.dois.iteritems():
+        <li>Verison ${v}: ${d}</li>
     %endfor
     </ul>
 % endif
@@ -30,7 +35,5 @@
 
 %if c.metadata:
  <pre>${c.metadata}</pre>
-% else:
-  <p>No metadata registered with Datacite</p>
 % endif
 

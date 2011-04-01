@@ -97,6 +97,14 @@ def create_new(silo, id, creator, title=None, embargoed=True, embargoed_until=No
     item.add_triple(item.uri, u"dcterms:publisher", ag.publisher)
     item.add_triple(item.uri, u"dcterms:created", datetime.now())
     item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
+    if ag.rights and ag.rights.startswith('http'):
+        item.add_triple(item.uri, u"dcterms:rights", URIRef(ag.rights))
+    elif ag.rights:
+        item.add_triple(item.uri, u"dcterms:rights", Literal(ag.rights))
+    if ag.license and ag.license.startswith('http'):
+        item.add_triple(item.uri, u"dcterms:license", URIRef(ag.license))
+    elif ag.license:
+        item.add_triple(item.uri, u"dcterms:license", Literal(ag.license))
     
     #TODO: Add current version metadata
     if title:
@@ -132,6 +140,11 @@ def munge_manifest(manifest_str, item, manifest_type='http://vocab.ox.ac.uk/data
                     item.del_triple(URIRef(s), u"dcterms:title")
                 except:
                     pass    
+            if str(p) == 'http://purl.org/dc/terms/license':
+                try:
+                    item.del_triple(URIRef(s), u"dcterms:license")
+                except:
+                    pass
             item.add_triple(s, p, o)
     item.sync()
     if seeAlsoFiles:

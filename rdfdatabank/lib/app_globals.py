@@ -58,3 +58,10 @@ class Globals(object):
             self.publisher = config['publisher']
         else:
             self.publisher = "Bodleian Libraries, University of Oxford"
+
+        if config.has_key("rights"):
+            self.rights = config['rights']
+      
+        if config.has_key("license"):
+            self.license = config['license']
+
