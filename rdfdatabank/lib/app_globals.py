@@ -48,6 +48,8 @@ class Globals(object):
         self.passwdfile = HtpasswdFile(pwdfile)
         self.passwdfile.load()
         self.userfile = config['granary.store'].replace('silos', 'rdfdatabank/config/users.py')
+
+        self.doi_count_file = config['granary.store'].replace('silos', 'rdfdatabank/config/doi_count')
         
         if config.has_key("formats_served"):
             self.formats_served = config['formats_served']

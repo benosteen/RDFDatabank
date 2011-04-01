@@ -86,7 +86,7 @@ class DoiController(BaseController):
                 c.message = 'DOI not registered for version %s of dataset %s'%(c.version, c.silo_name)
                 return render('/doiview.html')
 
-            resource = "%s?doi=%s"%(doi_conf.endpoint_path_metadata, c.version_doi[0])
+            resource = "%s?doi=%s"%(doi_conf.endpoint_path_metadata, c.version_doi)
             (resp, respdata) = doi_api.doHTTP_GET(resource=resource, expect_type='application/xml')
             c.resp_reason = resp.reason
             c.resp_status = resp.status
@@ -259,10 +259,4 @@ class DoiController(BaseController):
             response.status_int = 200
             response.status = "200 OK"
             return render('/doiview.html')
-            """
-            #JUST FOR TESTING - Have commented the lines above to prevent posting to Datacite and displaying the metadata for checking
-            cnt = doi_count()
-            c.metadata = xml_metadata
-            return render('/doiview.html')
-            """
 

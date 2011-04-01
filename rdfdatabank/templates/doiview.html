@@ -12,15 +12,16 @@
      <p>${c.message}</p>
 % endif
 %if c.resp_status:
-     <p>Response code from Datacite: ${c.status}</p>
+     <p>Response code from Datacite: ${c.resp_status}</p>
 % endif
 %if c.resp_reason:
-     <p>Response message from Datacite: ${c.status}</p>
+     <p>Response message from Datacite: ${c.resp_reason}</p>
 % endif
 </div>
 
 %if c.dois:
-    <ul><p>DOIs available for this dataset</p>
+    <p>DOIs available for this dataset</p>
+    <ul>
     %for v, d in c.dois.iteritems():
         <li>Verison ${v}: ${d}</li>
     %endfor
