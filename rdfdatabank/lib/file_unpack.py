@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import os
 from redis import Redis
 from uuid import uuid4
-
+from rdflib import URIRef, Literal
 from rdfdatabank.lib.utils import create_new, munge_manifest, test_rdf
 
 from pylons import app_globals as ag
@@ -189,13 +189,13 @@ def unpack_zip_item(target_dataset, current_dataset, zip_item, silo, ident):
     target_dataset.add_triple(target_dataset.uri, u"dcterms:mediator", ident)
     target_dataset.add_triple(target_dataset.uri, u"dcterms:publisher", ag.publisher)
     if ag.rights and ag.rights.startswith('http'):
-        item.add_triple(item.uri, u"dcterms:rights", URIRef(ag.rights))
+        target_dataset.add_triple(target_dataset.uri, u"dcterms:rights", URIRef(ag.rights))
     elif ag.rights:
-        item.add_triple(item.uri, u"dcterms:rights", Literal(ag.rights))
+        target_dataset.add_triple(target_dataset.uri, u"dcterms:rights", Literal(ag.rights))
     if ag.license and ag.license.startswith('http'):
-        item.add_triple(item.uri, u"dcterms:license", URIRef(ag.license))
+        target_dataset.add_triple(target_dataset.uri, u"dcterms:license", URIRef(ag.license))
     elif ag.license:
-        item.add_triple(item.uri, u"dcterms:license", Literal(ag.license))
+        target_dataset.add_triple(target_dataset.uri, u"dcterms:license", Literal(ag.license))
     target_dataset.add_triple(target_dataset.uri, u"dcterms:created", datetime.now())
     target_dataset.add_triple(target_dataset.uri, u"oxds:currentVersion", target_dataset.currentversion)
     #Adding ore aggregates

@@ -1,9 +1,11 @@
 #Downloaded from http://code.activestate.com/recipes/576918/
-#Written by 
-# Short URL Generator
+#Created by Michael Fogleman 
+#Short URL Generator
 
-DEFAULT_ALPHABET = 'JedR8LNFY2j6MrhkBSADUyfP5amuH9xQCX4VqbgpsGtnW7vc3TwKE'
-DEFAULT_BLOCK_SIZE = 22
+#DEFAULT_ALPHABET = 'JedR8LNFY2j6MrhkBSADUyfP5amuH9xQCX4VqbgpsGtnW7vc3TwKE'
+#DEFAULT_BLOCK_SIZE = 22
+DEFAULT_ALPHABET = 'ed82j6rh1kyfo5almu9x4iqzbgpstn7vc3w'
+DEFAULT_BLOCK_SIZE = 18
 
 class UrlEncoder(object):
     def __init__(self, alphabet=DEFAULT_ALPHABET, block_size=DEFAULT_BLOCK_SIZE):

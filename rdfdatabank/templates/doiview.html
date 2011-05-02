@@ -29,12 +29,13 @@
 % endif
 
 %if c.version_doi:
-     <p>${c.version_doi}</p>
+     <p><b>DOI:</b> ${c.version_doi}</p>
 %else:
     <%include file="/create_doi.html"/>
 % endif
 
 %if c.metadata:
+ <p><b>Metadata associated with the DOI</b></p>
  <pre>${c.metadata}</pre>
 % endif
 

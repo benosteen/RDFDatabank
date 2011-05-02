@@ -7,7 +7,7 @@ from pylons import app_globals as ag
 
 from rdflib import ConjunctiveGraph
 from rdflib import StringInputSource
-from rdflib import Namespace, RDF, RDFS, URIRef
+from rdflib import Namespace, RDF, RDFS, URIRef, Literal
 
 from uuid import uuid4
 import re
