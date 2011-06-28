@@ -1,26 +1,126 @@
 # -*- coding: utf-8 -*-
 <div id="globalWrapper">
 <h2>States</h2>
+<p>API call to obtain information regarding the state of a silo, the state of the latest version of a dataset or the state of a particular version of a dataset. </p>
+
+<p>Sections</p>
+<ol>
+<!--<li><a href="#section1">/{silo name}/items</a></li>-->
+<li><a href="#section1">/{silo name}/states</a></li>
+<li><a href="#section2">/{silo name}/states/{id}</a></li>
+<li><a href="#section3">/{silo name}/states/{id}/version#</a></li>
+</ol>
+
 <!-- ========== /{silo name}/states ========== -->
-<h3 class="Section-">/{silo name}/states</h3>
-<i><b>Controller: states &nbsp;&nbsp;&nbsp;&nbsp;action: siloview</b></i>
+<div id="section1">
+  <div class="Section">
+    <div class="lt">/{silo name}/states</div>
+    <div class="rt"><a href="#globalWrapper">top</a></div>
+  </div>
+</div>
+<p>Returns the state information of a silo. To view an example of the state information returned for the silo <b>Sandbox (ans["silo"])</b> see <a href="/static/json_data/SiloStateInfo.txt" target="_blank">SiloStateInfo.txt</a></p>
+<p>The state information for a silo contains the following:</p>
+<div class="List-contents"> 
+Name of the silo (machine name, used in uris) - ans["silo"]<br />
+Base URI for the silo - ans["uri_base"]<br />
+Users who can access the silo (silo owners) - ans["owners"]<br />
+Silo description - ans["description"]<br />
+Title of the silo (human readable) - ans["title"]<br />
+Disk allocation for the silo (in kB) - ans["disk_allocation"]<br />
+List of datasets in the silo with embargo information for each of the datasets - ans["datasets"], ans["datasets"]["dataset_name"]["embargo_info"]
+</div>
+<div class="todo">
+<div class="List-entry">Note:</div>
+  <div class="List-contents">Disk allocation information is not used at the moment. In the future, this will be used to calculate if current levels of disk usage is within the allocation limit and warn or prevent users from submitting data if beyond this limit. Also, the unit will change from kB to MB.</div>
+</div>
+<p><i><b>Controller: states &nbsp;&nbsp;&nbsp;&nbsp;action: siloview</b></i></p>
 <div class="List">
-<span class="List-entry">GET</span><span class="List-contents">Accept: * / none, authd - Returns a JSON-encoded hash/dict, keys map 
-with the silo name, base uri and embargo information for each of the datasets in the silo <i>{silo name}</i> as text/plain</span>
+<p><b>GET</b></p>
+<div class="List-contents">Returns 401 if not a valid user and 403 if not authorized</div>
+<div class="List-entry">Accept: */*, default (with auth)</div><div class="List-contents">Returns a JSON-encoded hash/dict, keys map 
+with the silo name, base uri and embargo information for each of the datasets in the silo <i>{silo name}</i> as text/plain</div>
 </div>
 <div class="List">
-<span class="List-entry">POST,PUT,DELETE</span><span class="List-contents">NOOP</span>
+<p><b>POST, PUT, DELETE</b> NOOP </p>
 </div>
 
 <!-- ========== /{silo name}/states/{id} ========== -->
-<h3 class="Section-">/{silo name}/states/{id}</h3>
-<i><b>Controller: states &nbsp;&nbsp;&nbsp;&nbsp;action: datasetview</b></i>
+<div id="section2">
+  <div class="Section">
+    <div class="lt">/{silo name}/states/{id}</div>
+    <div class="rt"><a href="#globalWrapper">top</a></div>
+  </div>
+</div>
+<p>Returns the state information of the latest version of a dataset. To view an example of the state information returned for the dataset <b>dataset2</b> see <a href="/static/json_data/DatasetStateInfo-dataset2.txt" target="_blank">DatasetStateInfo-dataset2.txt</a> and <b>dataset1</b> see <a href="/static/json_data/DatasetStateInfo-dataset1-version1.txt" target="_blank">DatasetStateInfo-dataset1-version1.txt</a></p>
+<p>The state information for a dataset contains the following:</p>
+<p><b>Information about the dataset </b></p>
+<div class="List-contents"> 
+list of files in each version - ans["state"]["files"]<br />
+list of sub-directories in each version - ans["state"]["subdir"]<br />
+List of available versions - ans["state"]["versions] <br />
+manifest file format - ans["state"]["rdffileformat"]<br />
+manifest file name - ans["state"]["rdffilename"]<br />
+Metadata for the dataset - ans["state"]["metadata"]. <br />
+  <div class="List-contents">
+  createdby - ans["state"]["metadata"]["createdby"]<br />
+  uuid - ans["state"]["metadata"]["uuid"]<br />
+  embargo date - ans["state"]["metadata"]["embargoed_until"]<br />
+  State of embargo (true | false) - ans["state"]["metadata"]["embargoed"]
+  </div>
+Id of the dataset - ans["state"]["item_id"]<br />
+Current version of the dataset - ans["state"]["currentversion"]<br />
+Metadata files for each version - ans["state"]["metadata_files"] - <b>This feature is not used at the moment</b><br />
+Dates when each version was created - ans["state"]["version_dates"] <br />
+Date last modified - ans["state"]["date"] <br /><br/>
+</div>  
+<p><b>Information about each file in the latest version of the dataset </b></p>
+<div class="List-contents"> 
+<b>ans["parts"]["file_name"]</b> contains file information for each of the files listed in ans["state"]["files"]["#"] (<i>#</i> is the current version number), including the Namaste files that are generated and the databank metadata file <i>manifest.rdf</i><br /><br />
+The Nameaste file generated in Databank are <br />
+  <div class="List-contents">
+  3=when - Date last modified (example: 3=2011-02-09T14+15+05,064235) <br />
+  4=where - name of dataset (example: 4=dataset1) <br />
+  </div><br />
+The file information returns the equivalent of a stat() system call on the given path. See http://docs.python.org/library/os.html#os.stat for more information.
+</div>
+<div class="todo">
+<div class="List-entry">TODO:</div>
+<div class="List-contents">Currently the state information returns information regarding all versions for some. Modify to return information peraining only to the relevant version.</div>
+<div class="List-contents">The name of metadata files are not included in the state information. Need to add files mentioned in 'seeAlso' to ans["state"]["metadata_files"]</div>
+</div>
+<p><i><b>Controller: states &nbsp;&nbsp;&nbsp;&nbsp;action: datasetview</b></i></p>
 <div class="List">
-<span class="List-entry">GET</span><span class="List-contents">Accept: */ none, authd - 
-Returns a JSON-encoded hash/dict, keys map with the detailed state information of the dataset <i>id</i> as text/plain</span>
+<p><b>GET</b></p>
+<div class="List-contents">Returns 401 if not a valid user and 403 if not authorized</div>
+<div class="List-contents">Returns 404 if dataset <i>id</i> does not exist</div>
+<div class="List-entry">Accept: */*, default (with auth)</div><div class="List-contents">Returns a JSON-encoded hash/dict, keys map with the detailed state information of the <b>latest version of the dataset <i>id</i></b> as text/plain</div>
 </div>
 <div class="List">
-<span class="List-entry">POST, PUT,DELETE</span><span class="List-contents">NOOP</span>
+<p><b>POST, PUT, DELETE</b> NOOP </p>
+</div>
+<!-- ========== /{silo name}/states/{id}/version# ========== -->
+<div id="section3">
+  <div class="Section">
+    <div class="lt">/{silo name}/states/{id}/version#</div>
+    <div class="rt"><a href="#globalWrapper">top</a></div>
+  </div>
+</div>
+<p>Returns the state of a particular version of a dataset. To view an example of the state information returned for verison 0 of the dataset <b>dataset1</b> see <a href="/static/json_data/DatasetStateInfo-dataset1-version0.txt" target="_blank">DatasetStateInfo-dataset1-version0.txt</a>. For details pertaining to the information returned, see above</p>
+<div class="todo">
+<div class="List-entry">TODO:</div>
+<div class="List-contents">Currently the state information returns information regarding all versions for some. Modify to return information peraining only to the relevant version.</div>
+<div class="List-contents">The name of metadata files are not included in the state information. Need to add files mentioned in 'seeAlso' to ans["state"]["metadata_files"]</div>
+</div>
+<p><i><b>Controller: states &nbsp;&nbsp;&nbsp;&nbsp;action: datasetview_vnum</b></i></p>
+<div class="List">
+<p><b>GET</b></p>
+<div class="List-contents">Returns 401 if not a valid user and 403 if not authorized</div>
+<div class="List-contents">Returns 404 if dataset <i>id</i> does not exist</div>
+<div class="List-contents">Returns 404 if dataset version number <i>#</i> does not exist</div>
+<div class="List-entry">Accept: */*, default (with auth)</div><div class="List-contents">Returns a JSON-encoded hash/dict, keys map with the detailed state information of the <b>version  # of the dataset <i>id</i></b> as text/plain</div>
+</div>
+<div class="List">
+<p><b>POST, PUT, DELETE</b> NOOP </p>
 </div>
 <!-- ========== END ========== -->
 </div>

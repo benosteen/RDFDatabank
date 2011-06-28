@@ -1,0 +1,86 @@
+Information obtained for version 1 of dataset 'blockbooks' in silo 'sandbox' 
+(at /sandbox/datasets/blockbooks/version1) in text/plain or application/json
+
+data_returned = {
+    "readme_text": null,
+	"embargos": {"blockbooks": ["True", "2081-01-23T14:25:28.548643"]},
+	"editor": true,
+	"view": "",
+	"manifest_pretty": "<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<rdf:RDF
+  xmlns:ore='http://www.openarchives.org/ore/terms/'
+  xmlns:dcterms='http://purl.org/dc/terms/'
+  xmlns:oxds='http://vocab.ox.ac.uk/dataset/schema#'
+  xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'
+>
+  <oxds:Grouping rdf:about=\"http://databank.ora.ox.ac.uk/sandbox/datasets/blockbooks\">
+    <oxds:currentVersion>1</oxds:currentVersion>
+    <oxds:isEmbargoed>True</oxds:isEmbargoed>
+    <dcterms:created rdf:datatype=\"http://www.w3.org/2001/XMLSchema#dateTime\">2011-02-10T17:47:51.954809</dcterms:created>
+    <dcterms:modified rdf:datatype=\"http://www.w3.org/2001/XMLSchema#dateTime\">2011-02-10T17:47:51.985054</dcterms:modified>
+    <dcterms:creator>admin</dcterms:creator>
+    <oxds:embargoedUntil>2081-01-23T17:47:51.954384</oxds:embargoedUntil>
+    <dcterms:identifier>blockbooks</dcterms:identifier>
+    <ore:aggregates rdf:resource=\"http://databank.ora.ox.ac.uk/sandbox/datasets/blockbooks/blockbooks_src/lib/pages.py\"/>
+    <ore:aggregates rdf:resource=\"http://databank.ora.ox.ac.uk/sandbox/datasets/blockbooks/blockbooks_src\"/>
+    <ore:aggregates rdf:resource=\"http://databank.ora.ox.ac.uk/sandbox/datasets/blockbooks/blockbooks_src/static/xml\"/>
+    <ore:aggregates rdf:resource=\"http://databank.ora.ox.ac.uk/sandbox/datasets/blockbooks/blockbooks_src/static\"/>
+    <ore:aggregates rdf:resource=\"http://databank.ora.ox.ac.uk/sandbox/datasets/blockbooks/blockbooks_src/main2.py\"/>
+    <ore:aggregates rdf:resource=\"http://databank.ora.ox.ac.uk/sandbox/datasets/blockbooks/blockbooks_src/lib\"/>
+    <ore:aggregates rdf:resource=\"http://databank.ora.ox.ac.uk/sandbox/datasets/blockbooks/blockbooks_src/config\"/>
+    <ore:aggregates rdf:resource=\"http://databank.ora.ox.ac.uk/sandbox/datasets/blockbooks/blockbooks_src/scripts\"/>
+    <ore:aggregates rdf:resource=\"http://databank.ora.ox.ac.uk/sandbox/datasets/blockbooks/blockbooks_src/templates\"/>
+    <ore:aggregates rdf:resource=\"http://databank.ora.ox.ac.uk/sandbox/datasets/blockbooks/blockbooks_src/static/css\"/>
+     ....
+    <dcterms:isVersionOf rdf:resource=\"http://databank.ora.ox.ac.uk/sandbox/datasets/blcokbooks-src/blockbooks_src.zip\"/>
+  </oxds:Grouping>
+</rdf:RDF>
+",
+	"parts": {
+        "3=2011-02-10T17+47+51,950519": {
+            "st_ctime": 1304607671.3867805,
+            "st_rdev": 0,
+            "st_mtime": 1297360071.9440658,
+            "st_blocks": 8,
+            "st_nlink": 1,
+            "st_gid": 33,
+            "st_blksize": 4096,
+            "st_dev": 2049,
+            "st_size": 26,
+            "st_atime": 1301575707.6940622,
+            "st_uid": 1000,
+            "st_ino": 141255,
+            "st_mode": 33277
+        },
+        "blockbooks_src": {},
+        "manifest.rdf": {
+            "st_ctime": 1304607671.3867805,
+            "st_rdev": 0,
+            "st_mtime": 1297360072.1640515,
+            "st_blocks": 192,
+            "st_nlink": 1,
+            "st_gid": 33,
+            "st_blksize": 4096,
+            "st_dev": 2049,
+            "st_size": 95535,
+            "st_atime": 1308219419.8216116,
+            "st_uid": 1000,
+            "st_ino": 141257,
+            "st_mode": 33277},
+        "4=blockbooks": {
+            "st_ctime": 1304607671.3867805,
+            "st_rdev": 0,
+            "st_mtime": 1297360071.9440658,
+            "st_blocks": 8,
+            "st_nlink": 1,
+            "st_gid": 33,
+            "st_blksize": 4096,
+            "st_dev": 2049,
+            "st_size": 10,
+            "st_atime": 1301575707.5941813,
+            "st_uid": 1000,
+            "st_ino": 141256,
+            "st_mode": 33277
+        }
+    }
+}

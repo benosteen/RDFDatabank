@@ -289,10 +289,12 @@ class DatasetsController(BaseController):
                 response.headers["Content-Location"] = url(controller="datasets", action="datasetview", silo=silo, id=id) 
                 response.status = "201 Created"
                 return "201 Created"
-            elif params.has_key('embargo_change'):
+            elif params.has_key('embargo_change') or params.has_key('embargoed'):
                 item = c_silo.get_item(id)
                 item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
-                if params.has_key('embargoed'):
+                #if params.has_key('embargoed'):
+                if (params.has_key('embargo_change') and params.has_key('embargoed')) or \
+                   (params.has_key('embargoed') and params['embargoed'].lower() == 'true'):
                     if params.has_key('embargoed_until') and params['embargoed_until']:
                         embargoed_until_date = params['embargoed_until']
                     elif params.has_key('embargo_days_from_now') and params['embargo_days_from_now']:
@@ -556,6 +558,10 @@ class DatasetsController(BaseController):
         vnum = str(vnum)
         if not vnum in item.manifest['versions']:
             abort(404)
+
+        # filename options - used to check if DOI redirects the parameters
+        c.options = request.GET
+
         #Set the item's version cursor
         item.set_version_cursor(vnum)
         c.version = vnum           
@@ -571,6 +577,8 @@ class DatasetsController(BaseController):
             c.ident = ident
             granary_list = ag.granary.silos
             silos = ag.authz(granary_list, ident)
+            if silo not in silos:
+                abort(403, "Forbidden")
             c.editor = silo in silos
         elif request.environ.get('repoze.who.identity'):
             ident = request.environ.get('repoze.who.identity')  
@@ -614,7 +622,7 @@ class DatasetsController(BaseController):
                     returndata['parts'][part] = serialisable_stat(c.parts[part])
                 returndata['readme_text'] = c.readme_text
                 returndata['manifest_pretty'] = c.manifest_pretty
-                return simplejson.dumps(items)
+                return simplejson.dumps(returndata)
             elif str(mimetype).lower() in ["application/rdf+xml", "text/xml"]:
                 response.content_type = 'application/rdf+xml; charset="UTF-8"'
                 response.status_int = 200
@@ -933,19 +941,20 @@ class DatasetsController(BaseController):
                 response.status = "200 OK"
                 return "{'ok':'true'}"   # required for the JQuery magic delete to succede.
             elif item.isdir(path):
-                parts = item.list_parts(path)
-                for part in parts:
-                    if item.isdir(os.path.join(path, part)):
-                        # TODO implement proper recursive delete, with RDF aggregation
-                        # updating
-                        abort(400, "Directory is not empty of directories")
+                #parts = item.list_parts(path)
+                #for part in parts:
+                #    if item.isdir(os.path.join(path, part)):
+                #        # TODO implement proper recursive delete, with RDF aggregation
+                #        # updating
+                #        abort(400, "Directory is not empty of directories")
                 item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                 item.del_triple(item.uri, u"oxds:currentVersion")
                 item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
-                for part in parts:
-                    item.del_stream(os.path.join(path, part))
-                    ag.b.deletion(silo, id, os.path.join(path, part), ident=ident['repoze.who.userid'])
-                item.del_stream(path)
+                #for part in parts:
+                #    item.del_stream(os.path.join(path, part))
+                #    ag.b.deletion(silo, id, os.path.join(path, part), ident=ident['repoze.who.userid'])
+                #item.del_stream(path)
+                item.del_dir(path)
                 item.del_triple(item.uri, u"dcterms:modified")
                 item.add_triple(item.uri, u"dcterms:modified", datetime.now())
                 item.sync()

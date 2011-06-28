@@ -1,33 +1,28 @@
 # -*- coding: utf-8 -*-
 <div id="globalWrapper">
-<h2>Datasets</h2>
+<h2>Admin</h2>
 <p>API call to </p><ul>
-<li>Obtain a list of datasets in a silo</li>
-<li>Obtain information about the latest version of the dataset or information about a particular vesion of the dataset</li>
-<li>View the contents of the dataset - view / download files and view contents of sub-directories (latest verison or a particular version) </li>
-<li>Create a dataset</li>
-<li>Modify the datasets embargo information</li>
-<li>Add new files to the dataset (including metadata files)</li>
-<li>Update existing files in the dataset (including metadata files)</li>
-<li>Delete files in the dataset</li>
-<li>Delete the dataset</li>
+<li>Obtain a list silos that are owned by user</li>
+<li>Modify the silo metadata</li>
+<li>Delete the silo</li>
+<li>Create usernames and assign passwords </li>
+<li>update passwords </li>
+<li>Add/remove users from a silo</li>
 </ul>
 <p>Sections</p>
 <ol>
-<li><a href="#section1">/{silo name}/datasets</a></li>
-<li><a href="#section2">/{silo name}/datasets/{id}</a></li>
-<li><a href="#section3">/{silo name}/datasets/{id}/version{#}</a></li>
-<li><a href="#section4">/{silo name}/datasets/{id}/{subpath}</a></li>
-<li><a href="#section5">/{silo name}/datasets/{id}[/{subpath}]/version{#}</a></li>
+<li><a href="#section1">/admin</a></li>
+<li><a href="#section2">/{silo name}/admin</a></li>
+<li><a href="#section3">/{silo name}/register</a></li>
 </ol>
-<!-- ========== /{silo name}/datasets ========== -->
+<!-- ========== /admin ========== -->
 <div id="section1">
   <div class="Section">
-    <div class="lt">/{silo name}/datasets</div>
+    <div class="lt">/admin</div>
     <div class="rt"><a href="#globalWrapper">top</a></div>
   </div>
 </div>
-<p>API call to obtain a list of datasets in a silo and create a new dataset</p>
+<p>API call to obtain a list of silos owned by the user, create new silos, delete silo, manage users and alter silo metadata</p>
 <p><i><b>Controller: datasets &nbsp;&nbsp;&nbsp;&nbsp;action: siloview</b></i></p>
 <div class="List">
   <p><b>GET</b>: Obtain a list of datasets in a silo</p>

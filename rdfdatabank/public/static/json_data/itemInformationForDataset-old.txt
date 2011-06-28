@@ -1,0 +1,7 @@
+Information obtained for the dataset 'dataset2' in silo 'sandbox' (at /sandbox/items/dataset2) in text/plain or application/json
+
+data_returned = {
+    "auctm315.zip": "dataset2-auctm315", 
+    "archgc14.zip": "dataset2-archgc14", 
+    "test1.zip": "dataset2-test1"
+}

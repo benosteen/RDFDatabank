@@ -1,69 +1,160 @@
 # -*- coding: utf-8 -*-
 <div id="globalWrapper">
 <h2>Items</h2>
+<p>Sections</p>
+<ol>
+<!--<li><a href="#section1">/{silo name}/items</a></li>-->
+<li><a href="#section2">/{silo name}/items/{id}</a></li>
+<li><a href="#section3">/{silo name}/items/{id}/{path}</a></li>
+<li><a href="#section4">/{silo name}/items/{id}/{path}/{subpath}</a></li>
+</ol>
 <!-- ========== /{silo name}/items ========== -->
-<h3 class="Section-">
-<a class="toc" name="toc-Section-1"></a>/{silo name}/items
-</h3>
-<i><b>Controller: items &nbsp;&nbsp;&nbsp;&nbsp;action: siloview</b></i>
+<!--
+<div id="section1">
+  <div class="Section">
+    <div class="lt">/{silo name}/items</div>
+    <div class="rt"><a href="#globalWrapper">top</a></div>
+  </div>
+</div>
+<p>This is not used</p>
+<p><i><b>Controller: items &nbsp;&nbsp;&nbsp;&nbsp;action: siloview</b></i></p>
 <div class="List">
-<span class="List-entry">GET</span><span class="List-contents">Accept: *, authd - Returns 403, Forbidden</span>
+<p><b>GET</b></p>
+<div class="List-entry">Accept: *, authd </div>
+<div class="List-contents">Returns 403, Forbidden</div>
 </div>
 <div class="List">
-<span class="List-entry">POST,PUT,DELETE</span><span class="List-contents">NOOP</span>
+<p><b>POST, PUT, DELETE</b> NOOP</p>
 </div>
-
+-->
 <!-- ========== /{silo name}/items/{id} ========== -->
-<h3 class="Section1-1">
-<a class="toc" name="toc-Section-2"></a>/{silo name}/items/{id}
-</h3>
-<i><b>Controller: items &nbsp;&nbsp;&nbsp;&nbsp;action: datasetview</b></i>
+<div id="section2">
+  <div class="Section">
+    <div class="lt">/{silo name}/items/{id}</div>
+    <div class="rt"><a href="#globalWrapper">top</a></div>
+  </div>
+</div>
+<p>API call to obtain a list of unpack end-points, read the contents of a zip-file (without unpacking) and unpack a zip file into a new / existing dataset</p>
+<p><i><b>Controller: items &nbsp;&nbsp;&nbsp;&nbsp;action: datasetview</b></i></p>
 <div class="List">
-<span class="List-entry">GET</span><span class="List-contents">Accept: *, authd - Returns an HTML 
-page with list of zipfiles in <i>{id}</i> with form to unpack the zip file</span>
+  <p><b>GET</b></p>
+  <div class="List-entry">Returns</div>
+  <div class="List-contents">
+    <div class="List-contents">401 if not a valid user</div>
+    <div class="List-contents">403 if not authorized</div>
+    <div class="List-contents">404 if dataset <i>id</i> does not exist</div>
+    <div class="List-entry">Accept: text/html</div>
+    <div class="List-contents">Returns an HTML page with list of zipfiles in <i>{id}</i> with form to unpack the zip file</div>
+    <div class="List-entry">Accept: text/plain, application/json</div>
+    <div class="List-contents">200 OK</div>
+    <div class="List-contents">Returns a JSON-encoded list of zipfiles in dataset</div>
+    <div class="List-contents"> The file
+      <a href="/static/json_data/itemInformationForDataset.txt" target="_blank">itemInformationForDataset.txt</a>
+      contains an example of the data returned (data_returned)
+    </div>
+    <div class="List-entry">Accept: */*, default</div>
+    <div class="List-contents">Returns text/html - an HTML page with list of zipfiles in <i>{id}</i> with form to unpack the zip file</div>
+  </div>
 </div>
 <div class="List">
-<span class="List-entry">POST</span><span class="List-contents">Unpack file. Create new dataset containing upacked file contents</span>
+  <p><b>POST</b> Unpack file. Create new dataset/update existing dataset with contents of upacked file</p>
+  <div class="List-entry">Parameters</div>
+  <div class="List-contents">
+    <table>
+    <tr><td><b>filename</b></td><td>{name of file to be unpacked, including the path}</td></tr>
+    <tr><td><b> Id</b></td><td>{(Optional)}. if Id is not supplied, the default dataset id for the new dataset will be {dataset_id}-{file_name}</td></tr>
+    </table>
+  </div>
+  <div class="List-entry">Returns</div>
+  <div class="List-contents">
+    <div class="List-contents">401 if not a valid user</div>
+    <div class="List-contents">403 if not authorized</div>
+    <div class="List-contents">404 if file to unpack (as given by filename) was not found</div>
+    <div class="List-contents">415 if file is not of type application/zip</div>
+    <div class="List-contents">400 if there was an error reading the zipfile (BadZipFile)</div>
+    <div class="List-entry">Accept:text/html </div>
+    <div class="List-contents">302 to splash page for newly created dataset / updated dataset</div>
+    <div class="List-entry">Accept: text/plain, application/json</div>
+    <div class="List-contents">201/204 on creation/update of dataset</div>
+    <div class="List-entry">Accept: */*, default</div>
+    <div class="List-contents">Returns text/plain - 201/204 on creation/update of dataset</div>
+  </div>
 </div>
-<ul>
-<li class="nested">
 <div class="List">
-<span class="List-entry">Parameters</span><span class="List-contents">-&gt; filename = {name of file to be unpacked, including the path} <br />-&gt;
-Id={(Optional)}. if Id is not supplied, the default dataset id for the new dataset will be {dataset_id}-{file_name}</span>
+<p><b>PUT, DELETE</b> NOOP</p>
 </div>
-<div class="List">
-<span class="List-entry">Returns:</span><span class="List-contents">Accept:text/html - 302 to splash
- page for newly created dataset</span>
-</div>
-<div class="List">
-<span class="List-entry">Returns:</span><span class="List-contents">Accept:* 200/201 on update/creation of dataset; 404 if file not found; 415 if file isn't a zip file; 400 if no filename or if unzipping fails</span>
-</div>
-</li>
-</ul>
 
 <!-- ========== /{silo name}/items/{id}/{path} ========== -->
-<h3 class="Section1-1">
-<a class="toc" name="toc-Section-2"></a>/{silo name}/items/{id}/{path}
-</h3>
-<i><b>Controller: items &nbsp;&nbsp;&nbsp;&nbsp;action: itemview</b></i>
+<div id="section3">
+  <div class="Section">
+    <div class="lt">/{silo name}/items/{id}/{path}</div>
+    <div class="rt"><a href="#globalWrapper">top</a></div>
+  </div>
+</div>
+<p>API call to read the contents of a zip-file (without having to unpack) and unpack a zip file into a new / existing dataset</p>
+<p><i><b>Controller: items &nbsp;&nbsp;&nbsp;&nbsp;action: itemview</b></i></p>
 <div class="List">
-<span class="List-entry">GET</span><span class="List-contents">Accept: *, authd - Returns an HTML 
-page with list of zipfiles in <i>{id}</i> with form to unpack the zip file</span>
+  <p><b>GET</b></p>
+  <div class="List-entry">Returns</div>
+  <div class="List-contents">
+    <div class="List-contents">401 if not a valid user</div>
+    <div class="List-contents">403 if not authorized</div>
+    <div class="List-contents">404 if path does not exist, or if path does not point to a file</div>
+    <div class="List-contents">415 if file is not of type application/zip</div>
+    <div class="List-contents">400 if there was an error reading the zipfile (BadZipFile)</div>
+    <div class="List-entry">Accept: text/html</div>
+    <div class="List-contents">Returns a HTML page listing the contents of the zipfile</div>
+    <div class="List-entry">Accept: text/plain, application/json</div>
+    <div class="List-contents">200 OK</div>
+    <div class="List-contents">Returns a JSON-encoded hash dict listing the contents of the ziipfile (files / directories in archive), along with the size of the uncompressed member and and the date of last modification of the member as a tuple of 6 values (Year, Month, Day of month, Hours, Minutes, Seconds).</div>
+    <div class="List-contents"> The file
+      <a href="/static/json_data/itemInformationForZipFileinDataset.txt" target="_blank">itemInformationForZipFileinDataset.txt</a>
+      contains an example of the data returned (data_returned)
+    </div>
+    <div class="List-entry">Accept: */*, default</div>
+    <div class="List-contents">Returns text/html - an HTML page listing the contents of the zipfile</div>
+  </div>
 </div>
 <div class="List">
-<span class="List-entry">POST</span><span class="List-contents">Unpack file. Create new dataset containing upacked file contents</span>
+  <p><b>POST</b> Unpack file. Create new dataset/update existing dataset with contents of upacked file</p>
+  <div class="List-entry">Parameters</div>
+  <div class="List-contents">
+    <table>
+    <tr><td><b>filename</b></td><td>{name of file to be unpacked, including the path}</td></tr>
+    <tr><td><b> Id</b></td><td>{(Optional)}. if Id is not supplied, the default dataset id for the new dataset will be {dataset_id}-{file_name}</td></tr>
+    </table>
+  </div>
+  <div class="List-entry">Returns</div>
+  <div class="List-contents">
+    <div class="List-contents">401 if not a valid user</div>
+    <div class="List-contents">403 if not authorized</div>
+    <div class="List-contents">404 if path does not exist, or if path does not point to a file</div>
+    <div class="List-contents">415 if file is not of type application/zip</div>
+    <div class="List-contents">400 if there was an error reading the zipfile (BadZipFile)</div>
+    <div class="List-entry">Accept:text/html </div>
+    <div class="List-contents">302 to splash page for newly created dataset / updated dataset</div>
+    <div class="List-entry">Accept: text/plain, application/json</div>
+    <div class="List-contents">201/204 on creation/update of dataset</div>
+    <div class="List-entry">Accept: */*, default</div>
+    <div class="List-contents">Returns text/plain - 201/204 on creation/update of dataset</div>
+  </div>
 </div>
-<ul>
-<li class="nested">
 <div class="List">
-<span class="List-entry">Parameters</span><span class="List-contents">-&gt; Id={(Optional)}. if Id is not supplied, the default dataset id for the new dataset will be {dataset_id}-{file_name}</span>
+  <p><b>PUT, DELETE</b> NOOP</p>
 </div>
-<div class="List">
-<span class="List-entry">Returns:</span><span class="List-contents">Accept:text/html - 302 to splash
- page for newly created dataset</span>
+
+<!-- ========== /{silo name}/items/{id}/{path}/{subpath} ========== -->
+<div id="section4">
+  <div class="Section">
+    <div class="lt">/{silo name}/items/{id}/{path}/{subpath}</div>
+    <div class="rt"><a href="#globalWrapper">top</a></div>
+  </div>
 </div>
-<div class="List">
-<span class="List-entry">Returns:</span><span class="List-contents">Accept:* 200/201 on update/creation of dataset; 404 if file not found; 415 if file isn't a zip file; 400 if no filename or if unzipping fails</span>
+<p>API call to retreive a file from the zip file</p>
+<p><i><b>Controller: items &nbsp;&nbsp;&nbsp;&nbsp;action: subitemview</b></i></p>
+<div class="todo">
+  <div class="List-entry">TODO:</div>
+  <div class="List-contents">This is yet to be implemented</div>
 </div>
 <!-- ========== END ========== -->
 </div>

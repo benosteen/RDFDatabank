@@ -1,0 +1,10 @@
+Information obtained for the file test1.zip in dataset 'dataset2' in silo 'sandbox' 
+(at /sandbox/items/dataset2/test1.zip) in text/plain or application/json
+
+data_returned = {
+    "admiral-dataset.txt": [43, [2010, 11, 29, 16, 30, 52]], 
+    "TestScanFilesSubDir/": [0, [2010, 11, 29, 17, 34, 42]], 
+    "TestScanFilesSubDir/TestScanFiles31.txt": [9, [2010, 10, 4, 15, 39, 54]], 
+    "TestScanFilesSubDir/TestScanFiles32.txt": [9, [2010, 10, 4, 15, 39, 54]], 
+    "TestScanFilesSubDir/manifest.rdf": [471, [2010, 11, 29, 17, 36, 26]]
+}

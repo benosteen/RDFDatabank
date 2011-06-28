@@ -1,0 +1,84 @@
+Sate information of dataset 'dataset2' (ans["state"]["item_id"]) obtained at /sandbox/states/dataset2
+
+data_returned = {
+    "state": {
+        "files": {"1": ["manifest.rdf", "README"]}, 
+        "versions": ["1"], 
+        "rdffileformat": "xml", 
+        "metadata": {
+            "createdby": "admin", 
+            "uuid": "ca5f413c98f040b097dbfc1e4a3a75b0", 
+            "embargoed_until": "2078-10-01T15:09:00.728035", 
+            "embargoed": true
+        }, 
+        "item_id": "dataset2", 
+        "currentversion": "1", 
+        "metadata_files": {"1": []}, 
+        "date": "2010-10-19T16:11:23.361945", 
+        "version_dates": {"1": "2010-10-19T16:11:23.361945"}, 
+        "rdffilename": "manifest.rdf", 
+        "subdir": {"1": []}
+    }, 
+    "parts": {
+        "README": {
+            "st_ctime": 1287503597.3135049, 
+            "st_rdev": 0, 
+            "st_mtime": 1287503597.3135049, 
+            "st_blocks": 8, 
+            "st_nlink": 1, 
+            "st_gid": 0, 
+            "st_blksize": 4096, 
+            "st_dev": 64256, 
+            "st_size": 52, 
+            "st_atime": 1287503597.3325315, 
+            "st_uid": 0, 
+            "st_ino": 141635, 
+            "st_mode": 33188
+        }, 
+        "4=dataset2": {
+            "st_ctime": 1287501083.3604126, 
+            "st_rdev": 0, 
+            "st_mtime": 1287501083.3604126, 
+            "st_blocks": 8, 
+            "st_nlink": 1, 
+            "st_gid": 0, 
+            "st_blksize": 4096, 
+            "st_dev": 64256, 
+            "st_size": 8, 
+            "st_atime": 1287501083.3604126, 
+            "st_uid": 0, 
+            "st_ino": 141602, 
+            "st_mode": 33188
+        }, 
+        "3=2010-10-19T16+11+23,361945": {
+            "st_ctime": 1287501083.3604126, 
+            "st_rdev": 0, 
+            "st_mtime": 1287501083.3604126, 
+            "st_blocks": 8, 
+            "st_nlink": 1, 
+            "st_gid": 0, 
+            "st_blksize": 4096, 
+            "st_dev": 64256, 
+            "st_size": 26, 
+            "st_atime": 1287501083.3604126, 
+            "st_uid": 0, 
+            "st_ino": 141591, 
+            "st_mode": 33188
+        }, 
+        "manifest.rdf": {
+            "st_ctime": 1287503597.3165164, 
+            "st_rdev": 0, 
+            "st_mtime": 1287503597.3165164, 
+            "st_blocks": 8, 
+            "st_nlink": 1, 
+            "st_gid": 0, 
+            "st_blksize": 4096, 
+            "st_dev": 64256, 
+            "st_size": 885, 
+            "st_atime": 1287503597.324522, 
+            "st_uid": 0, 
+            "st_ino": 141613, 
+            "st_mode": 33188
+        }
+    }
+}

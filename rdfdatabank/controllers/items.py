@@ -35,7 +35,7 @@ class ItemsController(BaseController):
 
         rdfsilo = ag.granary.get_rdf_silo(silo)
         if not rdfsilo.exists(id):
-            abort (403, "Forbidden")
+            abort (404)
 
         dataset = rdfsilo.get_item(id)
 
@@ -59,7 +59,8 @@ class ItemsController(BaseController):
                     response.content_type = 'application/json; charset="UTF-8"'
                     response.status_int = 200
                     response.status = "200 OK"
-                    return simplejson.dumps(dict(c.zipfiles))
+                    #return simplejson.dumps(dict(c.zipfiles))
+                    return simplejson.dumps(list(c.zipfiles.keys()))
                 try:
                     mimetype = accept_list.pop(0)
                 except IndexError:
@@ -88,8 +89,15 @@ class ItemsController(BaseController):
             #step 1: Create / initialize target dataset 
             if not rdfsilo.exists(target_dataset_name):
                 target_dataset = create_new(rdfsilo, target_dataset_name, ident['repoze.who.userid'])
+                response.status_int = 201
+                response.status = "201 Created"
+                response.headers["Content-Location"] = url(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
+                response_message = "201 Created"
             else:
                 target_dataset = rdfsilo.get_item(target_dataset_name)
+                response.status = "204 Updated"
+                response.status_int = 204
+                response_message = None
 
             #step 2: Unpack zip item 
             try:
@@ -116,21 +124,15 @@ class ItemsController(BaseController):
                     redirect_to(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = "text/plain"
-                    response.status_int = 201
-                    response.status = "201 Created"
-                    response.headers["Content-Location"] = url(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
-                    return "201 Created"
+                    return response_message
                 try:
                     mimetype = accept_list.pop(0)
                 except IndexError:
                     mimetype = None
             # Whoops - nothing satisfies - return text/plain
             response.content_type = "text/plain"
-            response.status_int = 201
-            response.status = "201 Created"
-            response.headers["Content-Location"] = url(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
-            return "201 Created"
-            
+            return response_message
+ 
     @rest.restrict('GET', 'POST')
     def itemview(self, silo, id, path):
         #tmpl_context variables needed: c.silo_name, c.zipfile_contents c.ident, c.id, c.path
@@ -153,7 +155,7 @@ class ItemsController(BaseController):
 
         rdfsilo = ag.granary.get_rdf_silo(silo)
         if not rdfsilo.exists(id):
-            abort (403, "Forbidden")
+            abort (404)
 
         dataset = rdfsilo.get_item(id)
         item_real_filepath = dataset.to_dirpath()
@@ -207,11 +209,26 @@ class ItemsController(BaseController):
                 (head, fn) = os.path.split(path)
                 (fn, ext) = os.path.splitext(fn)
                 target_dataset_name = "%s-%s"%(id,fn)
-            #target_dataset_name, current_dataset, post_filepath, silo, ident
+
+            #step 1: Create / initialize target dataset 
+            if not rdfsilo.exists(target_dataset_name):
+                target_dataset = create_new(rdfsilo, target_dataset_name, ident['repoze.who.userid'])
+                response.status_int = 201
+                response.status = "201 Created"
+                response.headers["Content-Location"] = url(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
+                response_message = "201 Created"
+            else:
+                target_dataset = rdfsilo.get_item(target_dataset_name)
+                response.status = "204 Updated"
+                response.status_int = 204
+                response_message = None
+            
+            #step 2: Unpack zip item 
             try:
                 unpack_zip_item(target_dataset_name, dataset, path, rdfsilo, ident['repoze.who.userid'])
             except BadZipfile:
                 abort(400, "Couldn't unpack zipfile")
+            
             target_dataset.sync()
             target_dataset.sync()
             target_dataset.sync()
@@ -231,23 +248,19 @@ class ItemsController(BaseController):
                     redirect_to(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = "text/plain"
-                    response.status_int = 201
-                    response.status = "201 Created"
-                    response.headers['Content-Location'] = url(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
-                    return "201 Created"
+                    return response_message
                 try:
                     mimetype = accept_list.pop(0)
                 except IndexError:
                     mimetype = None
             # Whoops - nothing satisfies - return text/plain
             response.content_type = "text/plain"
-            response.status_int = 201
-            response.status = "201 Created"
-            response.headers["Content-Location"] = url(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
-            return "201 Created"
+            return response_message
 
     @rest.restrict('GET')
     def subitemview(self, silo, id, path, subpath):
+        #Function to retreive a file from the zipfile
+        #TODO
         #tmpl_context variables needed: c.silo_name, c.zipfile_contents c.ident, c.id, c.path
         c.silo_name = silo
         c.id = id

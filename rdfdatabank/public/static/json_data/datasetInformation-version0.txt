@@ -1,0 +1,72 @@
+Information obtained for version 0 of dataset 'blockbooks' in silo 'sandbox' 
+(at /sandbox/datasets/blockbooks/version0) in text/plain or application/json
+
+data_returned = {
+    "readme_text": null,
+	"embargos": {"blockbooks": ["True", "2081-01-23T14:25:28.548643"]},
+    "editor": true,
+    "view": "",
+	"manifest_pretty": "<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<rdf:RDF
+  xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'
+  xmlns:dcterms='http://purl.org/dc/terms/'
+  xmlns:oxds='http://vocab.ox.ac.uk/dataset/schema#'
+>
+  <oxds:DataSet rdf:about=\"http://databank.ora.ox.ac.uk/sandbox/datasets/blockbooks\">
+    <dcterms:identifier>blockbooks</dcterms:identifier>
+    <oxds:isEmbargoed>True</oxds:isEmbargoed>
+    <oxds:currentVersion>0</oxds:currentVersion>
+    <dcterms:created rdf:datatype=\"http://www.w3.org/2001/XMLSchema#dateTime\">2011-02-10T17:47:50.808243</dcterms:created>
+    <dcterms:creator>admin</dcterms:creator>
+    <oxds:embargoedUntil>2081-01-23T17:47:50.807854</oxds:embargoedUntil>
+  </oxds:DataSet>
+</rdf:RDF>
+",
+	"parts": {
+        "3=2011-02-10T17+47+50,802336": {
+            "st_ctime": 1304607671.3867805,
+            "st_rdev": 0,
+            "st_mtime": 1297360070.794066,
+            "st_blocks": 8,
+            "st_nlink": 1,
+            "st_gid": 33,
+            "st_blksize": 4096,
+            "st_dev": 2049,
+            "st_size": 26,
+            "st_atime": 1301575708.2040699,
+            "st_uid": 1000,
+            "st_ino": 659627,
+            "st_mode": 33277
+        },
+        "manifest.rdf": {
+            "st_ctime": 1304607671.3867805,
+            "st_rdev": 0,
+            "st_mtime": 1297360070.8040543,
+            "st_blocks": 8,
+            "st_nlink": 1,
+            "st_gid": 33,
+            "st_blksize": 4096,
+            "st_dev": 2049,
+            "st_size": 799,
+            "st_atime": 1308219429.3470435,
+            "st_uid": 1000,
+            "st_ino": 659629,
+            "st_mode": 33277
+        },
+        "4=blockbooks": {
+            "st_ctime": 1304607671.3867805,
+            "st_rdev": 0,
+            "st_mtime": 1297360070.8040543,
+            "st_blocks": 8,
+            "st_nlink": 1,
+            "st_gid": 33,
+            "st_blksize": 4096,
+            "st_dev": 2049,
+            "st_size": 10,
+            "st_atime": 1301575708.1240709,
+            "st_uid": 1000,
+            "st_ino": 659628,
+            "st_mode": 33277
+        }
+    }
+}

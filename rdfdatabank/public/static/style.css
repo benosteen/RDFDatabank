@@ -79,3 +79,46 @@ body {
 .unpack_endpoints li {
     height: 2em; 
 }
+
+.List {
+    border-top: 1px solid #CCCCCC;
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+
+.List-entry {
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+    margin-left: 20px;
+    margin-top: 15px;
+}
+
+.List-contents {
+    margin-left: 30px;
+}
+
+.Section {
+    background: none repeat scroll 0 0 #CCCCCC;
+    font-size: 1.3em;
+    font-weight: bold;
+    height: 23px;
+    width: 100%;
+}
+
+.todo {
+    color: #ff0000;
+}
+
+.lt {
+    float: left;
+}
+
+.rt {
+    float: right;
+}
+
+.menu {
+    display: inline;
+    margin-right: 5px;
+}

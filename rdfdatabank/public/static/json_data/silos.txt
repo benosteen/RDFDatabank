@@ -1,0 +1,8 @@
+Information obtained at /silos in text/plain or application/json 
+
+data_returned = [
+    "admiral-test",
+    "general",
+    "sandbox",
+    "digitaltest"
+]

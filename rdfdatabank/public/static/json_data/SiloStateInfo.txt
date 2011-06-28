@@ -1,0 +1,43 @@
+State information of silo 'sandbox' (ans["silo"]) obtained at /sandbox/states
+
+data_returned = {
+    "silo": "sandbox",
+    "uri_base": "http://databank.ora.ox.ac.uk/sandbox/datasets/", 
+    "owners": "admin,testuser,digital",
+    "description": "Silo to test and play with", 
+    "title": "Sandbox", 
+    "notes": "", 
+    "disk_allocation": "10000", 
+    "datasets": {
+        "dataset1": {
+            "embargo_info": ["True", "2080-06-19T17:02:02.144708"]
+        }, 
+        "dataset2": {
+            "embargo_info": [false, ""]
+        }, 
+        "apps_test-test": {
+           "embargo_info": ["True", "2080-07-08T17:14:05.933086"]
+        }, 
+        "dataset1-test": {
+           "embargo_info": ["True", "2080-06-19T17:07:01.702660"]
+        }, 
+        "dataset1-test-testrdf": {
+            "embargo_info": ["True", "2080-08-27T17:15:30.449027"]
+        }, 
+        "zipfile:54": {
+            "embargo_info": ["True", "2080-08-27T16:52:19.195760"]
+        }, 
+        "test-testrdf": {
+            "embargo_info": ["True", "2080-09-09T09:44:47.801199"]
+        }, 
+        "test": {
+            "embargo_info": ["True", "2080-06-04T22:21:14.179650"]
+        }, 
+        "dataset1-testrdf": {
+            "embargo_info": ["True", "2080-08-27T21:36:24.094149"]
+        }, 
+        "apps_test": {
+            "embargo_info": ["True", "2080-07-08T17:13:53.290482"]
+        }
+    }
+}

@@ -1,0 +1,78 @@
+The state information for version 0 of dataset 'dataset1' obtained at /sandbox/states/dataset1/version0
+
+data_returned = {
+    "state": {
+        "files": {
+            "1": ["manifest.rdf"], 
+            "0": ["manifest.rdf"]
+        }, 
+        "versions": ["0", "1"], 
+        "rdffileformat": "xml", 
+        "metadata": {
+            "createdby": "admin", 
+            "uuid": "8ddcea6284184214ae921293f737932d", 
+            "embargoed_until": "", 
+            "embargoed": false
+        }, 
+        "item_id": "dataset1", 
+        "currentversion": "0", 
+        "subdir": {"1": [], "0": []}, 
+        "date": "2011-01-14T02:33:03.293546", 
+        "version_dates": {
+            "1": "2011-02-09T14:15:05.064235", 
+            "0": "2011-01-14T02:33:03.293546"
+        }, 
+        "rdffilename": "manifest.rdf", 
+        "metadata_files": {
+            "1": [], 
+            "0": []
+        }
+    }, 
+    "parts": {
+        "4=dataset1": {
+            "st_ctime": 1304607671.3967783, 
+            "st_rdev": 0, 
+            "st_mtime": 1294972383.2940826, 
+            "st_blocks": 8, 
+            "st_nlink": 1, 
+            "st_gid": 33, 
+            "st_blksize": 4096, 
+            "st_dev": 2049, 
+            "st_size": 8, 
+            "st_atime": 1301575885.4440567, 
+            "st_uid": 1000, 
+            "st_ino": 530092, 
+            "st_mode": 33277
+        }, 
+        "manifest.rdf": {
+            "st_ctime": 1304607671.3967783, 
+            "st_rdev": 0, 
+            "st_mtime": 1297181690.3740821, 
+            "st_blocks": 8, 
+            "st_nlink": 1, 
+            "st_gid": 33, 
+            "st_blksize": 4096, 
+            "st_dev": 2049, 
+            "st_size": 795, 
+            "st_atime": 1308134818.046737, 
+            "st_uid": 1000, 
+            "st_ino": 530165, 
+            "st_mode": 33277
+        },
+        "3=2011-01-14T02+33+03,293546": {
+            "st_ctime": 1304607671.3967783, 
+            "st_rdev": 0, 
+            "st_mtime": 1294972383.2940826, 
+            "st_blocks": 8, 
+            "st_nlink": 1, 
+            "st_gid": 33, 
+            "st_blksize": 4096, 
+            "st_dev": 2049, 
+            "st_size": 26, 
+            "st_atime": 1301575885.3873301, 
+            "st_uid": 1000, 
+            "st_ino": 530091, 
+            "st_mode": 33277
+        }
+    }
+}

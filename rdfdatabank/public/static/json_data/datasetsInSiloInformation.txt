@@ -1,0 +1,25 @@
+Information obtained for datasets in silo 'sandbox' (at /sandbox/datasets) in text/plain or application/json
+
+data_returned = {
+    "test": ["True", "2080-10-28T21:23:51.615033"],
+    "test-907365275": ["True", "2081-05-01T11:18:20.516356"],
+    "test2": ["True", "2080-06-03T10:11:00.313756"],
+    "test3": ["True", "2080-06-14T14:33:10.780119"],
+    "test4": ["True", "2081-04-23T12:15:17.633969"],
+    "test5": ["True", "2080-06-20T10:06:14.585849"],
+    "dataset1": [false, ""],
+    "dataset1-testdir": ["True", "2080-10-11T17:14:39.763539"],
+    "dataset1-test4": ["True", "2013-01-02T00:00:00"],
+    "dataset1-test5": ["True", "2012-01-02T00:00:00"],
+    "dataset1-test7": ["True", "2080-11-11T17:57:02.000026"],
+    "dataset1-test3": ["True", "2080-11-11T17:43:14.874758"],
+    "dataset1-test6": ["True", "2012-01-02T00:00:00"],
+    "dataset1-TestScanFilesSubDir": ["True", "2080-11-11T17:37:40.411597"],
+    "dataset1-testrdf": ["True", "2080-10-09T05:22:32.004597"],
+    "dataset2": ["True", "2080-10-03T11:33:03.136135"],
+    "book1": ["True", "2081-03-06T16:00:36.214577"],
+    "302739708": ["True", "2081-05-22T14:49:04.738700"],
+    "databanksrc2": ["True", "2081-01-23T15:29:58.120092"],
+    "english": ["True", "2081-01-24T12:11:29.910444"],
+    "databanksrc": ["True", "2081-01-23T13:22:15.369095"]
+}
