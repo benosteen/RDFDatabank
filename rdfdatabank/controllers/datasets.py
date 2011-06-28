@@ -941,19 +941,9 @@ class DatasetsController(BaseController):
                 response.status = "200 OK"
                 return "{'ok':'true'}"   # required for the JQuery magic delete to succede.
             elif item.isdir(path):
-                #parts = item.list_parts(path)
-                #for part in parts:
-                #    if item.isdir(os.path.join(path, part)):
-                #        # TODO implement proper recursive delete, with RDF aggregation
-                #        # updating
-                #        abort(400, "Directory is not empty of directories")
                 item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                 item.del_triple(item.uri, u"oxds:currentVersion")
                 item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
-                #for part in parts:
-                #    item.del_stream(os.path.join(path, part))
-                #    ag.b.deletion(silo, id, os.path.join(path, part), ident=ident['repoze.who.userid'])
-                #item.del_stream(path)
                 item.del_dir(path)
                 item.del_triple(item.uri, u"dcterms:modified")
                 item.add_triple(item.uri, u"dcterms:modified", datetime.now())

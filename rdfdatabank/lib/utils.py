@@ -26,7 +26,8 @@ def authz(granary_list,ident):
             return owners
         else:
             return []
-    
+    #For auth, the code is looking at the list of owners against each silo and not looking at the owner list against each user. A '*' here is meaningless.
+    #TODO: Modify code to look at both and keep both silo owner and silos a user has acces to in users.py in sunc and use both
     if ident['role'] == "admin":
         authd = []
         for item in granary_list:

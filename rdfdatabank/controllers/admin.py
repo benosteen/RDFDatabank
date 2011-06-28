@@ -85,7 +85,7 @@ class AdminController(BaseController):
                 mimetype = accept_list.pop(0)
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                        redirect_to(controller="admin", action="index")
+                        redirect_to(controller="silos", action="siloview", silo=silo_name)
                     elif str(mimetype).lower() in ["text/plain", "application/json"]:
                         response.content_type = "text/plain"
                         response.status_int = 201
@@ -211,12 +211,12 @@ class AdminController(BaseController):
                 mimetype = accept_list.pop(0)
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                        redirect_to(controller="datasets", action="siloview", silo=silo_name)
+                        redirect_to(controller="silos", action="siloview", silo=silo_name)
                     elif str(mimetype).lower() in ["text/plain", "application/json"]:
                         response.content_type = "text/plain"
                         response.status_int = 201
                         response.status = "201 Created"
-                        response.headers['Content-Location'] = url(controller="datasets", action="siloview", silo=silo_name)
+                        response.headers['Content-Location'] = url(controller="silos", action="siloview", silo=silo_name)
                         return "201 Created Silo %s" % silo_name
                     try:
                         mimetype = accept_list.pop(0)
@@ -226,7 +226,7 @@ class AdminController(BaseController):
                 response.content_type = "text/plain"
                 response.status_int = 201
                 response.status = "201 Created"
-                response.headers['Content-Location'] = url(controller="datasets", action="siloview", silo=silo_name)
+                response.headers['Content-Location'] = url(controller="silos", action="siloview", silo=silo_name)
                 return "201 Created Silo %s" % silo_name
         elif http_method == "DELETE":
             if not ag.granary.issilo(silo_name):
