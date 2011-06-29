@@ -36,6 +36,9 @@ from StringIO import StringIO
 from rdflib import RDF, URIRef, Literal
 from rdflib.Graph import ConjunctiveGraph as Graph
 
+#from time import sleep
+#import subprocess
+
 if __name__ == "__main__":
     # For testing: 
     # add main library directory to python path if running stand-alone
@@ -55,6 +58,23 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
     """
     def setUp(self):
         #super(TestSubmission, self).__init__()
+
+        #starting redis
+        #self.rp = subprocess.Popen("/opt/redis/redis-server /opt/redis/redis.conf")
+        #sleep(3)
+        #starting tomcat
+        #tp1 = subprocess.Popen("/opt/tomcat/bin/stop.sh")
+        #tp1.wait()
+        #if tp1.returncode != None:
+        #    self.tp = subprocess.Popen("/opt/tomcat/bin/start.sh")
+        #    sleep(10)
+        #    (resp, data) = self.doHTTP_GET(endpointhost="http://localhost:8080/", endpointpath=None,
+        #        resource="solr?q=*:*&start=0&row=1&format=json",
+        #        expect_status=200, expect_reason="OK", expect_type="application/json")
+        #starting Apache
+        #self.ap = subprocess.Popen("/etc/init.d/apache2 restart")
+        #sleep(3)
+
         self.setRequestEndPoint(
             endpointhost=RDFDatabankConfig.endpointhost,  # Via SSH tunnel
             endpointpath=RDFDatabankConfig.endpointpath)
@@ -67,6 +87,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         return
 
     def tearDown(self):
+        #self.rp.kill()
+        #self.tp.kill()
+        #self.ap.kill()
         return
 
     # Create empty test submission dataset
