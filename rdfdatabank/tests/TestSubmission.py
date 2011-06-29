@@ -84,7 +84,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
     def uploadTestSubmissionZipfile(self, file_to_upload="testdir.zip"):
         # Submit ZIP file, check response
         fields = []
-        zipdata = open("data/%s"%file_to_upload).read()
+        zipdata = open("testdata/%s"%file_to_upload).read()
         files = \
             [ ("file", file_to_upload, zipdata, "application/zip") 
             ]
@@ -105,7 +105,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             fields = \
                 [ ("filename", filename)
                 ]
-        zipdata = open("data/%s"%file_to_upload).read()
+        zipdata = open("testdata/%s"%file_to_upload).read()
         files = \
             [ ("file", file_to_upload, zipdata, "application/zip") 
             ]
@@ -1122,7 +1122,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Put zip file, check response
-        zipdata = open("data/testdir.zip").read()       
+        zipdata = open("testdata/testdir.zip").read()       
         (resp, respdata) = self.doHTTP_PUT(zipdata, resource="datasets/TestSubmission/testdir.zip", 
             expect_status=201, expect_reason="Created", expect_type="text/plain")
         LHobtained = resp.getheader('Content-Location', None)
@@ -1196,7 +1196,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             resource="datasets/TestSubmission", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         # Put zip file, check response
-        zipdata2 = open("data/testrdf3.zip").read()       
+        zipdata2 = open("testdata/testrdf3.zip").read()       
         (resp, respdata) = self.doHTTP_PUT(zipdata2, resource="datasets/TestSubmission/testrdf3.zip", 
             expect_status=201, expect_reason="Created", expect_type="text/plain")
         LHobtained = resp.getheader('Content-Location', None)
@@ -1223,7 +1223,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             expect_status=200, expect_reason="OK", expect_type="application/zip")
         self.assertEqual(zipdata2, zipfile2, "Difference between local and remote zipfile!")
         # Put zip file again, check response
-        zipdata3 = open("data/testdir2.zip").read()       
+        zipdata3 = open("testdata/testdir2.zip").read()       
         (resp, respdata) = self.doHTTP_PUT(zipdata3, resource="datasets/TestSubmission/testdir.zip", 
             expect_status=204, expect_reason="No Content", expect_type="text/plain")
         # Access and check list of contents
@@ -1307,7 +1307,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
         # Put manifest file, check response
-        zipdata = open("data/manifest.rdf").read()       
+        zipdata = open("testdata/manifest.rdf").read()       
         (resp, respdata) = self.doHTTP_PUT(zipdata, resource="datasets/TestSubmission/manifest.rdf", 
             expect_status=204, expect_reason="No Content", expect_type="text/plain")
         # Access and check list of contents
@@ -1338,7 +1338,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"title"),"Test dataset with merged metadata") in rdfgraph, 'dcterms:title')
         self.failUnless((subj,URIRef(owl+"sameAs"),URIRef("http://example.org/testrdf/")) in rdfgraph, 'owl:sameAs')
         # Update metadata file, check response
-        zipdata = open("data/manifest2.rdf").read()       
+        zipdata = open("testdata/manifest2.rdf").read()       
         (resp, respdata) = self.doHTTP_PUT(zipdata, resource="datasets/TestSubmission/manifest.rdf", 
             expect_status=204, expect_reason="No Content", expect_type="text/plain")
         # Access and check list of contents
@@ -1594,7 +1594,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         (resp, filedata) = self.doHTTP_GET(
             resource="datasets/TestSubmission-testdir/directory/file1.b",
             expect_status=200, expect_reason="OK", expect_type="text/plain")
-        checkdata = open("data/testdir/directory/file1.b").read()
+        checkdata = open("testdata/testdir/directory/file1.b").read()
         self.assertEqual(filedata, checkdata, "Difference between local and remote data!")
         #Access state information of TestSubmission-testdir
         (resp, data) = self.doHTTP_GET(
@@ -1712,7 +1712,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         (resp, filedata) = self.doHTTP_GET(
             resource="datasets/TestSubmission-testdir/directory/file1.b",
             expect_status=200, expect_reason="OK", expect_type="text/plain")
-        checkdata = open("data/testdir/directory/file1.b").read()
+        checkdata = open("testdata/testdir/directory/file1.b").read()
         self.assertEqual(filedata, checkdata, "Difference between local and remote data!")
         #Access state information of TestSubmission-testdir
         (resp, data) = self.doHTTP_GET(
@@ -1807,7 +1807,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         fields = \
             [ ("filename", "testdir2.zip")
             ]
-        zipdata = open("data/testdir2.zip").read()
+        zipdata = open("testdata/testdir2.zip").read()
         files = \
             [ ("file", "testdir2.zip", zipdata, "application/zip") 
             ]
@@ -2190,9 +2190,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         manifest.rdf located in unpacked zipfile is munged with existing manifest of the dataset."""
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
-        # Submit ZIP file data/testrdf.zip, check response
+        # Submit ZIP file testdata/testrdf.zip, check response
         fields = []
-        zipdata = open("data/testrdf.zip").read()
+        zipdata = open("testdata/testrdf.zip").read()
         files = \
             [ ("file", "testrdf.zip", zipdata, "application/zip") 
             ]
@@ -2288,9 +2288,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
 
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
-        # Submit ZIP file data/testrdf2.zip, check response
+        # Submit ZIP file testdata/testrdf2.zip, check response
         fields = []
-        zipdata = open("data/testrdf2.zip").read()
+        zipdata = open("testdata/testrdf2.zip").read()
         files = \
             [ ("file", "testrdf2.zip", zipdata, "application/zip") 
             ]
@@ -2389,9 +2389,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
 
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
-        # Submit ZIP file data/testrdf3.zip, check response
+        # Submit ZIP file testdata/testrdf3.zip, check response
         fields = []
-        zipdata = open("data/testrdf3.zip").read()
+        zipdata = open("testdata/testrdf3.zip").read()
         files = \
             [ ("file", "testrdf3.zip", zipdata, "application/zip") 
             ]
@@ -2493,9 +2493,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
 
         # Create a new dataset, check response
         self.createTestSubmissionDataset()
-        # Submit ZIP file data/testrdf4.zip, check response
+        # Submit ZIP file testdata/testrdf4.zip, check response
         fields = []
-        zipdata = open("data/testrdf4.zip").read()
+        zipdata = open("testdata/testrdf4.zip").read()
         files = \
             [ ("file", "testrdf4.zip", zipdata, "application/zip") 
             ]
