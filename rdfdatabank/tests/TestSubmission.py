@@ -81,6 +81,8 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.setRequestUserPass(
             endpointuser=RDFDatabankConfig.endpointuser,
             endpointpass=RDFDatabankConfig.endpointpass)
+        self.setRequestUriRoot(
+            manifesturiroot=RDFDatabankConfig.granary_uri_root)
         resp = self.doHTTP_DELETE(
             resource="datasets/TestSubmission", 
             expect_status="*", expect_reason="*")

@@ -8,6 +8,8 @@ $Rev: $
 
 class RDFDatabankConfig:
 
+    granary_uri_root="http://databank.ora.ox.ac.uk"
+
     # Access via SSH tunnel
     endpointhost="localhost:9080"
     endpointpath="/admiral-test/packages/"

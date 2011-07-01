@@ -99,6 +99,7 @@ class SparqlQueryTestCase(unittest.TestCase):
         self._endpointpath = "/sparqlquerytest"     # Really just a placeholder
         self._endpointuser = None
         self._endpointpass = None
+        self._manifesturiroot = None
         return
 
     def tearDown(self):
@@ -127,13 +128,22 @@ class SparqlQueryTestCase(unittest.TestCase):
             self._endpointpass = None
         return
 
+    def setRequestUriRoot(self, manifesturiroot=None):
+        if manifesturiroot:
+            self._manifesturiroot = manifesturiroot
+            logger.debug("setRequestUriRoot: %s: " % self._manifesturiroot)
+        else:
+            self._manifesturiroot = None
+        return
+
     def getRequestPath(self, rel):
         rel = rel or ""
         return urlparse.urljoin(self._endpointpath,rel)
 
     def getRequestUri(self, rel):
-        return "http://databank.ora.ox.ac.uk"+self.getRequestPath(rel)
+        #return "http://databank.ora.ox.ac.uk"+self.getRequestPath(rel)
         #return "http://"+self._endpointhost+self.getRequestPath(rel)
+        return self._manifesturiroot+self.getRequestPath(rel)
 
     def doRequest(self, command, resource, reqdata=None, reqheaders={}, expect_status=200, expect_reason="OK"):
         logger.debug(command+" "+self.getRequestUri(resource))
