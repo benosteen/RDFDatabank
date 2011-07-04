@@ -57,7 +57,7 @@ class AdminController(BaseController):
             return render("/silo_admin.html")
         elif http_method == "POST":
             params = request.POST
-            if 'silo' in params:
+            if 'silo' in params and 'owners' in params:
                 if ag.granary.issilo(params['silo']):
                     abort(403)
                 # Create new silo
@@ -154,6 +154,8 @@ class AdminController(BaseController):
                 kw = {}
                 for term in accepted_params:
                     if term in params:
+                        if term == 'owners' and not params[term]:
+                            continue
                         kw[term] = params[term]
                 ag.granary.describe_silo(silo_name, **kw)
                 ag.granary.sync()
@@ -248,27 +250,28 @@ class AdminController(BaseController):
             ag.granary._register_silos()
             # conneg return
             accept_list = None
-            if 'HTTP_ACCEPT' in request.environ:
-                try:
-                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
-                except:
-                    accept_list= [MT("text", "html")]
-            if not accept_list:
-                accept_list= [MT("text", "html")]
-            mimetype = accept_list.pop(0)
-            while(mimetype):
-                if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                    redirect_to(controller="admin", action="index")
-                elif str(mimetype).lower() in ["text/plain", "application/json"]:
-                    response.content_type = "text/plain"
-                    response.status_int = 200
-                    response.status = "200 OK"
-                    return """{'status':'Silo %s deleted'}""" % silo_name
+            #if 'HTTP_ACCEPT' in request.environ:
+            #    try:
+            #        accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+            #    except:
+            #        accept_list= [MT("text", "plain")]
+            #if not accept_list:
+            #    accept_list= [MT("text", "plain")]
+            #mimetype = accept_list.pop(0)
+            #while(mimetype):
+            #    if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+            #        redirect_to(controller="admin", action="index")
+            #    elif str(mimetype).lower() in ["text/plain", "application/json"]:
+            #        response.content_type = "text/plain"
+            #        response.status_int = 200
+            #        response.status = "200 OK"
+            #        return """{'status':'Silo %s deleted'}""" % silo_name
             # Whoops - nothing satisfies - return text/plain
             response.content_type = "text/plain"
             response.status_int = 200
             response.status = "200 OK"
-            return """{'status':'Silo %s deleted'}""" % silo_name
+            #return """{'status':'Silo %s deleted'}""" % silo_name
+            return "{'ok':'true'}"
 
     @rest.restrict('POST')
     def register(self, silo_name):

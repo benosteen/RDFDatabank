@@ -112,9 +112,10 @@ class SparqlQueryTestCase(unittest.TestCase):
                 # Reset credentials if setting host
                 self._endpointuser = None
                 self._endpointpass = None
-            if endpointpath: self._endpointpath = endpointpath
-            logger.debug("setRequestEndPoint: endpointhost %s: " % self._endpointhost)
-            logger.debug("setRequestEndPoint: endpointpath %s: " % self._endpointpath)
+                logger.debug("setRequestEndPoint: endpointhost %s: " % self._endpointhost)
+            if endpointpath: 
+                self._endpointpath = endpointpath
+                logger.debug("setRequestEndPoint: endpointpath %s: " % self._endpointpath)
         return
 
     def setRequestUserPass(self, endpointuser=None, endpointpass=None):
@@ -138,7 +139,10 @@ class SparqlQueryTestCase(unittest.TestCase):
 
     def getRequestPath(self, rel):
         rel = rel or ""
-        return urlparse.urljoin(self._endpointpath,rel)
+        if self._endpointpath:
+            return urlparse.urljoin(self._endpointpath,rel)
+        else:
+            return ""
 
     def getRequestUri(self, rel):
         #return "http://databank.ora.ox.ac.uk"+self.getRequestPath(rel)
@@ -150,10 +154,13 @@ class SparqlQueryTestCase(unittest.TestCase):
         if self._endpointuser:
             auth = base64.encodestring("%s:%s" % (self._endpointuser, self._endpointpass)).strip()
             reqheaders["Authorization"] = "Basic %s" % auth
+        print "\nendpointuser:", self._endpointuser
+        print "\nendpointpass:", self._endpointpass
         #print "Connect to "+self._endpointhost
         hc   = httplib.HTTPConnection(self._endpointhost)
         #hc   = httplib.HTTPSConnection(self._endpointhost)
         path = self.getRequestPath(resource)
+        #print path
         response     = None
         responsedata = None
         repeat       = 10
@@ -173,6 +180,10 @@ class SparqlQueryTestCase(unittest.TestCase):
             else:
                 response.read()  # Seems to be needed to free up connection for new request
         logger.debug("Status: %i %s" % (response.status, response.reason))
+        #print "expect_status:",  expect_status
+        #print "response.status:", response.status
+        #print "expect_reason:", expect_reason
+        #print "response.reason:", response.reason
         if expect_status != "*": self.assertEqual(response.status, expect_status)
         if expect_status == 201: 
             self.assertTrue(response.getheader('Content-Location', None))

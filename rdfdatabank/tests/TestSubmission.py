@@ -58,23 +58,6 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
     """
     def setUp(self):
         #super(TestSubmission, self).__init__()
-
-        #starting redis
-        #self.rp = subprocess.Popen("/opt/redis/redis-server /opt/redis/redis.conf")
-        #sleep(3)
-        #starting tomcat
-        #tp1 = subprocess.Popen("/opt/tomcat/bin/stop.sh")
-        #tp1.wait()
-        #if tp1.returncode != None:
-        #    self.tp = subprocess.Popen("/opt/tomcat/bin/start.sh")
-        #    sleep(10)
-        #    (resp, data) = self.doHTTP_GET(endpointhost="http://localhost:8080/", endpointpath=None,
-        #        resource="solr?q=*:*&start=0&row=1&format=json",
-        #        expect_status=200, expect_reason="OK", expect_type="application/json")
-        #starting Apache
-        #self.ap = subprocess.Popen("/etc/init.d/apache2 restart")
-        #sleep(3)
-
         self.setRequestEndPoint(
             endpointhost=RDFDatabankConfig.endpointhost,  # Via SSH tunnel
             endpointpath=RDFDatabankConfig.endpointpath)
@@ -89,9 +72,6 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         return
 
     def tearDown(self):
-        #self.rp.kill()
-        #self.tp.kill()
-        #self.ap.kill()
         return
 
     # Create empty test submission dataset
@@ -147,6 +127,56 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         return zipdata
 
     # Actual tests follow
+    def createTestSilo(self):
+        """List all silos your account has access to - GET /admin. If the silo 'sandbox' does not exist, create it"""
+        self.setRequestUserPass(
+            endpointuser=RDFDatabankConfig.endpointadminuser,
+            endpointpass=RDFDatabankConfig.endpointadminpass)
+        # Access list silos, check response
+        (resp, data) = self.doHTTP_GET(
+            endpointpath="/",
+            resource="admin/",
+            expect_status=200, expect_reason="OK", expect_type="application/JSON")
+        silo_name = RDFDatabankConfig.endpointpath.strip('/')
+        #print silo_name
+        silolist = data
+        if not silo_name in silolist:
+            #Create new silo
+            owner_list = [RDFDatabankConfig.endpointadminuser]
+            if not RDFDatabankConfig.endpointuser in owner_list:
+                owner_list.append(RDFDatabankConfig.endpointuser)
+            owner_list = ",".join(owner_list)
+            #print "\n", owner_list
+            #print type(owner_list)
+            fields = \
+                [ ("silo", silo_name),
+                  ("title", "Sandbox silo"),
+                  ("description", "Sandbox silo for testing"),
+                  ("notes", "Created by test"),
+                  ("owners", owner_list),
+                  ("disk_allocation", "100000")
+                ]
+            files =[]
+            #print fields
+            (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
+            (resp,respdata) = self.doHTTP_POST(
+                reqdata, reqtype, resource="admin/", endpointpath="/",
+                expect_status=201, expect_reason="Created")
+            LHobtained = resp.getheader('Content-Location', None)
+            LHexpected = "/%s"%silo_name
+            self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
+            # Access list silos, check response
+            (resp, data) = self.doHTTP_GET(
+                endpointpath="/",
+                resource="admin/",
+                expect_status=200, expect_reason="OK", expect_type="application/json")
+            newsilolist = data
+            self.failUnless(len(newsilolist)>0, "No silos returned")
+            self.assertEquals(len(newsilolist), len(silolist)+1, "One additional silo should have been returned")
+            for s in silolist: self.failUnless(s in newsilolist, "Silo "+s+" in original list, not in new list")
+            self.failUnless(silo_name in newsilolist, "Silo '%s' not in new list"%silo_name)
+        return
+
     def testListSilos(self):
         """List all silos your account has access to - GET /silo"""
         #Write a test to list all the silos. Test to see if it returns 200 OK and the list of silos is not empty

@@ -17,14 +17,14 @@ class RDFDatabankConfig:
  
     # Access credentials for testing
     endpointpath="/sandbox/"
-    
-    # Access credentials for testing from local dev VM as admin
-    endpointuser="admin"
-    endpointpass="test"
 
-    # Access credentials for testing from local dev VM as admin
+    # Access credentials for testing from local dev VM as user
     endpointuser="sandbox_user"
     endpointpass="sandbox"
+    
+    # Access credentials for testing from local dev VM as admin
+    endpointadminuser="admin"
+    endpointadminpass="test"
 
     # Later, may define methods to override these defaults, e.g. from a configuration file
 
