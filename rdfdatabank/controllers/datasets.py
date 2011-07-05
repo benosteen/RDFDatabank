@@ -22,6 +22,8 @@ class DatasetsController(BaseController):
     def siloview(self, silo):
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
+        if not ag.granary.issilo(silo):
+            abort(404)
         ident = request.environ.get('repoze.who.identity')
         c.ident = ident
         granary_list = ag.granary.silos
@@ -118,6 +120,8 @@ class DatasetsController(BaseController):
                     
     @rest.restrict('GET', 'POST', 'DELETE')
     def datasetview(self, silo, id):       
+        if not ag.granary.issilo(silo):
+            abort(404)
         # Check to see if embargo is on:
         c.silo_name = silo
         c.id = id
@@ -547,6 +551,8 @@ class DatasetsController(BaseController):
 
     @rest.restrict('GET') 
     def datasetview_vnum(self, silo, id, vnum):       
+        if not ag.granary.issilo(silo):
+            abort(404)
         c.silo_name = silo
         c.id = id
         c_silo = ag.granary.get_rdf_silo(silo)
@@ -653,6 +659,8 @@ class DatasetsController(BaseController):
 
     @rest.restrict('GET', 'POST', 'PUT', 'DELETE')
     def itemview(self, silo, id, path):
+        if not ag.granary.issilo(silo):
+            abort(404)
         # Check to see if embargo is on:
         c.silo_name = silo
         c.id = id
@@ -958,6 +966,8 @@ class DatasetsController(BaseController):
 
     @rest.restrict('GET')
     def itemview_vnum(self, silo, id, path, vnum):
+        if not ag.granary.issilo(silo):
+            abort(404)
         # Check to see if embargo is on:
         c.silo_name = silo
         c.id = id

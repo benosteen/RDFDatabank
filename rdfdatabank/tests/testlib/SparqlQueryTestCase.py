@@ -154,25 +154,18 @@ class SparqlQueryTestCase(unittest.TestCase):
         if self._endpointuser:
             auth = base64.encodestring("%s:%s" % (self._endpointuser, self._endpointpass)).strip()
             reqheaders["Authorization"] = "Basic %s" % auth
-        print "\nendpointuser:", self._endpointuser
-        print "\nendpointpass:", self._endpointpass
-        #print "Connect to "+self._endpointhost
         hc   = httplib.HTTPConnection(self._endpointhost)
         #hc   = httplib.HTTPSConnection(self._endpointhost)
         path = self.getRequestPath(resource)
-        #print path
         response     = None
         responsedata = None
         repeat       = 10
         while path and repeat > 0:
             repeat -= 1
-            #print "Request "+command+", path "+path
-            #print "Request haeders:", reqheaders
             hc.request(command, path, reqdata, reqheaders)
             response = hc.getresponse()
             if response.status != 301: break
             path = response.getheader('Location', None)
-            #print "Redirect to: "+path
             if path[0:6] == "https:":
                 # close old connection, create new HTTPS connection
                 hc.close()
@@ -180,10 +173,6 @@ class SparqlQueryTestCase(unittest.TestCase):
             else:
                 response.read()  # Seems to be needed to free up connection for new request
         logger.debug("Status: %i %s" % (response.status, response.reason))
-        #print "expect_status:",  expect_status
-        #print "response.status:", response.status
-        #print "expect_reason:", expect_reason
-        #print "response.reason:", response.reason
         if expect_status != "*": self.assertEqual(response.status, expect_status)
         if expect_status == 201: 
             self.assertTrue(response.getheader('Content-Location', None))
@@ -203,7 +192,6 @@ class SparqlQueryTestCase(unittest.TestCase):
         (response, responsedata) = self.doRequest("GET", resource, 
             reqheaders=reqheaders,
             expect_status=expect_status, expect_reason=expect_reason)
-        #print responsedata
         if (expect_type.lower() == "application/json"): responsedata = simplejson.loads(responsedata)
         return (response, responsedata)
 

@@ -57,6 +57,8 @@ class SilosController(BaseController):
     def siloview(self, silo):
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
+        if not ag.granary.issilo(silo):
+            abort(404)
         ident = request.environ.get('repoze.who.identity')
         c.ident = ident
         granary_list = ag.granary.silos

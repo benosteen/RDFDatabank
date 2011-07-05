@@ -26,6 +26,9 @@ class ItemsController(BaseController):
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
 
+        if not ag.granary.issilo(silo):
+            abort(404)
+
         ident = request.environ.get('repoze.who.identity')  
         c.ident = ident
         granary_list = ag.granary.silos
@@ -142,6 +145,9 @@ class ItemsController(BaseController):
 
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
+
+        if not ag.granary.issilo(silo):
+            abort(404)
 
         if not path:
             abort(400, "You must supply a filename to unpack")
@@ -269,6 +275,9 @@ class ItemsController(BaseController):
 
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
+
+        if not ag.granary.issilo(silo):
+            abort(404)
 
         if not (path or subpath):
             abort(400, "You must supply a filename to unpack")

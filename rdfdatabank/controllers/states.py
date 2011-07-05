@@ -16,6 +16,9 @@ class StatesController(BaseController):
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
 
+        if not ag.granary.issilo(silo):
+            abort(404)
+
         ident = request.environ.get('repoze.who.identity')
         granary_list = ag.granary.silos
         silos = ag.authz(granary_list, ident)
@@ -45,6 +48,10 @@ class StatesController(BaseController):
     def datasetview(self, silo, id):       
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
+
+        if not ag.granary.issilo(silo):
+            abort(404)
+
         ident = request.environ.get('repoze.who.identity')
         granary_list = ag.granary.silos
         silos = ag.authz(granary_list, ident)
@@ -74,6 +81,10 @@ class StatesController(BaseController):
     def datasetview_vnum(self, silo, id, vnum):       
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
+
+        if not ag.granary.issilo(silo):
+            abort(404)
+
         ident = request.environ.get('repoze.who.identity')
         granary_list = ag.granary.silos
         silos = ag.authz(granary_list, ident)

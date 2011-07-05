@@ -138,7 +138,6 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             resource="admin/",
             expect_status=200, expect_reason="OK", expect_type="application/JSON")
         silo_name = RDFDatabankConfig.endpointpath.strip('/')
-        #print silo_name
         silolist = data
         if not silo_name in silolist:
             #Create new silo
@@ -146,8 +145,6 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             if not RDFDatabankConfig.endpointuser in owner_list:
                 owner_list.append(RDFDatabankConfig.endpointuser)
             owner_list = ",".join(owner_list)
-            #print "\n", owner_list
-            #print type(owner_list)
             fields = \
                 [ ("silo", silo_name),
                   ("title", "Sandbox silo"),
@@ -157,7 +154,6 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
                   ("disk_allocation", "100000")
                 ]
             files =[]
-            #print fields
             (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
             (resp,respdata) = self.doHTTP_POST(
                 reqdata, reqtype, resource="admin/", endpointpath="/",
@@ -239,7 +235,8 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         silo_base  = URIRef(self.getRequestUri("datasets/"))
         self.assertEqual(data['silo'], silo_name, 'Silo name is %s not %s' %(data['silo'], silo_name))
         self.assertEqual(data['uri_base'].strip(), silo_base.strip(), 'Silo uri_base is %s not %s' %(data['uri_base'], silo_base))
-        self.failUnless(len(data['datasets'])>0, "No datasets returned")
+        self.failUnless('datasets' in data, "datasets nfo for silo not returned")
+        self.failUnless((type(data['datasets']).__name__ == 'dict'), "Datasets with embargo info not returned for silo")
         # Save initial list of datasets
         datasetlist = data['datasets']
         # Create a new dataset
@@ -2701,6 +2698,7 @@ def getTestSuite(select="unit"):
     testdict = {
         "unit":
             [ "testUnits"
+            , "createTestSilo"
             , "testListSilos"
             , "testListDatasets"
             , "testSiloState"

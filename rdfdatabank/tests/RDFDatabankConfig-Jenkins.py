@@ -8,7 +8,7 @@ $Rev: $
 
 class RDFDatabankConfig:
 
-    granary_uri_root="http://dataflow-jenkins.bodleian.ox.ac.uk/"
+    granary_uri_root="http://dataflow-jenkins.bodleian.ox.ac.uk"
 
     # Access via IP address
     #endpointhost="databank.ora.ox.ac.uk"
