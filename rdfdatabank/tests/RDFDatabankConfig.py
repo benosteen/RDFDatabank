@@ -19,8 +19,8 @@ class RDFDatabankConfig:
     endpointadminpass="test"
     
     # Access credentials for testing from local dev VM
-    endpointuser="admin"
-    endpointpass="test"
+    endpointuser="sandbox_user"
+    endpointpass="sandbox"
 
     # Later, may define methods to override these defaults, e.g. from a configuration file
 
