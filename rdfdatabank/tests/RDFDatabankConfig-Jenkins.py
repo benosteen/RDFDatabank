@@ -13,7 +13,7 @@ class RDFDatabankConfig:
     # Access via IP address
     #endpointhost="databank.ora.ox.ac.uk"
     #Access to local dev VM
-    endpointhost="dataflow-jenkins.bodleian.ox.ac.uk"
+    endpointhost="localhost:5000"
  
     # Access credentials for testing
     endpointpath="/sandbox/"
