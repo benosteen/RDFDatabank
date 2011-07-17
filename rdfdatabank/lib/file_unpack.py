@@ -215,7 +215,7 @@ def unpack_zip_item(target_dataset, current_dataset, zip_item, silo, ident):
     #Munge rdf
     #TODO: If manifest is not well formed rdf - inform user. Currently just ignored.
     if manifest_str and test_rdf(manifest_str):
-        munge_manifest(manifest_str, target_dataset, manifest_type='http://vocab.ox.ac.uk/dataset/schema#Grouping')
+        munge_manifest(manifest_str, target_dataset)
      
     # -- Step 7 -----------------------------
     target_dataset.sync()

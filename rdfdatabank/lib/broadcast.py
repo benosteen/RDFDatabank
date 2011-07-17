@@ -16,7 +16,7 @@ class BroadcastToRedis(object):
             self.r.lpush(self.queue, msg)
         except ConnectionError:  # The client can sometimes be timed out and disconnected at the server.
             self.r = Redis(self.redis_host)
-            self.lpush(self.queue, msg)
+            self.r.lpush(self.queue, msg)
         
     def change(self, silo, id, filepath=None, **kw):
         msg = {}

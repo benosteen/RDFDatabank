@@ -9,7 +9,7 @@ from pylons.controllers.util import abort, redirect_to
 from pylons.decorators import rest
 from paste.fileapp import FileApp
 from rdfdatabank.lib.base import BaseController, render
-from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text, test_rdf, munge_manifest, manifest_type, serialisable_stat, allowable_id2
+from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text, test_rdf, munge_manifest, serialisable_stat, allowable_id2
 from rdfdatabank.lib.file_unpack import get_zipfiles_in_dataset
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 
@@ -397,10 +397,7 @@ class DatasetsController(BaseController):
                     item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                     a = item.get_rdf_manifest()
                     b = a.to_string()
-                    mtype = manifest_type(b)
-                    if not mtype:
-                        mtype = 'http://vocab.ox.ac.uk/dataset/schema#Grouping'
-                    munge_manifest(manifest_str, item, manifest_type=mtype)
+                    munge_manifest(manifest_str, item)
                 else:
                     if code == 204:
                         item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf', filename])
@@ -480,10 +477,7 @@ class DatasetsController(BaseController):
                     item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                     a = item.get_rdf_manifest()
                     b = a.to_string()
-                    mtype = manifest_type(b)
-                    if not mtype:
-                        mtype = 'http://vocab.ox.ac.uk/dataset/schema#Grouping'
-                    munge_manifest(text, item, manifest_type=mtype)
+                    munge_manifest(text, item)
                 else:
                     if code == 204:
                         item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf', filename])
@@ -781,10 +775,7 @@ class DatasetsController(BaseController):
                 item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                 a = item.get_rdf_manifest()
                 b = a.to_string()
-                mtype = manifest_type(b)
-                if not mtype:
-                    mtype = 'http://vocab.ox.ac.uk/dataset/schema#Grouping'
-                munge_manifest(content, item, manifest_type=mtype)
+                munge_manifest(content, item)
             else:
                 if code == 204:
                     item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf', path])
@@ -876,10 +867,7 @@ class DatasetsController(BaseController):
                 item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                 a = item.get_rdf_manifest()
                 b = a.to_string()
-                mtype = manifest_type(b)
-                if not mtype:
-                    mtype = 'http://vocab.ox.ac.uk/dataset/schema#Grouping'
-                munge_manifest(manifest_str, item, manifest_type=mtype)
+                munge_manifest(manifest_str, item)
             else:
                 if code == 204:
                     item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf', filename])

@@ -9,7 +9,7 @@ from pylons import app_globals as ag
 
 from rdflib import ConjunctiveGraph
 from rdflib import StringInputSource
-from rdflib import Namespace, RDF, RDFS, URIRef, Literal
+from rdflib import Namespace, RDF, RDFS, URIRef, Literal, BNode
 
 from uuid import uuid4
 import re
@@ -183,12 +183,12 @@ def test_rdf(text):
     except:
         return False
 
-def munge_manifest(manifest_str, item, manifest_type='http://vocab.ox.ac.uk/dataset/schema#Grouping'):    
+def munge_manifest(manifest_str, item):    
     #Get triples from the manifest file and remove the file
     triples = None
     ns = None
     seeAlsoFiles = None
-    ns, triples, seeAlsoFiles = read_manifest(item, manifest_str, manifest_type=manifest_type)
+    ns, triples, seeAlsoFiles = read_manifest(item, manifest_str)
     if ns and triples:
         for k, v in ns.iteritems():
             item.add_namespace(k, v)
@@ -203,6 +203,12 @@ def munge_manifest(manifest_str, item, manifest_type='http://vocab.ox.ac.uk/data
                     item.del_triple(URIRef(s), u"dcterms:license")
                 except:
                     pass
+            if str(p) == 'http://purl.org/dc/terms/rights':
+                try:
+                    item.del_triple(URIRef(s), u"dcterms:rights")
+                except:
+                    pass
+        for (s, p, o) in triples:
             item.add_triple(s, p, o)
     item.sync()
     if seeAlsoFiles:
@@ -214,10 +220,10 @@ def munge_manifest(manifest_str, item, manifest_type='http://vocab.ox.ac.uk/data
                 with item.get_stream(filepath) as fn:
                     text = fn.read()
                 if test_rdf(text):
-                    munge_manifest(text, item, manifest_type=manifest_type)
+                    munge_manifest(text, item)
     return True
 
-def read_manifest(item, manifest_str, manifest_type='http://vocab.ox.ac.uk/dataset/schema#Grouping'):
+def read_manifest(item, manifest_str):
     triples = []
     namespaces = {}
     seeAlsoFiles = []
@@ -230,31 +236,27 @@ def read_manifest(item, manifest_str, manifest_type='http://vocab.ox.ac.uk/datas
     namespaces = dict(g.namespaces())
     
     #Get the subjects
-    #subjects = {}
-    #for s in gparsed.subjects():
-    #    if s in subjects:
-    #        continue
-    #    if type(s).__name__ == 'BNode' or (type(s).__name__ == 'URIRef' and len(s) == 0):
-    #        subjects[s] = item.uri
-    #    else:
-    #        for o in aggregates:
-    #            if str(s) in str(o):
-    #                subjects[s] = o
-    #                break
-    #        if not s in subjects:
-    #            subjects[s] = s
+    subjects = {}
+    for s in gparsed.subjects():
+        if s in subjects:
+            continue
+        if type(s).__name__ == 'URIRef':
+            subjects[s] = URIRef(s)
+        elif type(s).__name__ == 'BNode':
+            subjects[s] = s            
 
-    #Get the dataset type
+    #Get the dataset type 
+    #set the subject uri to item uri if it is of type as defined in oxdsClasses
     datasetType = False
     for s,p,o in gparsed.triples((None, RDF.type, None)):
-        if str(o) == manifest_type:
-            datasetType = True
+        if str(o) in oxdsClasses:
             if type(s).__name__ == 'URIRef' and len(s) > 0 and str(s) != str(item.uri):
                 namespaces['owl'] = URIRef("http://www.w3.org/2002/07/owl#")
                 triples.append((item.uri, 'owl:sameAs', s))
-                triples.append((item.uri, RDF.type, URIRef(manifest_type)))    
-        elif str(o) in oxdsClasses and (type(s).__name__ == 'BNode' or (type(s).__name__ == 'URIRef' and len(s) == 0) or str(s) == str(item.uri)):
-            gparsed.remove((s, p, o))
+                triples.append((item.uri, RDF.type, o))              
+            elif type(s).__name__ == 'BNode' or (type(s).__name__ == 'URIRef' and len(s) == 0) or str(s) == str(item.uri):
+                gparsed.remove((s, p, o))
+            subjects[s] = item.uri
 
     #Get the uri for the see also files
     for s,p,o in gparsed.triples((None, URIRef('http://www.w3.org/2000/01/rdf-schema#seeAlso'), None)):
@@ -265,10 +267,7 @@ def read_manifest(item, manifest_str, manifest_type='http://vocab.ox.ac.uk/datas
 
     #Add remaining triples
     for s,p,o in gparsed.triples((None, None, None)):
-        if datasetType or type(s).__name__ == 'BNode' or (type(s).__name__ == 'URIRef' and len(s) == 0):
-            triples.append((item.uri, p, o))
-        else:
-            triples.append((s, p, o))
+        triples.append((subjects[s], p, o))
     return namespaces, triples, seeAlsoFiles
 
 def manifest_type(manifest_str):
