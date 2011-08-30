@@ -3,7 +3,7 @@ import os, time
 from datetime import datetime, timedelta
 import simplejson
 from pylons import request, response, session, tmpl_context as c, url, app_globals as ag
-from pylons.controllers.util import abort, redirect_to
+from pylons.controllers.util import abort, redirect
 from pylons.decorators import rest
 
 from rdfdatabank.lib.base import BaseController, render
@@ -124,7 +124,7 @@ class ItemsController(BaseController):
             mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                    redirect_to(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
+                    redirect(url(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name))
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = "text/plain"
                     return response_message
@@ -251,7 +251,7 @@ class ItemsController(BaseController):
             mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                    redirect_to(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name)
+                    redirect(url(controller="datasets", action="datasetview", silo=silo, id=target_dataset_name))
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = "text/plain"
                     return response_message

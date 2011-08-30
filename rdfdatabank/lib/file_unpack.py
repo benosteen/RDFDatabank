@@ -20,7 +20,7 @@ class BadZipfile(Exception):
 def check_file_mimetype(real_filepath, mimetype):
     if os.path.islink(real_filepath):
         real_filepath = os.readlink(real_filepath)
-    p = subprocess.Popen("file -ib %s" %(real_filepath), shell=True, stdout=subprocess.PIPE)
+    p = subprocess.Popen("file -ib '%s'" %(real_filepath), shell=True, stdout=subprocess.PIPE)
     output_file = p.stdout
     output_str = output_file.read()
     if mimetype in output_str:

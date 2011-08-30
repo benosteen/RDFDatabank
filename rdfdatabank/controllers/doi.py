@@ -1,5 +1,5 @@
 from pylons import request, response, session, tmpl_context as c, url, app_globals as ag
-from pylons.controllers.util import abort, redirect_to
+from pylons.controllers.util import abort
 from pylons.decorators import rest
 from datetime import datetime
 from rdflib import Literal, URIRef

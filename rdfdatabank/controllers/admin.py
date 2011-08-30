@@ -1,12 +1,14 @@
 import logging
 import simplejson
 from pylons import request, response, session, config, tmpl_context as c, url
-from pylons.controllers.util import abort, redirect_to
+#from pylons.controllers.util import abort, redirect_to
+from pylons.controllers.util import abort, redirect
 from pylons.decorators import rest
 from pylons import app_globals as ag
 from rdfdatabank.lib.base import BaseController, render
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 from rdfdatabank.config import users
+#import subprocess
 
 log = logging.getLogger(__name__)
 
@@ -85,7 +87,7 @@ class AdminController(BaseController):
                 mimetype = accept_list.pop(0)
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                        redirect_to(controller="silos", action="siloview", silo=silo_name)
+                        redirect(url(controller="silos", action="siloview", silo=silo_name))
                     elif str(mimetype).lower() in ["text/plain", "application/json"]:
                         response.content_type = "text/plain"
                         response.status_int = 201
@@ -114,7 +116,6 @@ class AdminController(BaseController):
         # Admin only
         if not ident.get('role') == "admin":
             abort(401, "Do not have admin credentials")
-
         granary_list = ag.granary.silos
         silos = ag.authz(granary_list, ident)
         if not silo_name in silos:
@@ -213,7 +214,7 @@ class AdminController(BaseController):
                 mimetype = accept_list.pop(0)
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                        redirect_to(controller="silos", action="siloview", silo=silo_name)
+                        redirect(url(controller="silos", action="siloview", silo=silo_name))
                     elif str(mimetype).lower() in ["text/plain", "application/json"]:
                         response.content_type = "text/plain"
                         response.status_int = 201
@@ -240,7 +241,9 @@ class AdminController(BaseController):
             todelete_silo = ag.granary.get_rdf_silo(silo_name)
             for item in todelete_silo.list_items():
                 ag.b.deletion(silo_name, item, ident=ident['repoze.who.userid'])
+
             ag.granary.delete_silo(silo_name)
+
             ag.b.silo_deletion(silo_name, ident=ident['repoze.who.userid'])
             try:
                 del ag.granary.state[silo_name]
@@ -260,7 +263,7 @@ class AdminController(BaseController):
             #mimetype = accept_list.pop(0)
             #while(mimetype):
             #    if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-            #        redirect_to(controller="admin", action="index")
+            #        redirect(url(controller="admin", action="index"))
             #    elif str(mimetype).lower() in ["text/plain", "application/json"]:
             #        response.content_type = "text/plain"
             #        response.status_int = 200
@@ -346,7 +349,7 @@ class AdminController(BaseController):
             mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                    redirect_to(controller="admin", action="archive", silo_name=silo_name)
+                    redirect(url(controller="admin", action="archive", silo_name=silo_name))
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = "text/plain"
                     return response_message

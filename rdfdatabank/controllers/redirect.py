@@ -1,6 +1,7 @@
 import logging
+from pylons import url
 
-from pylons.controllers.util import redirect_to
+from pylons.controllers.util import redirect
 from rdfdatabank.lib.base import BaseController
 
 class RedirectController(BaseController):
@@ -9,11 +10,11 @@ class RedirectController(BaseController):
             id = id.rsplit('.', 1)[0]
         lid = id.lower()
         if lid == 'dataset%3a1' or lid == 'dataset:1':
-            redirect_to(controller="datasets", action="datasetview", silo="general", id='Tick1AudioCorpus')
+            redirect(url(controller="datasets", action="datasetview", silo="general", id='Tick1AudioCorpus'))
         elif lid == 'dataset%3A2.html' or lid == 'dataset:2':
-            redirect_to(controller="datasets", action="datasetview", silo="general", id='RobertDarnton')
+            redirect(url(controller="datasets", action="datasetview", silo="general", id='RobertDarnton'))
         if lid == 'dataset%3A3' or lid == 'dataset:3':
-            redirect_to(controller="datasets", action="datasetview", silo="general", id='MostynBrown')
+            redirect(url(controller="datasets", action="datasetview", silo="general", id='MostynBrown'))
         else:
-            redirect_to(controller="datasets", action="datasetview", silo="general", id=id)
+            redirect(url(controller="datasets", action="datasetview", silo="general", id=id))
 

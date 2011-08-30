@@ -16,8 +16,8 @@ except ImportError:
     try:
         import fcrypt as crypt
     except ImportError:
-        sys.stderr.write("Cannot find a crypt module.  "
-                         "Possibly http://carey.geek.nz/code/python-fcrypt/\n")
+        #sys.stderr.write("Cannot find a crypt module.  "
+        #                 "Possibly http://carey.geek.nz/code/python-fcrypt/\n")
         sys.exit(1)
 
 
@@ -90,8 +90,8 @@ def main():
         """Utility function for displaying fatal error messages with usage
         help.
         """
-        sys.stderr.write("Syntax error: " + msg)
-        sys.stderr.write(parser.get_usage())
+        #sys.stderr.write("Syntax error: " + msg)
+        #sys.stderr.write(parser.get_usage())
         sys.exit(1)
 
     if not options.batch:

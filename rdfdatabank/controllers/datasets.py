@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import time
 
 from pylons import request, response, session, tmpl_context as c, url, app_globals as ag
-from pylons.controllers.util import abort, redirect_to
+from pylons.controllers.util import abort, redirect
 from pylons.decorators import rest
 from paste.fileapp import FileApp
 from rdfdatabank.lib.base import BaseController, render
@@ -39,7 +39,8 @@ class DatasetsController(BaseController):
             c.embargos = {}
             for item in c_silo.list_items():
                 c.embargos[item] = is_embargoed(c_silo, item)
-            #c.items = c_silo.list_items()
+                #c.embargos[item] = ''
+            #c.items = list(c_silo.list_items())
             c.items = c.embargos.keys()
             # conneg return
             accept_list = None
@@ -100,7 +101,7 @@ class DatasetsController(BaseController):
                     mimetype = accept_list.pop(0)
                     while(mimetype):
                         if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                            redirect_to(controller="datasets", action="datasetview", silo=silo, id=id)
+                            redirect(url(controller="datasets", action="datasetview", silo=silo, id=id))
                         elif str(mimetype).lower() in ["text/plain", "application/json"]:
                             response.content_type = "text/plain"
                             response.status_int = 201
@@ -276,7 +277,7 @@ class DatasetsController(BaseController):
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
                         # probably a browser - redirect to newly created dataset
-                        redirect_to(controller="datasets", action="datasetview", silo=silo, id=id)
+                        redirect(url(controller="datasets", action="datasetview", silo=silo, id=id))
                     elif str(mimetype).lower() in ["text/plain", "application/json"]:
                         response.content_type = "text/plain"
                         response.status_int = 201
@@ -341,7 +342,7 @@ class DatasetsController(BaseController):
                 mimetype = accept_list.pop(0)
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                        redirect_to(controller="datasets", action="datasetview", id=id, silo=silo)
+                        redirect(url(controller="datasets", action="datasetview", id=id, silo=silo))
                     elif str(mimetype).lower() in ["text/plain", "application/json"]:
                         response.content_type = "text/plain"
                         response.status_int = 204
@@ -435,7 +436,7 @@ class DatasetsController(BaseController):
                 mimetype = accept_list.pop(0)
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                        redirect_to(controller="datasets", action="datasetview", id=id, silo=silo)
+                        redirect(url(controller="datasets", action="datasetview", id=id, silo=silo))
                     elif str(mimetype).lower() in ["text/plain"]:
                         response.content_type = "text/plain"
                         return response_message
@@ -513,7 +514,7 @@ class DatasetsController(BaseController):
                 mimetype = accept_list.pop(0)
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                        redirect_to(controller="datasets", action="datasetview", id=id, silo=silo)
+                        redirect(url(controller="datasets", action="datasetview", id=id, silo=silo))
                     elif str(mimetype).lower() in ["text/plain", "application/json"]:
                         response.content_type = "text/plain"
                         return response_message
@@ -812,7 +813,7 @@ class DatasetsController(BaseController):
             mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                    redirect_to(controller="datasets", action="itemview", id=id, silo=silo, path=path)
+                    redirect(url(controller="datasets", action="itemview", id=id, silo=silo, path=path))
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = "text/plain"
                     return response_message
@@ -905,7 +906,7 @@ class DatasetsController(BaseController):
             mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                    redirect_to(controller="datasets", action="itemview", id=id, silo=silo, path=path)
+                    redirect(url(controller="datasets", action="itemview", id=id, silo=silo, path=path))
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = "text/plain"
                     return response_message
