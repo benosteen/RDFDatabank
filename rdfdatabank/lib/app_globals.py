@@ -44,12 +44,16 @@ class Globals(object):
         if config.has_key("naming_rule"):
             self.naming_rule = config['naming_rule']
 
-        pwdfile = config['granary.store'].replace('silos', 'passwd')
-        self.passwdfile = HtpasswdFile(pwdfile)
-        self.passwdfile.load()
-        self.userfile = config['granary.store'].replace('silos', 'rdfdatabank/config/users.py')
+        if config.has_key("auth.file"):
+            pwdfile = config['auth.file']
+            self.passwdfile = HtpasswdFile(pwdfile)
+            self.passwdfile.load()
+         
+        if config.has_key("auth.info"):
+            self.userfile = config['auth.info']
 
-        self.doi_count_file = config['granary.store'].replace('silos', 'rdfdatabank/config/doi_count')
+        if config.has_key("doi.count"):
+            self.doi_count_file = config['doi.count']
         
         if config.has_key("formats_served"):
             self.formats_served = config['formats_served']
