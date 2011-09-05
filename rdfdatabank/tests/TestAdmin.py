@@ -21,7 +21,8 @@ except ImportError:
 from StringIO import StringIO
 
 from rdflib import RDF, URIRef, Literal
-from rdflib.Graph import ConjunctiveGraph as Graph
+#from rdflib.Graph import ConjunctiveGraph as Graph
+from rdflib import ConjunctiveGraph as Graph
 
 if __name__ == "__main__":
     # For testing: 
@@ -57,7 +58,7 @@ class TestAdmin(SparqlQueryTestCase.SparqlQueryTestCase):
         return
 
     # Actual tests follow
-    def testCreateSilo(self):
+    def test1CreateSilo(self):
         """List all silos your account has access to - GET /silo"""
         #Write a test to list all the silos. Test to see if it returns 200 OK and the list of silos is not empty
         # Access list silos, check response
@@ -66,11 +67,6 @@ class TestAdmin(SparqlQueryTestCase.SparqlQueryTestCase):
             resource="admin/", 
             expect_status=200, expect_reason="OK", expect_type="application/JSON")
         #Create new silo
-        #print data
-        #print type(data)
-        #silolist = []
-        #for k in data:
-        #    silolist.append(k)
         silolist = data
         fields = \
             [ ("silo", self.testsilo),
@@ -87,8 +83,6 @@ class TestAdmin(SparqlQueryTestCase.SparqlQueryTestCase):
             expect_status=201, expect_reason="Created")
         LHobtained = resp.getheader('Content-Location', None)
         LHexpected = "/%s"%self.testsilo
-        #print "LHobtained:", LHobtained
-        #print "LHexpected:", LHexpected
         self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
         # Access list silos, check response
         (resp, data) = self.doHTTP_GET(
@@ -105,9 +99,8 @@ class TestAdmin(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless(self.testsilo in newsilolist, "Silo "+self.testsilo+" not in new list")
         return   
         
-    def testSiloInfo(self):
+    def test2SiloInfo(self):
         """Get admin informaton of a silo - GET /silo_name/admin"""
-        #print "test silos is:", self.testsilo
         # Access silo information in admin, check response
         (resp, data) = self.doHTTP_GET(
             endpointpath="/%s/"%self.testsilo,
@@ -121,7 +114,7 @@ class TestAdmin(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(data['disk_allocation'], "100000", "Silo title is '%s' not '100000'" %data['disk_allocation'])
         return
         
-    def testUpdateSiloInfo(self):
+    def test3UpdateSiloInfo(self):
         """Update silo metadata"""
         fields = \
             [ ("silo", self.testsilo),
@@ -149,26 +142,8 @@ class TestAdmin(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(data['disk_allocation'], "200000", "Silo title is '%s' not '200000'" %data['disk_allocation'])
         return
         
-    def testDeleteSilo(self):
-        #Is test silo - sandbox. If yes, create another silo
-        #if self.testsilo == 'sandbox':
-        #    self.testsilo = self.testsilo + '123'
-        #    fields = \
-        #        [ ("silo", 'sandbox123'),
-        #            ("title", "Sandbox silo"),
-        #            ("description", "Sandbox silo for testing"),
-        #            ("notes", "Created by test"),
-        #            ("owners", RDFDatabankConfig.endpointadminuser),
-        #            ("disk_allocation", "100000")
-        #        ]
-        #    files =[]
-        #    (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
-        #    (resp,respdata) = self.doHTTP_POST(
-        #        reqdata, reqtype, endpointpath="/", resource="admin/",
-        #        expect_status=201, expect_reason="Created")
-        #    LHobtained = resp.getheader('Content-Location', None)
-        #    LHexpected = "%s"%self.testsilo
-        #    self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
+    def test4DeleteSilo(self):
+        """Delete silo test"""
         #Delete Silo
         resp = self.doHTTP_DELETE(
             endpointpath="/%s/"%self.testsilo, 
@@ -180,7 +155,7 @@ class TestAdmin(SparqlQueryTestCase.SparqlQueryTestCase):
             resource="admin/",
             expect_status=403, expect_reason="Forbidden")
         return
-
+    
     # Sentinel/placeholder tests
 
     def testUnits(self):
@@ -197,7 +172,7 @@ class TestAdmin(SparqlQueryTestCase.SparqlQueryTestCase):
         #Need to set the permission of file being uploaded
         #assert (False), "Pending tests follow"
         assert (True)
-
+   
 # Assemble test suite
 
 def getTestSuite(select="unit"):
@@ -214,10 +189,10 @@ def getTestSuite(select="unit"):
     testdict = {
         "unit":
             [ "testUnits"
-            , "testCreateSilo"
-            , "testSiloInfo"
-            , "testUpdateSiloInfo"
-            , "testDeleteSilo"
+            , "test1CreateSilo"
+            , "test2SiloInfo"
+            , "test3UpdateSiloInfo"
+            , "test4DeleteSilo"
             ],
         "component":
             [ "testComponents"

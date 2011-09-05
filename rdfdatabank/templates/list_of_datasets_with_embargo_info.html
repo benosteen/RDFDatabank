@@ -1,0 +1,18 @@
+# -*- coding: utf-8 -*-
+% if c.silo_name:
+<h3>Datasets:</h3>
+<ul>
+% for item in sorted(c.items):
+<li id="${"_".join(c.silo_name.split("."))}_${"_".join(item.split(":"))}"> 
+<a href="/${c.silo_name}/datasets/${item}"> ${item}</a>
+<ul><li><a class="delete" href="/${c.silo_name}/datasets/${item}" data-remove="${"_".join(c.silo_name.split("."))}_${"_".join(item.split(":"))}">Delete dataset</a></li>
+<%
+c.current = item
+%>
+<li><%include file="/embargo_form.html"/></li>
+</ul>
+</li>
+% endfor
+</ul>
+% endif
+                                                                                      

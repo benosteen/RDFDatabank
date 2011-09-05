@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF 
+    xmlns:dcterms="http://purl.org/dc/terms/" 
+    xmlns:dcmitype="http://purl.org/dc/dcmitype/"
+    xmlns:oxds="http://vocab.ox.ac.uk/dataset/schema#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+>
+  <oxds:DataSet rdf:about="">
+    <dcterms:title>A Tamil name</dcterms:title>
+    <rdf:value>The following is the original (Tamil) name of a famous mathematician: &lt;br&gt;
+ &lt;br&gt;
+    ஸ்றீனிவாஸ ராமானுஜன் ஐயங்கார் &lt;br&gt;
+ &lt;br&gt;
+And here is a transcription of it: &lt;br&gt;
+ &lt;br&gt;
+    Sṟīṉivāsa Rāmāṉujaṉ Aiyaṅkār &lt;br&gt;
+ &lt;br&gt;
+Here there can be no translation, of course, since this is a proper noun. But I note that the mathematician in question (1887–1920) is typically named “Srinivasa Ramanujan Iyengar” in English.</rdf:value>
+    <dcterms:source>http://www.madore.org/~david/misc/unitest/</dcterms:source>
+  </oxds:DataSet>
+</rdf:RDF>

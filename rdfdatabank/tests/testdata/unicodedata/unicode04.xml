@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF 
+    xmlns:dcterms="http://purl.org/dc/terms/" 
+    xmlns:dcmitype="http://purl.org/dc/dcmitype/"
+    xmlns:oxds="http://vocab.ox.ac.uk/dataset/schema#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+>
+  <oxds:DataSet rdf:about="">
+    <dcterms:title>Various symbols</dcterms:title>
+    <rdf:value>Here is a table of the constellations of the Zodiac, in which the first column should contain the relevant astrological symbol:  &lt;br&gt;
+Sym.	English name	Latin name	Latin genitive	α star &lt;br&gt;
+♈	The Ram	Aries	Arietis	Hamal &lt;br&gt;
+♉	The Bull	Taurus	Tauri	Aldebaran &lt;br&gt;
+♊	The Twins	Gemini	Geminorum	Castor &lt;br&gt;
+♋	The Crab	Cancer	Cancri	Acubens &lt;br&gt;
+♌	The Lion	Leo	Leonis	Regulus &lt;br&gt;
+♍	The Virgin	Virgo	Virginis	Spica &lt;br&gt;
+♎	The Scales	Libra	Libræ	Zumen el Genubi &lt;br&gt;
+♏	The Scorpion	Scorpius	Scorpii	Antares &lt;br&gt;
+♐	The Archer	Sagittarius	Sagittarii	Rubkat &lt;br&gt;
+♑	The Sea Goat	Capricornus	Capricorni	Giedi &lt;br&gt;
+♒	The Water Bearer	Aquarius	Aquarii	Sadalmelik &lt;br&gt;
+♓	The Fishes	Pisces	Piscium	El Rischa &lt;br&gt;
+ &lt;br&gt;
+The following table should show a chessboard, with a pictorial representation of the pieces: &lt;br&gt;
+	A	B	C	D	E	F	G	H &lt;br&gt;
+8	♜	♞	♝	♛	♚	♝	♞	♜ &lt;br&gt;
+7	♟	♟	♟	♟	♟	♟	♟	♟ &lt;br&gt;
+6								 &lt;br&gt;
+5								 &lt;br&gt;
+4								 &lt;br&gt;
+3								 &lt;br&gt;
+2	♙	♙	♙	♙	♙	♙	♙	♙ &lt;br&gt;
+1	♖	♘	♗	♕	♔	♗	♘	♖ &lt;br&gt;
+ &lt;br&gt;
+Here is a snowflake: ❄. </rdf:value>
+    <dcterms:source>http://www.madore.org/~david/misc/unitest/</dcterms:source>
+  </oxds:DataSet>
+</rdf:RDF>

@@ -13,13 +13,76 @@ from rdfdatabank.lib.doi_helper import get_doi_metadata, doi_count
 from rdfdatabank.config.doi_config import OxDataciteDoi
 
 class DoiController(BaseController):
+    """Class to generate and register DOIs along with the metadata of the data-package (POST), 
+       update the metadata registered with the DOI (PUT), delete the DOI (DELETE) and 
+       to get the information (GET) registered with Datacite - the organization responsible for minting DOIs
+
+    if the metadata for the data package is also under embargo, then a DOI cannot be registered for such data-packages
+    """
     @rest.restrict('GET', 'POST', 'PUT', 'DELETE')
     def datasetview(self, silo, id):
+        c.silo_name = silo
+        c.id = id
+
+        http_method = request.environ['REQUEST_METHOD']
+
+        granary_list = ag.granary.silos
+        if not silo in granary_list:
+            abort(404)
+
+        c_silo = ag.granary.get_rdf_silo(silo)
+        if not c_silo.exists(id):
+            abort(404)
+
+        if ag.metadata_embargoed:
+            abort(403, "DOIs cannot be issued to datasets whose metadata ia also under embargo")
+
+        ident = request.environ.get('repoze.who.identity')  
+        c.ident = ident
+
+        item = c_silo.get_item(id)
+
+        creator = None
+        if item.manifest and item.manifest.state and 'metadata' in item.manifest.state and item.manifest.state['metadata'] and \
+            'createdby' in item.manifest.state['metadata'] and item.manifest.state['metadata']['createdby']:
+            creator = item.manifest.state['metadata']['createdby']
+
+        c.version = item.currentversion
+        c.version_doi = None
+        c.editor = False
+
+        #Get version number
+        vnum = request.params.get('version', '') or ""
+        if vnum:
+            vnum = str(vnum)
+            if not vnum in item.manifest['versions']:
+                abort(404, "Version %s of dataset %s not found"%(vnum, c.silo_name))
+            c.version = vnum
+
+        if not (http_method == "GET"):
+            #identity management of item 
+            if not request.environ.get('repoze.who.identity'):
+                abort(401, "Not Authorised")
+            silos = ag.authz(granary_list, ident)      
+            if silo not in silos:
+                abort(403, "Forbidden")
+            if not (ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]):
+                abort(403, "Forbidden")
+        elif http_method == "GET":
+            if ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]:
+                c.editor = True
+
+        version_uri = "%s/version%s"%(item.uri.rstrip('/'), c.version)
+        c.version_doi = item.list_rdf_objects(URIRef(version_uri), u"http://purl.org/ontology/bibo/doi")
+        if not c.version_doi or not c.version_doi[0]:
+            c.version_doi = None
+        else:
+            c.version_doi = c.version_doi[0]
+
         doi_conf = OxDataciteDoi()
         doi_api = HTTPRequest(endpointhost=doi_conf.endpoint_host, secure=True)
         doi_api.setRequestUserPass(endpointuser=doi_conf.account, endpointpass=doi_conf.password)
-        
-        http_method = request.environ['REQUEST_METHOD']
+
         # conneg:
         accept_list = None
         if 'HTTP_ACCEPT' in request.environ:
@@ -30,45 +93,20 @@ class DoiController(BaseController):
         if not accept_list:
             accept_list= [MT("text", "html")]
 
-        c.silo_name = silo
-        c.id = id
-        granary_list = ag.granary.silos
-        if not silo in granary_list:
-            abort(404)
-        c_silo = ag.granary.get_rdf_silo(silo)
-        if not c_silo.exists(id):
-            abort(404)
-
-        c.dois = {}
-        c.version_doi = None
         c.message = None
         c.resp_status = None
         c.resp_reason = None
         c.metadata = None
 
-        item = c_silo.get_item(id)
-        c.version = item.currentversion
-        vnum = request.params.get('version', '') or ""
-        if vnum:
-            vnum = str(vnum)
-            if not vnum in item.manifest['versions']:
-                abort(404, "Version %s of dataset %s not found"%(vnum, c.silo_name))
-            item.set_version_cursor(vnum)
-            c.version = vnum
-        for v in item.manifest['versions']:
-            doi_ans = None
-            doi_ans = item.list_rdf_objects(URIRef("%s/version%s"%(item.uri.rstrip('/'), v)), u"http://purl.org/ontology/bibo/doi")
-            if doi_ans and doi_ans[0]:
-                c.dois[v] = doi_ans[0]
-        version_uri = "%s/version%s"%(item.uri.rstrip('/'), c.version)
-        c.version_doi = item.list_rdf_objects(URIRef(version_uri), u"http://purl.org/ontology/bibo/doi")
-        if not c.version_doi or not c.version_doi[0]:
-            c.version_doi = None
-        else:
-            c.version_doi = c.version_doi[0]
-
         if http_method == "GET":
-            #Get the doi corresponding to this dataset (either matches the version given or the latest doi version)
+            #Get a list of all dois registered for this dataset
+            c.dois = {}
+            for v in item.manifest['versions']:
+                doi_ans = None
+                doi_ans = item.list_rdf_objects(URIRef("%s/version%s"%(item.uri.rstrip('/'), v)), u"http://purl.org/ontology/bibo/doi")
+                if doi_ans and doi_ans[0]:
+                    c.dois[v] = doi_ans[0]
+
             c.heading = "Doi metadata information from Datacite"
             if not c.version_doi:
                 mimetype = accept_list.pop(0)
@@ -139,9 +177,9 @@ class DoiController(BaseController):
             return render('/doiview.html')
 
         if http_method == "POST":
+            item.set_version_cursor(c.version)
             #1a. If doi doen not exist for this version, generate doi
             register_doi = False
-
             if not c.version_doi:
                 cnt = doi_count()
                 if not cnt:

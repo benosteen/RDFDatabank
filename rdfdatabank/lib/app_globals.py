@@ -9,6 +9,8 @@ from rdfdatabank.lib.utils import authz
 from rdfdatabank.lib.htpasswd import HtpasswdFile
 from rdfdatabank.lib.broadcast import BroadcastToRedis
 
+from rdfdatabank.config.users import _USERS
+
 class Globals(object):
 
     """Globals acts as a container for objects available throughout the
@@ -24,6 +26,7 @@ class Globals(object):
         """
         
         self.authz = authz
+        self.users = _USERS
        
         if config.has_key("granary.store"):
             self.granary = Granary(config['granary.store'])
@@ -43,6 +46,18 @@ class Globals(object):
 
         if config.has_key("naming_rule"):
             self.naming_rule = config['naming_rule']
+
+        if config.has_key("metadata.embargoed"):
+            self.metadata_embargoed = config['metadata.embargoed']
+            if isinstance(self.metadata_embargoed, basestring):
+                if self.metadata_embargoed.lower().strip() == 'true':
+                    self.metadata_embargoed = True
+                else:
+                    self.metadata_embargoed = False
+            elif not type(self.metadata_embargoed).__name__ == 'bool':
+                self.metadata_embargoed = False
+        else:
+            self.metadata_embargoed = False
 
         pwdfile = config['granary.store'].replace('silos', 'passwd')
         self.passwdfile = HtpasswdFile(pwdfile)

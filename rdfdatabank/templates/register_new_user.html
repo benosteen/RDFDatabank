@@ -6,9 +6,20 @@
 <li><label for="first_name">Firstname:</label><input type="text" name="first_name" /></li>
 <li><label for="last_name">Lastname:</label><input type="text" name="last_name" /></li>
 <li><label for="name">Name:</label><input type="textbox" name="name" /></li>
-<li><label for="owner">Silos user has access to (comma separated silo ids):</label><input type="textbox" name="owner" value="${c.silo_name}"/></li>
+<li><label for="owner">Silos user has access to (comma separated silo ids):</label>
+  <input type="textbox" name="owner" value="${c.silo_name}"/></li>
 <li><label for="username">Username:</label><input type="textbox" name="username" /></li>
 <li><label for="password">Password:</label><input type="password" name="password" /></li>
+<li><label for="role">Role:</label>
+  % if (c.roles and 'admin' in c.roles):
+    <input type="radio" name="role" value="admin" /> Administrator &nbsp;&nbsp;
+  % endif
+  % if (c.roles and 'manager' in c.roles):
+    <input type="radio" name="role" value="manager" /> Manager &nbsp;&nbsp;
+  % endif
+  <input type="radio" name="role" value="user" /> User &nbsp;&nbsp;
+</li>
 <li><input type="submit" value="Create new user"/></li>
+</ul>
 </form>
 </p>

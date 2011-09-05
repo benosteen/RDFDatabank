@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF 
+    xmlns:dcterms="http://purl.org/dc/terms/" 
+    xmlns:dcmitype="http://purl.org/dc/dcmitype/"
+    xmlns:oxds="http://vocab.ox.ac.uk/dataset/schema#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:bibo="http://purl.org/ontology/bibo/"
+    xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#"
+    xmlns:foaf="http://xmlns.com/foaf/0.1/"
+    xmlns:address="http://schemas.talis.com/2005/address/schema#"
+>
+  <oxds:DataSet rdf:about="http://databank.ora.ox.ac.uk/ww1archives/datasets/ww1-2862">
+    <rdf:type rdf:resource="http://purl.org/ontology/bibo/Document"/>
+    <dcterms:isPartOf rdf:resource="https://databank.ora.ox.ac.uk/ww1archives/datasets/ww1"/>
+    <dcterms:creator>Thomas, Edward</dcterms:creator>
+    <dcterms:title>A Cat</dcterms:title>
+    <dcterms:type>Poem</dcterms:type>
+    <dcterms:type rdf:resource="http://purl.org/dc/dcmitype/Text"/>
+    <dcterms:rightsHolder>Copyright Edward Thomas, 1979, reproduced under licence from Faber and Faber Ltd.</dcterms:rightsHolder>
+    <rdf:value>&lt;br&gt;  She had a name among the children;
+&lt;br&gt;  But no one loved though someone owned
+&lt;br&gt;  Her, locked her out of doors at bedtime
+&lt;br&gt;  And had her kittens duly drowned.
+&lt;br&gt;  In Spring, nevertheless, this cat
+&lt;br&gt;  Ate blackbirds, thrushes, nightingales,
+&lt;br&gt;  And birds of bright voice and plume and flight,
+&lt;br&gt;  As well as scraps from neighbours' pails.
+&lt;br&gt;  I loathed and hated her for this;
+&lt;br&gt;  One speckle on a thrush's breast
+&lt;br&gt;  Was worth a million such; and yet
+&lt;br&gt;  She lived long, till God gave her rest.
+&lt;br&gt;&lt;br&gt;</rdf:value>
+    <dcterms:source>Edward Thomas Collected Poems</dcterms:source>
+    <dcterms:created rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">1979-01-01/1979-12-31</dcterms:created>
+    <bibo:editor>Thomas, George</bibo:editor>
+    <bibo:owner>
+      <foaf:Organization>
+          <foaf:name>ProQuest</foaf:name>
+          <foaf:homepage>http://lion.chadwyck.co.uk/</foaf:homepage>
+      </foaf:Organization>
+    </bibo:owner>
+    <dcterms:publisher>
+      <foaf:Organization>
+          <foaf:name>Faber and Faber</foaf:name>
+          <address:localityName>London</address:localityName>
+      </foaf:Organization>
+    </dcterms:publisher>
+  </oxds:DataSet>
+</rdf:RDF>

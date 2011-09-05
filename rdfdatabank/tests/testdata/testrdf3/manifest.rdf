@@ -8,6 +8,7 @@
     <dcterms:title>Test dataset 3 with updated and merged metadata</dcterms:title>
     <rdfs:seeAlso rdf:resource="directory/1a.rdf"/>
     <rdfs:seeAlso rdf:resource="directory/1b.rdf"/>
+    <rdfs:seeAlso rdf:resource="directory/2a.rdf"/>
   </oxds:Grouping>
 </rdf:RDF>
 

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF 
+    xmlns:dcterms="http://purl.org/dc/terms/" 
+    xmlns:dcmitype="http://purl.org/dc/dcmitype/"
+    xmlns:oxds="http://vocab.ox.ac.uk/dataset/schema#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+>
+  <oxds:DataSet rdf:about="">
+    <dcterms:title>Some verses in Russian</dcterms:title>
+    <rdf:value>The following is a five-verse extract of introduction of the poem Mednyj Vsadnik; by A. S. Pushkin (in Russian): &lt;br&gt;
+ &lt;br&gt;
+    По оживлённым берегам &lt;br&gt;
+    Громады стройные теснятся &lt;br&gt;
+    Дворцов и башен; корабли &lt;br&gt;
+    Толпой со всех концов земли &lt;br&gt;
+    К богатым пристаням стремятся; &lt;br&gt;
+ &lt;br&gt;
+Here is a transcription of it: &lt;br&gt;
+ &lt;br&gt;
+    Po oživlënnym beregam &lt;br&gt;
+    Gromady strojnye tesnâtsâ &lt;br&gt;
+    Dvorcov i bašen; korabli &lt;br&gt;
+    Tolpoj so vseh koncov zemli &lt;br&gt;
+    K bogatym pristanâm stremâtsâ; &lt;br&gt;
+ &lt;br&gt;
+A rough translation might be: &lt;br&gt;
+ &lt;br&gt;
+    Along the animated banks [of the Neva] / the shapely masses press / of palaces and towers; ships / in crowd from all corners of the Earth / rush toward its rich quays.</rdf:value>
+    <dcterms:source>http://www.madore.org/~david/misc/unitest/</dcterms:source>
+  </oxds:DataSet>
+</rdf:RDF>

@@ -2,14 +2,16 @@ from datetime import datetime, timedelta
 from time import sleep
 from redis import Redis
 from redis.exceptions import ConnectionError
-
+import os
 import simplejson
 
 from pylons import app_globals as ag
 
 from rdflib import ConjunctiveGraph
+from StringIO import StringIO
 from rdflib import StringInputSource
-from rdflib import Namespace, RDF, RDFS, URIRef, Literal
+#from rdflib.parser import StringInputSource
+from rdflib import Namespace, RDF, RDFS, URIRef, Literal, BNode
 
 from uuid import uuid4
 import re
@@ -28,23 +30,33 @@ def authz(granary_list,ident):
             return owners
         else:
             return []
-    #For auth, the code is looking at the list of owners against each silo and not looking at the owner list against each user. A '*' here is meaningless.
-    #TODO: Modify code to look at both and keep both silo owner and silos a user has acces to in users.py in sunc and use both
-    if ident['role'] == "admin":
+    if 'role' in ident and ident['role'] == "admin":
         authd = []
+        silos_owned = ident['owner']
+        if '*' in silos_owned:
+            #User has access to all silos
+            return granary_list
         for item in granary_list:
-            owners = _parse_owners(item)
-            if '*' in owners:
-                return granary_list
-            if ident['repoze.who.userid'] in owners:
+            if item in silos_owned:
                 authd.append(item)
+            else:
+                owners = _parse_owners(item)
+                if '*' in owners:
+                    #All users have access to the silo
+                    authd.append(item)
+                if ident['repoze.who.userid'] in owners:
+                    authd.append(item)
         return authd
     else:
         authd = []
+        silos_owned = ident['owner']
         for item in granary_list:
-            owners = _parse_owners(item)
-            if ident['repoze.who.userid'] in owners:
+            if item in silos_owned:
                 authd.append(item)
+            else:
+                owners = _parse_owners(item)
+                if ident['repoze.who.userid'] in owners:
+                    authd.append(item)
         return authd
 
 def allowable_id(identifier):
@@ -175,20 +187,22 @@ def get_readme_text(item, filename="README"):
         text = fn.read().decode("utf-8")
     return u"%s\n\n%s" % (filename, text)
 
-def test_rdf(text):
+#def test_rdf(text):
+def test_rdf(mfile):
     g = ConjunctiveGraph()
     try:
-        g = g.parse(StringInputSource(text), format='xml')
+        g = g.parse(mfile, format='xml')
         return True
-    except:
+    except Exception as inst:
         return False
 
-def munge_manifest(manifest_str, item, manifest_type='http://vocab.ox.ac.uk/dataset/schema#Grouping'):    
+#def munge_manifest(manifest_str, item):    
+def munge_manifest(manifest_file, item):    
     #Get triples from the manifest file and remove the file
     triples = None
     ns = None
     seeAlsoFiles = None
-    ns, triples, seeAlsoFiles = read_manifest(item, manifest_str, manifest_type=manifest_type)
+    ns, triples, seeAlsoFiles = read_manifest(item, manifest_file)
     if ns and triples:
         for k, v in ns.iteritems():
             item.add_namespace(k, v)
@@ -203,6 +217,12 @@ def munge_manifest(manifest_str, item, manifest_type='http://vocab.ox.ac.uk/data
                     item.del_triple(URIRef(s), u"dcterms:license")
                 except:
                     pass
+            if str(p) == 'http://purl.org/dc/terms/rights':
+                try:
+                    item.del_triple(URIRef(s), u"dcterms:rights")
+                except:
+                    pass
+        for (s, p, o) in triples:
             item.add_triple(s, p, o)
     item.sync()
     if seeAlsoFiles:
@@ -211,13 +231,16 @@ def munge_manifest(manifest_str, item, manifest_type='http://vocab.ox.ac.uk/data
             filepath = fileuri.replace(item.uri, '').strip().lstrip('/')
             fullfilepath = item.to_dirpath(filepath=filepath)
             if fullfilepath and item.isfile(fullfilepath):
-                with item.get_stream(filepath) as fn:
-                    text = fn.read()
-                if test_rdf(text):
-                    munge_manifest(text, item, manifest_type=manifest_type)
+                ans = test_rdf(fullfilepath)
+                #with item.get_stream(filepath) as fn:
+                #    text = fn.read()
+                #if test_rdf(text):
+                #    munge_manifest(text, item)
+                if ans:
+                    munge_manifest(fullfilepath, item)
     return True
 
-def read_manifest(item, manifest_str, manifest_type='http://vocab.ox.ac.uk/dataset/schema#Grouping'):
+def read_manifest(item, manifest_file):
     triples = []
     namespaces = {}
     seeAlsoFiles = []
@@ -226,57 +249,82 @@ def read_manifest(item, manifest_str, manifest_type='http://vocab.ox.ac.uk/datas
     aggregates = item.list_rdf_objects(item.uri, "ore:aggregates")
     
     g = ConjunctiveGraph()
-    gparsed = g.parse(StringInputSource(manifest_str), format='xml')
+    gparsed = g.parse(manifest_file, format='xml')
     namespaces = dict(g.namespaces())
-    
     #Get the subjects
-    #subjects = {}
-    #for s in gparsed.subjects():
-    #    if s in subjects:
-    #        continue
-    #    if type(s).__name__ == 'BNode' or (type(s).__name__ == 'URIRef' and len(s) == 0):
-    #        subjects[s] = item.uri
-    #    else:
-    #        for o in aggregates:
-    #            if str(s) in str(o):
-    #                subjects[s] = o
-    #                break
-    #        if not s in subjects:
-    #            subjects[s] = s
-
-    #Get the dataset type
+    subjects = {}
+    for s in gparsed.subjects():
+        if s in subjects:
+            continue
+        if type(s).__name__ == 'URIRef':
+            if str(s).startswith('file://'):
+                ss = str(s).replace('file://', '')
+                if manifest_file in ss:
+                    subjects[s] = URIRef(item.uri)
+                else:
+                    manifest_file_path, manifest_file_name = os.path.split(manifest_file)
+                    ss = ss.replace(manifest_file_path, '').strip('/')
+                    for file_uri in aggregates:
+                        if ss in str(file_uri):
+                            subjects[s] = URIRef(file_uri)
+                            break
+                    if not s in subjects:
+                        subjects[s] = URIRef(item.uri)
+            else:
+                subjects[s] = URIRef(s)
+        elif type(s).__name__ == 'BNode':
+            replace_subject = True
+            for o in gparsed.objects():
+                if o == s:
+                    replace_subject = False
+            if replace_subject:
+                subjects[s] = URIRef(item.uri)
+            else:
+                subjects[s] = s
+    #Get the dataset type 
+    #set the subject uri to item uri if it is of type as defined in oxdsClasses
     datasetType = False
     for s,p,o in gparsed.triples((None, RDF.type, None)):
-        if str(o) == manifest_type:
-            datasetType = True
-            if type(s).__name__ == 'URIRef' and len(s) > 0 and str(s) != str(item.uri):
+        if str(o) in oxdsClasses:
+            if type(s).__name__ == 'URIRef' and len(s) > 0 and str(s) != str(item.uri) and str(subjects[s]) != str(item.uri):
                 namespaces['owl'] = URIRef("http://www.w3.org/2002/07/owl#")
                 triples.append((item.uri, 'owl:sameAs', s))
-                triples.append((item.uri, RDF.type, URIRef(manifest_type)))    
-        elif str(o) in oxdsClasses and (type(s).__name__ == 'BNode' or (type(s).__name__ == 'URIRef' and len(s) == 0) or str(s) == str(item.uri)):
-            gparsed.remove((s, p, o))
+                triples.append((item.uri, RDF.type, o))              
+            elif type(s).__name__ == 'BNode' or len(s) == 0 or str(s) == str(item.uri) or str(subjects[s]) == str(item.uri):
+                gparsed.remove((s, p, o))
+            subjects[s] = item.uri
 
     #Get the uri for the see also files
     for s,p,o in gparsed.triples((None, URIRef('http://www.w3.org/2000/01/rdf-schema#seeAlso'), None)):
-        for objs in aggregates:
-            if str(o) in str(objs):
-                seeAlsoFiles.append(str(objs))
+        if type(o).__name__ == 'URIRef' and len(o) > 0:
+            obj = str(o)
+            if obj.startswith('file://'):
+                obj_path, obj_name = os.path.split(obj)
+                obj = obj.replace(obj_path, '').strip('/')
+            for file_uri in aggregates:
+                if obj in str(file_uri):
+                    seeAlsoFiles.append(file_uri)
         gparsed.remove((s, p, o))
 
     #Add remaining triples
     for s,p,o in gparsed.triples((None, None, None)):
-        if datasetType or type(s).__name__ == 'BNode' or (type(s).__name__ == 'URIRef' and len(s) == 0):
-            triples.append((item.uri, p, o))
-        else:
-            triples.append((s, p, o))
+        triples.append((subjects[s], p, o))
     return namespaces, triples, seeAlsoFiles
 
-def manifest_type(manifest_str):
+def manifest_type(manifest_file):
     mani_types = []
+    #fname = '/tmp/%s'%uuid4().hex
+    #f = codecs.open(fname, 'w', 'utf-8')
+    #f.write(manifest_str)
+    #f.close()
+    
     g = ConjunctiveGraph()
-    gparsed = g.parse(StringInputSource(manifest_str), format='xml')
+    #gparsed = g.parse(StringInputSource(manifest_str), format='xml')
+    #gparsed = g.parse(StringIO(manifest_str), format='xml')
+    gparsed = g.parse(manifest_file, format='xml')
     for s,p,o in gparsed.triples((None, RDF.type, None)):
         mani_types.append(str(o))
+    #os.remove(fname) 
     if "http://vocab.ox.ac.uk/dataset/schema#DataSet" in mani_types:
         return "http://vocab.ox.ac.uk/dataset/schema#DataSet"
     elif "http://vocab.ox.ac.uk/dataset/schema#Grouping" in mani_types:

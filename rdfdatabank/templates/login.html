@@ -1,0 +1,37 @@
+# -*- coding: utf-8 -*-
+<%def name="head_tags()">
+  <title> Login to Databank </title>
+</%def>
+
+<%def name="flash()">
+    % if session.has_key('login_flash'):
+        <div id="flash" class="flash">
+        <p>${session.get('login_flash') | n}</p><p>&nbsp;</p>
+        </div><p>&nbsp;</p>
+        <%
+            del session['login_flash']
+            session.save()
+        %>
+    % endif
+</%def>
+
+<%inherit file="/base.html" />
+<h2>Login</h2>
+${self.flash()}
+<p>
+<form action="/login_handler?came_from=${c.came_from}&logins=${c.login_counter}" method="POST" id="form">
+  <ul>
+    <li>
+      <label for="login">Username:</label>
+      <input type="text" id="login" name="login"/>
+    </li>
+    <li>
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" />
+    </li>
+    <li>
+      <input type="submit" class="submit" value="Login" />
+    </li>
+  </ul>
+</form>
+</p>

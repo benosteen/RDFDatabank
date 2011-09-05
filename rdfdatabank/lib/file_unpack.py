@@ -1,7 +1,7 @@
 import subprocess
 from threading import Thread
 from datetime import datetime, timedelta
-import os
+import os, shutil
 from redis import Redis
 from uuid import uuid4
 from rdflib import URIRef, Literal
@@ -30,7 +30,6 @@ def check_file_mimetype(real_filepath, mimetype):
         
 def get_zipfiles_in_dataset_old(dataset):
     derivative = dataset.list_rdf_objects("*", "ore:aggregates")
-    #print "derivative values", derivative.values()[0]
     zipfiles = {}
     if derivative and derivative.values() and derivative.values()[0]:
         for file_uri in derivative.values()[0]:
@@ -161,15 +160,14 @@ def unpack_zip_item(target_dataset, current_dataset, zip_item, silo, ident):
     os.path.walk(unpacked_dir,get_items_in_dir,items_list)
 
     # -- Step 3 -----------------------------
-    manifest_str = None
+    mani_file = None
     #Read manifest    
     for i in items_list:
         if 'manifest.rdf' in i and os.path.isfile(i):
-            F = open(i, 'r')
-            manifest_str = F.read()
-            F.close()
+            mani_file = os.path.join('/tmp', uuid4().hex)
+            shutil.move(i, mani_file)
             items_list.remove(i)
-            os.remove(i)
+            #os.remove(i)
             break
 
     # -- Step 4 -----------------------------
@@ -214,9 +212,10 @@ def unpack_zip_item(target_dataset, current_dataset, zip_item, silo, ident):
     # -- Step 6 -----------------------------
     #Munge rdf
     #TODO: If manifest is not well formed rdf - inform user. Currently just ignored.
-    if manifest_str and test_rdf(manifest_str):
-        munge_manifest(manifest_str, target_dataset, manifest_type='http://vocab.ox.ac.uk/dataset/schema#Grouping')
-     
+    if mani_file and os.path.isfile(mani_file) and test_rdf(mani_file):
+        munge_manifest(mani_file, target_dataset)
+        os.remove(mani_file)
+        
     # -- Step 7 -----------------------------
     target_dataset.sync()
     target_dataset.sync()
@@ -254,15 +253,14 @@ class unpack_zip_item(Thread):
         os.path.walk(unpacked_dir,get_items_in_dir,items_list)
 
         # -- Step 3 -----------------------------
-        manifest_str = None
+        mani_file = None
         #Read manifest    
         for i in items_list:
             if 'manifest.rdf' in i and os.path.isfile(i):
-                F = open(i, 'r')
-                manifest_str = F.read()
-                F.close()
+                mani_file = os.path.join('/tmp', uuid4().hex)
+                shutil.move(i, mani_file)
                 items_list.remove(i)
-                os.remove(i)
+                #os.remove(i)
                 break
     
         # -- Step 4 -----------------------------
@@ -299,8 +297,8 @@ class unpack_zip_item(Thread):
         # -- Step 6 -----------------------------
         #Munge rdf
         #TODO: If manifest is not well formed rdf - inform user. Currently just ignored.
-        if manifest_str and test_rdf(manifest_str):
-            munge_manifest(manifest_str, self.target_dataset, manifest_type='http://vocab.ox.ac.uk/dataset/schema#Grouping')
+        if mani_file and os.path.isfile(mani_file) and test_rdf(mani_file):
+            munge_manifest(mani_file, self.target_dataset, manifest_type='http://vocab.ox.ac.uk/dataset/schema#Grouping')
          
         # -- Step 7 -----------------------------
         #Delete the status 

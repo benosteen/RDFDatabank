@@ -1,0 +1,37 @@
+# -*- coding: utf-8 -*-
+<%inherit file="/base.html" />
+<%def name="head_tags()">
+  <title>User Info - ${c.silo_name} </title>
+</%def>
+<h1>Silo ${c.silo_name}</h1>
+<h3> User info for ${c.username}</h3>
+% if c.message:
+<p><span style="color:red;">${c.message}</span></p>
+% endif
+%if c.user:
+  <ul class="metadata">
+  % if 'first_name' in c.user:
+    <li><label for="first_name">Firstname:</label>${c.user['first_name']}</li>
+  % endif
+  % if 'last_name' in c.user:
+    <li><label for="last_name">Lastname:</label>${c.user['last_name']}</li>
+  % endif
+  % if 'name' in c.user:
+    <li><label for="name">Name:</label>${c.user['name']}</li>
+  % endif
+  % if 'owner' in c.user:
+  <%
+    if type(c.user['owner']).__name__ == 'list':
+        owner = ','.join(c.user['owner'])
+    else:
+        owner = c.user['owner']
+  %>
+    <li><label for="owner">Silos user has access to:</label>${owner}</li>
+  % endif
+  % if 'role' in c.user:
+    <li><label for="role">Role:</label>${c.user['role']}</li>
+  % endif
+  </ul>
+% endif
+<hr/>
+<%include file="/update_user.html"/>

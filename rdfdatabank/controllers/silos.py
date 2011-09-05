@@ -19,12 +19,15 @@ log = logging.getLogger(__name__)
 class SilosController(BaseController):
     @rest.restrict('GET')
     def index(self):
-        if not request.environ.get('repoze.who.identity'):
-            abort(401, "Not Authorised")
         ident = request.environ.get('repoze.who.identity')
-        granary_list = ag.granary.silos
-        c.silos = ag.authz(granary_list, ident)
         c.ident = ident
+        granary_list = ag.granary.silos
+        c.silos = granary_list
+        if ag.metadata_embargoed:
+            if not ident:
+                abort(401, "Not Authorised")
+            c.silos = ag.authz(granary_list, ident)
+
         # conneg return
         accept_list = None
         if 'HTTP_ACCEPT' in request.environ:
@@ -55,25 +58,34 @@ class SilosController(BaseController):
         
     @rest.restrict('GET')
     def siloview(self, silo):
-        if not request.environ.get('repoze.who.identity'):
-            abort(401, "Not Authorised")
         if not ag.granary.issilo(silo):
             abort(404)
+            
         ident = request.environ.get('repoze.who.identity')
         c.ident = ident
         granary_list = ag.granary.silos
-        c.silos = ag.authz(granary_list, ident)
-        if silo not in c.silos:
-            abort(403, "Forbidden")
-        
         c.silo_name = silo
+        c.editor = False
+        if ag.metadata_embargoed:
+            if not ident:
+                abort(401, "Not Authorised")
+            silos = ag.authz(granary_list, ident)
+            if silo not in silos:
+                abort(403, "Forbidden")
+            c.editor = True
+        elif ident:
+            silos = ag.authz(granary_list, ident)
+            if silo in silos:
+                c.editor = True
+        
         rdfsilo = ag.granary.get_rdf_silo(silo)       
         c.embargos = {}
-        c.items = []
+        #c.items = []
         for item in rdfsilo.list_items():
-            c.embargos[item] = None
-            c.embargos[item] = is_embargoed(rdfsilo, item)
-            c.items.append(item)
+            #c.embargos[item] = None
+            #c.embargos[item] = is_embargoed(rdfsilo, item)
+            #c.items.append(item)
+            c.embargos[item] = ()
 
         # conneg return
         accept_list = None

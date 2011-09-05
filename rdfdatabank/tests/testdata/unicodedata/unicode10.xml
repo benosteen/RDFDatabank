@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF 
+    xmlns:dcterms="http://purl.org/dc/terms/" 
+    xmlns:oxds="http://vocab.ox.ac.uk/dataset/schema#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+>
+  <oxds:DataSet rdf:about="">
+    <dcterms:title>Some Arabic</dcterms:title>
+    <rdf:value>The following lines are the first chapter of the Qur'an (note that the text runs right to left, and should probably be aligned on the right margin): &lt;br&gt;
+
+    بِسْمِ ٱللّٰهِ ٱلرَّحْمـَبنِ ٱلرَّحِيمِ
+ &lt;br&gt; &lt;br&gt;
+    ٱلْحَمْدُ لِلّٰهِ رَبِّ ٱلْعَالَمِينَ
+ &lt;br&gt; &lt;br&gt;
+    ٱلرَّحْمـَبنِ ٱلرَّحِيمِ
+ &lt;br&gt; &lt;br&gt;
+    مَـالِكِ يَوْمِ ٱلدِّينِ
+ &lt;br&gt; &lt;br&gt;
+    إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ
+ &lt;br&gt; &lt;br&gt;
+    ٱهْدِنَــــا ٱلصِّرَاطَ ٱلمُسْتَقِيمَ
+ &lt;br&gt; &lt;br&gt;
+    صِرَاطَ ٱلَّذِينَ أَنعَمْتَ عَلَيهِمْ غَيرِ ٱلمَغضُوبِ عَلَيهِمْ وَلاَ ٱلضَّالِّينَ
+ &lt;br&gt; &lt;br&gt;
+And here is a transcription of it: &lt;br&gt;
+ &lt;br&gt;
+    bismi ăl-la'hi ăr-raḥma'ni ăr-raḥiymi &lt;br&gt;
+ &lt;br&gt;
+    ăl-ḥamdu li-lla'hi rabbi ăl-`a'lamiyna &lt;br&gt;
+ &lt;br&gt;
+    ăr-raḥma'ni ăr-raḥiymi &lt;br&gt;
+ &lt;br&gt;
+    ma'liki yawmi ăd-diyni &lt;br&gt;
+ &lt;br&gt;
+    'iyya'ka na`budu wa-'iyya'ka nasta`iynu &lt;br&gt;
+ &lt;br&gt;
+    ĭhdina' ăṣ-ṣira'ṭa ăl-mustaqiyma &lt;br&gt;
+ &lt;br&gt;
+    ṣira'ṭa ăllaḏiyna 'an`amta `alayhim ġayri ăl-maġḍuwbi `alayhim wala' ăḍ-ḍa'lliyna &lt;br&gt;
+ &lt;br&gt;
+A rough translation might be: &lt;br&gt;
+ &lt;br&gt;
+    In the name of God, the beneficient, the merciful. &lt;br&gt;
+ &lt;br&gt;
+    Praise be to God, lord of the worlds. &lt;br&gt;
+ &lt;br&gt;
+    The beneficient, the merciful. &lt;br&gt;
+ &lt;br&gt;
+    Master of the day of judgment. &lt;br&gt;
+ &lt;br&gt;
+    Thee do we worship, and Thine aid we seek. &lt;br&gt;
+ &lt;br&gt;
+    Lead us on the right path. &lt;br&gt;
+ &lt;br&gt;
+    The path of those on whom Thou hast bestowed favors. Not of those who have earned Thy wrath, nor of those who go astray.</rdf:value>
+    <dcterms:source>http://www.madore.org/~david/misc/unitest/</dcterms:source>
+  </oxds:DataSet>
+</rdf:RDF>

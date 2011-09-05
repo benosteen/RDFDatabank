@@ -1,0 +1,10 @@
+In the following table, characters that are missing from Unicode as of version 3.0, latest draft (i.e. that cannot be represented as a single character but must use the more general form of combining diacritics) have been replaced by X, so you can tell they are not your browser's fault. <br>
+Base	Grave	Acute	Circumflex	Tilde	Diaeresis 	Macron	Breve	Ogonek	Dot	Double acute	Caron 	Double grave	Inverted breve <br>
+a	à	á	â	ã	ä 	ā	ă	ą	ȧ	X	ǎ 	ȁ	ȃ <br>
+e	è	é	ê	ẽ	ë 	ē	ĕ	ę	ė	X	ě 	ȅ	ȇ <br>
+i	ì	í	î	ĩ	ï 	ī	ĭ	į	i	X	ǐ 	ȉ	ȋ <br>
+o	ò	ó	ô	õ	ö 	ō	ŏ	ǫ	ȯ	ő	ǒ 	ȍ	ȏ <br>
+u	ù	ú	û	ũ	ü 	ū	ŭ	ų	X	ű	ǔ 	ȕ	ȗ <br>
+y	ỳ	ý	ŷ	ỹ	ÿ 	ȳ	X	X	ẏ	X	X 	X	X <br>
+<br>
+Note that the three characters “LATIN SMALL LETTER A WITH DOT ABOVE”, “LATIN SMALL LETTER O WITH DOT ABOVE” and “LATIN SMALL LETTER Y WITH MACRON” were not present in version 2.0 of the Unicode standard. So it is quite understandable if you do not see the corresponding entries.

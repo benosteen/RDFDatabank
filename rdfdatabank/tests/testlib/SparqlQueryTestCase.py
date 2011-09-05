@@ -151,15 +151,20 @@ class SparqlQueryTestCase(unittest.TestCase):
 
     def doRequest(self, command, resource, reqdata=None, reqheaders={}, expect_status=200, expect_reason="OK"):
         logger.debug(command+" "+self.getRequestUri(resource))
-        if self._endpointuser:
-            auth = base64.encodestring("%s:%s" % (self._endpointuser, self._endpointpass)).strip()
-            reqheaders["Authorization"] = "Basic %s" % auth
+        #if self._endpointuser:
+        #    auth = base64.encodestring("%s:%s" % (self._endpointuser, self._endpointpass)).strip()
+        #    reqheaders["Authorization"] = "Basic %s" % auth
+        auth = base64.encodestring("%s:%s" % (self._endpointuser, self._endpointpass)).strip()
+        reqheaders["Authorization"] = "Basic %s" % auth
         hc   = httplib.HTTPConnection(self._endpointhost)
         #hc   = httplib.HTTPSConnection(self._endpointhost)
         path = self.getRequestPath(resource)
         response     = None
         responsedata = None
         repeat       = 10
+        #print "auth: ", self._endpointuser, self._endpointpass
+        #print "path: ", path
+        #print "-"*10
         while path and repeat > 0:
             repeat -= 1
             hc.request(command, path, reqdata, reqheaders)

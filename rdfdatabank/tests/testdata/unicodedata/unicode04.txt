@@ -1,0 +1,27 @@
+Here is a table of the constellations of the Zodiac, in which the first column should contain the relevant astrological symbol:  <br>
+Sym.	English name	Latin name	Latin genitive	α star <br>
+♈	The Ram	Aries	Arietis	Hamal <br>
+♉	The Bull	Taurus	Tauri	Aldebaran <br>
+♊	The Twins	Gemini	Geminorum	Castor <br>
+♋	The Crab	Cancer	Cancri	Acubens <br>
+♌	The Lion	Leo	Leonis	Regulus <br>
+♍	The Virgin	Virgo	Virginis	Spica <br>
+♎	The Scales	Libra	Libræ	Zumen el Genubi <br>
+♏	The Scorpion	Scorpius	Scorpii	Antares <br>
+♐	The Archer	Sagittarius	Sagittarii	Rubkat <br>
+♑	The Sea Goat	Capricornus	Capricorni	Giedi <br>
+♒	The Water Bearer	Aquarius	Aquarii	Sadalmelik <br>
+♓	The Fishes	Pisces	Piscium	El Rischa <br>
+ <br>
+The following table should show a chessboard, with a pictorial representation of the pieces: <br>
+	A	B	C	D	E	F	G	H <br>
+8	♜	♞	♝	♛	♚	♝	♞	♜ <br>
+7	♟	♟	♟	♟	♟	♟	♟	♟ <br>
+6								 <br>
+5								 <br>
+4								 <br>
+3								 <br>
+2	♙	♙	♙	♙	♙	♙	♙	♙ <br>
+1	♖	♘	♗	♕	♔	♗	♘	♖ <br>
+ <br>
+Here is a snowflake: ❄. 

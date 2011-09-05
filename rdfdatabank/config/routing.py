@@ -27,6 +27,10 @@ def make_map():
     #Special controller to redirect datasets from databank.ouls to databank.ora
     map.connect('/objects/{id}', controller='redirect', action='index')
 
+    map.connect("/login", controller='account', action='login')
+    map.connect("/logout", controller='account', action='logout')
+    map.connect("/welcome", controller='account', action='welcome')
+
     map.connect('/', controller='home', action='index')
     map.connect('/api', controller='api', action='index')
     map.connect('/api/{api_name}', controller='api', action='apiview')
@@ -34,6 +38,9 @@ def make_map():
     map.connect('/admin', controller='admin', action='index')
     map.connect('/{silo_name}/admin', controller='admin', action='archive')
     map.connect('/{silo_name}/register', controller='admin', action='register')
+    
+    map.connect('/{silo_name}/users', controller='users', action='index')
+    map.connect('/{silo_name}/users/{username}', controller='users', action='userview')
     
     map.connect('/silos', controller='silos', action='index')
     map.connect('/{silo}', controller='silos', action='siloview')

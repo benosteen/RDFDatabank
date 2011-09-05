@@ -3,12 +3,17 @@
 <%def name="head_tags()">
   <title> Contents of zipfile ${c.path} </title>
 </%def>
-% if c.silo_name and c.id and c.path and c.zipfile_contents:
-<h1> Contents of zipfile ${c.path} </h1>
-<ul>
-% for zf in c.zipfile_contents:
-<li><p><a href="/${c.silo_name}/items/${c.id}/${c.path}/${zf}">${zf}</a> ( ${h.bytes_to_english(c.zipfile_contents[zf][0])} )
-</li>
-% endfor
-</ul>
+% if c.silo_name and c.id and c.path:
+  <h1> Contents of zipfile ${c.path} </h1>
+  % if c.zipfile_contents:
+    <ul>
+    % for zf in c.zipfile_contents:
+      <li>
+      <p><a href="/${c.silo_name}/items/${c.id}/${c.path}/${zf}">${zf}</a> ( ${h.bytes_to_english(c.zipfile_contents[zf][0])} )</p>
+      </li>
+    % endfor
+    </ul>
+  % else:
+      <p>There are no contents avaialble</p>
+  % endif
 % endif

@@ -5,7 +5,7 @@
   xmlns:oxds='http://vocab.ox.ac.uk/dataset/schema#'
   xmlns:dc='http://purl.org/dc/elements/1.1/'
 >
-  <oxds:item rdf:about="directory/file1.b">
+  <oxds:item rdf:about="/directory/file1.b">
     <dcterms:title>Test item 1b</dcterms:title>
     <dc:description>This is test item 1b of type file</dc:description>
     <rdfs:seeAlso rdf:resource="directory/2a.rdf"/>

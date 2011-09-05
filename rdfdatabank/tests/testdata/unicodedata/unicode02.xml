@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF 
+    xmlns:dcterms="http://purl.org/dc/terms/" 
+    xmlns:dcmitype="http://purl.org/dc/dcmitype/"
+    xmlns:oxds="http://vocab.ox.ac.uk/dataset/schema#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+>
+  <oxds:DataSet rdf:about="">
+    <dcterms:title>A table of (some) accents</dcterms:title>
+    <rdf:value>In the following table, characters that are missing from Unicode as of version 3.0, latest draft (i.e. that cannot be represented as a single character but must use the more general form of combining diacritics) have been replaced by X, so you can tell they are not your browser's fault. &lt;br&gt;
+Base	Grave	Acute	Circumflex	Tilde	Diaeresis 	Macron	Breve	Ogonek	Dot	Double acute	Caron 	Double grave	Inverted breve &lt;br&gt;
+a	à	á	â	ã	ä 	ā	ă	ą	ȧ	X	ǎ 	ȁ	ȃ &lt;br&gt;
+e	è	é	ê	ẽ	ë 	ē	ĕ	ę	ė	X	ě 	ȅ	ȇ &lt;br&gt;
+i	ì	í	î	ĩ	ï 	ī	ĭ	į	i	X	ǐ 	ȉ	ȋ &lt;br&gt;
+o	ò	ó	ô	õ	ö 	ō	ŏ	ǫ	ȯ	ő	ǒ 	ȍ	ȏ &lt;br&gt;
+u	ù	ú	û	ũ	ü 	ū	ŭ	ų	X	ű	ǔ 	ȕ	ȗ &lt;br&gt;
+y	ỳ	ý	ŷ	ỹ	ÿ 	ȳ	X	X	ẏ	X	X 	X	X &lt;br&gt;
+&lt;br&gt;
+Note that the three characters “LATIN SMALL LETTER A WITH DOT ABOVE”, “LATIN SMALL LETTER O WITH DOT ABOVE” and “LATIN SMALL LETTER Y WITH MACRON” were not present in version 2.0 of the Unicode standard. So it is quite understandable if you do not see the corresponding entries.</rdf:value>
+    <dcterms:source>http://www.madore.org/~david/misc/unitest/</dcterms:source>
+  </oxds:DataSet>
+</rdf:RDF>

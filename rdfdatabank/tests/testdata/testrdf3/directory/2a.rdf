@@ -1,0 +1,13 @@
+<rdf:RDF
+  xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'
+  xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xmlns:dcterms='http://purl.org/dc/terms/'
+  xmlns:oxds='http://vocab.ox.ac.uk/dataset/schema#'
+  xmlns:dc='http://purl.org/dc/elements/1.1/'
+>
+  <oxds:Grouping rdf:about="http://example.org/2aFiles/">
+    <dc:description>This is a archived test item 2a </dc:description>
+    <rdfs:seeAlso rdf:resource="directory/3a.rdf"/>
+  </oxds:Grouping>
+</rdf:RDF>
+

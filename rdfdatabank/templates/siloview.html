@@ -9,5 +9,7 @@
 <h1>List of Datasets in Silo</h1>
 % endif
 <%include file="list_of_datasets.html"/>
-<h3> Create new empty dataset: </h3>
-<%include file="create_new_item.html"/>
+% if c.editor:
+  <h3> Create new empty dataset: </h3>
+  <%include file="create_new_item.html"/>
+% endif

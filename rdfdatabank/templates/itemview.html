@@ -3,9 +3,56 @@
 <%def name="head_tags()">
   <title>Item View</title>
 </%def>
+
+<h1>Dataset ${c.id}</h1>
+
+<!-- View Information -->
+% if c.editor:
+  <div id="editor_view">
+  % if c.view == 'editor':
+    Editor view 
+  % else:
+    User view 
+  % endif
+  % if c.version: 
+    <br /> Change view : 
+    <a href="/${c.silo_name}/datasets/${c.id}/${c.path}?version=${c.version}&view=editor">Editor</a> | 
+    <a href="/${c.silo_name}/datasets/${c.id}/${c.path}?version=${c.version}&view=user">User</a></p>
+  % else:
+    <br />Change view : 
+    <a href="/${c.silo_name}/datasets/${c.id}/${c.path}?view=editor">Editor</a> | 
+    <a href="/${c.silo_name}/datasets/${c.id}/${c.path}?view=user">User</a></p>
+  % endif
+  </div>
+% endif
+
+<div class="datapackage">
+<!-- Readme file -->
 % if c.readme_text:
 <%include file="/readme_section.html"/>
 % endif
+
+<!-- List of Files -->
 % if c.parts:
-<%include file="/part_list.html"/>
+  % if c.show_files:
+    % if c.editor:
+      <%include file="/part_list.html"/>
+    % else:
+      <%include file="/part_list_display.html"/>
+    % endif
+  % else:
+    <p>You do not have permission to view these files</p>
+  % endif
+% else:
+  <p>There are no files or folders in this path</p>
 % endif
+</div>
+
+<!-- DISPLAYED FOR EDITOR ONLY -->
+% if c.editor and c.view == 'editor':
+  <div class="editor">
+  <!-- Upload File -->
+  <%include file="/item_file_upload.html"/>
+  </div>
+% endif
+
