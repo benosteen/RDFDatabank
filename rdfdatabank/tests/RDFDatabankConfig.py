@@ -17,6 +17,9 @@ class RDFDatabankConfig:
     endpointpath="/test/"
     endpointpath2="/test2/"
 
+    endpointuser="sandbox_user"
+    endpointpass="sandbox"
+
     #Admin1 of silo1
     endpointadminuser="admin"
     endpointadminpass="test"

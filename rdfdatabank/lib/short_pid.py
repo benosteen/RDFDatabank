@@ -79,5 +79,5 @@ if __name__ == '__main__':
         assert a == e
         assert b == d
         c = (' ' * (7 - len(c))) + c
-        print '%6d %12d %s %12d %6d' % (a, b, c, d, e)
+        #print '%6d %12d %s %12d %6d' % (a, b, c, d, e)
         

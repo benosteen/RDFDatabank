@@ -196,7 +196,6 @@ def test_rdf(mfile):
     except Exception as inst:
         return False
 
-#def munge_manifest(manifest_str, item):    
 def munge_manifest(manifest_file, item):    
     #Get triples from the manifest file and remove the file
     triples = None
