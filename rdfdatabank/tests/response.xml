@@ -7,33 +7,33 @@
   xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'
   xmlns:ore='http://www.openarchives.org/ore/terms/'
 >
-  <oxds:Grouping rdf:about="http://192.168.23.133/test/datasets/TestSubmission-testrdf3">
-    <dcterms:isVersionOf rdf:resource="http://192.168.23.133/test/datasets/TestSubmission/testrdf3.zip"/>
-    <ore:aggregates rdf:resource="http://192.168.23.133/test/datasets/TestSubmission-testrdf3/testrdf3/directory/2a.rdf"/>
-    <ore:aggregates rdf:resource="http://192.168.23.133/test/datasets/TestSubmission-testrdf3/testrdf3/directory"/>
-    <ore:aggregates rdf:resource="http://192.168.23.133/test/datasets/TestSubmission-testrdf3/testrdf3/directory/file1.a"/>
-    <ore:aggregates rdf:resource="http://192.168.23.133/test/datasets/TestSubmission-testrdf3/testrdf3"/>
-    <ore:aggregates rdf:resource="http://192.168.23.133/test/datasets/TestSubmission-testrdf3/testrdf3/directory/file2.a"/>
-    <ore:aggregates rdf:resource="http://192.168.23.133/test/datasets/TestSubmission-testrdf3/testrdf3/directory/3a.rdf"/>
-    <ore:aggregates rdf:resource="http://192.168.23.133/test/datasets/TestSubmission-testrdf3/testrdf3/directory/file1.b"/>
-    <ore:aggregates rdf:resource="http://192.168.23.133/test/datasets/TestSubmission-testrdf3/testrdf3/directory/hebrew.txt"/>
-    <ore:aggregates rdf:resource="http://192.168.23.133/test/datasets/TestSubmission-testrdf3/testrdf3/test-csv.csv"/>
-    <ore:aggregates rdf:resource="http://192.168.23.133/test/datasets/TestSubmission-testrdf3/testrdf3/directory/1a.rdf"/>
-    <ore:aggregates rdf:resource="http://192.168.23.133/test/datasets/TestSubmission-testrdf3/testrdf3/directory/1b.rdf"/>
-    <dcterms:identifier>TestSubmission-testrdf3</dcterms:identifier>
-    <dcterms:mediator>sandbox_user</dcterms:mediator>
-    <dcterms:license>CC0 1.0 Universal (CC0 1.0). See http://creativecommons.org/publicdomain/zero/1.0/legalcode</dcterms:license>
+  <oxds:Grouping rdf:about="http://databank.ora.ox.ac.uk/test/datasets/TestSubmission-testrdf3">
     <oxds:isEmbargoed>True</oxds:isEmbargoed>
-    <dcterms:created>2011-09-05 17:42:14.019343</dcterms:created>
-    <dcterms:rights rdf:resource="http://ora.ouls.ox.ac.uk/objects/uuid%3A1d00eebb-8fed-46ad-8e38-45dbdb4b224c"/>
-    <oxds:currentVersion>1</oxds:currentVersion>
-    <dcterms:title>Test dataset 3 with updated and merged metadata</dcterms:title>
-    <owl:sameAs rdf:resource="http://example.org/2aFiles/"/>
-    <dcterms:publisher>Bodleian Libraries, University of Oxford</dcterms:publisher>
-    <dcterms:modified>2011-09-05 17:42:14.020466</dcterms:modified>
-    <oxds:embargoedUntil>2081-08-18T17:42:14.018075</oxds:embargoedUntil>
+    <dcterms:identifier>TestSubmission-testrdf3</dcterms:identifier>
+    <oxds:embargoedUntil>2081-08-19T02:17:16.448802</oxds:embargoedUntil>
+    <dc:description>file1.a is another file</dc:description>
     <dc:description>This is a archived test item 2a </dc:description>
     <dc:description>file1.b is another file</dc:description>
-    <dc:description>file1.a is another file</dc:description>
+    <dcterms:isVersionOf rdf:resource="http://databank.ora.ox.ac.uk/test/datasets/TestSubmission/testrdf3.zip"/>
+    <dcterms:title>Test dataset 3 with updated and merged metadata</dcterms:title>
+    <dcterms:modified>2011-09-06 02:17:16.454495</dcterms:modified>
+    <dcterms:rights rdf:resource="http://ora.ouls.ox.ac.uk/objects/uuid%3A1d00eebb-8fed-46ad-8e38-45dbdb4b224c"/>
+    <oxds:currentVersion>1</oxds:currentVersion>
+    <dcterms:license>CC0 1.0 Universal (CC0 1.0). See http://creativecommons.org/publicdomain/zero/1.0/legalcode</dcterms:license>
+    <owl:sameAs rdf:resource="http://example.org/2aFiles/"/>
+    <dcterms:publisher>Bodleian Libraries, University of Oxford</dcterms:publisher>
+    <ore:aggregates rdf:resource="http://databank.ora.ox.ac.uk/test/datasets/TestSubmission-testrdf3/testrdf3/directory/file1.a"/>
+    <ore:aggregates rdf:resource="http://databank.ora.ox.ac.uk/test/datasets/TestSubmission-testrdf3/testrdf3/directory"/>
+    <ore:aggregates rdf:resource="http://databank.ora.ox.ac.uk/test/datasets/TestSubmission-testrdf3/testrdf3/directory/3a.rdf"/>
+    <ore:aggregates rdf:resource="http://databank.ora.ox.ac.uk/test/datasets/TestSubmission-testrdf3/testrdf3/directory/file1.b"/>
+    <ore:aggregates rdf:resource="http://databank.ora.ox.ac.uk/test/datasets/TestSubmission-testrdf3/testrdf3/directory/file2.a"/>
+    <ore:aggregates rdf:resource="http://databank.ora.ox.ac.uk/test/datasets/TestSubmission-testrdf3/testrdf3/test-csv.csv"/>
+    <ore:aggregates rdf:resource="http://databank.ora.ox.ac.uk/test/datasets/TestSubmission-testrdf3/testrdf3/directory/1b.rdf"/>
+    <ore:aggregates rdf:resource="http://databank.ora.ox.ac.uk/test/datasets/TestSubmission-testrdf3/testrdf3"/>
+    <ore:aggregates rdf:resource="http://databank.ora.ox.ac.uk/test/datasets/TestSubmission-testrdf3/testrdf3/directory/2a.rdf"/>
+    <ore:aggregates rdf:resource="http://databank.ora.ox.ac.uk/test/datasets/TestSubmission-testrdf3/testrdf3/directory/1a.rdf"/>
+    <ore:aggregates rdf:resource="http://databank.ora.ox.ac.uk/test/datasets/TestSubmission-testrdf3/testrdf3/directory/hebrew.txt"/>
+    <dcterms:created>2011-09-06 02:17:16.452418</dcterms:created>
+    <dcterms:mediator>sandbox_user</dcterms:mediator>
   </oxds:Grouping>
 </rdf:RDF>
