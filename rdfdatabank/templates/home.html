@@ -3,11 +3,51 @@
 <%def name="head_tags()">
   <title> Databank </title>
 </%def>
-<h1>Databank</h1>
-<p>Oxford DataBank is a small collection of non-bibliographic works created by Oxford researchers. The purpose of DataBank is to provide a pilot version of a robust and efficient system for the safe storage of and open access to (where appropriate) Oxford research data. Content could be described as .data produced as a result of academic research.. Items might comprise files such as spreadsheets, databases, audio files and images (still and moving). Numerical or other data might be raw data or the data may have been manipulated or processed in some way.</p>
+<h1 style="margin-top:-10px;">Databank</h1>
+<p> The purpose of DataBank is to provide a pilot version of a robust and efficient system for the safe storage of and open access to (where appropriate) research data. Content could be described as data produced as a result of academic research.. Items might comprise files such as spreadsheets, databases, audio files and images (still and moving). Numerical or other data might be raw data or the data may have been manipulated or processed in some way.</p>
 
-<p>DataBank is not intended to store large-scale data sets such as grid data or other vast data sets. Neither is it intended to replace national, subject or other established data collections. It is envisaged that the future role of DataBank will be to provide a secure and accessible store of small to medium-sized files which have no other option for similar safe storage. The role of DataBank will be clarified as Oxford University works towards a solution for the storage of and access to its research data. Please note DataBank is a pilot system and still under development.</p>
+<p>DataBank is not intended to store large-scale data sets such as grid data or other vast data sets. Neither is it intended to replace national, subject or other established data collections. It is envisaged that the future role of DataBank will be to provide a secure and accessible store of small to medium-sized files which have no other option for similar safe storage.</p>
+
+<p>Please note DataBank is a pilot system and still under development. </p>
 
 <p>Users should adhere to the terms and conditions stated for each item.</p>
 
-<div align="center"><a href="/silos">Browse Data packages</a></div>
+<h2 align="center"><a href="/silos">Browse Data packages</a></h2>
+
+<hr>
+
+<h2>How to use Databank</h2>
+
+<p>The admin credentials used in this demo instance of Databank are <br><b>username:</b> <i>admin</i> <br> <b>Password:</b> <i>test</i></p>
+
+<h3>Databank documentation</h3>
+<ul>
+<li><a href="https://damssupport.ouls.ox.ac.uk/trac/databank/wiki/DatabankFeatures" target="_blank">Databank features</a></li>
+<ul>
+<li><a href="https://damssupport.ouls.ox.ac.uk/trac/databank/wiki/DatabankFeatures#ThestructureofdatawithintheDataBankinterface" target="_blank">Structure of data within the Databank interface</a></li>
+<li><a href="https://damssupport.ouls.ox.ac.uk/trac/databank/wiki/DatabankFeatures#WorkingwithDataBank" target="_blank">Workflow</a></li>
+</ul>
+<li><a href="https://damssupport.ouls.ox.ac.uk/trac/databank/wiki/DatabankArchitecture" target="_blank">Architecture of Databank</a></li>
+<li><a href="https://damssupport.ouls.ox.ac.uk/trac/databank/wiki/metadataSchema" target="_blank">How and why to add user metadata</a></li>
+<li><a href="https://damssupport.ouls.ox.ac.uk/trac/databank/wiki/userRoles" target="_blank">User roles supported in Databank</a></li>
+<li><a href="https://damssupport.ouls.ox.ac.uk/trac/databank/wiki/embargoPolicy" target="_blank">Databank Embargo Policies: Accessing data within Databank</a></li>
+<li><a href="https://damssupport.ouls.ox.ac.uk/trac/databank/wiki/doiPolicy" target="_blank">DOIs for data packages: Publishing the Data in Databank</a></li><a href="https://damssupport.ouls.ox.ac.uk/trac/databank/wiki/doiPolicy"></a>
+</ul>
+
+<h3>Using the Databank API</h3>
+<p>Data can be submitted into Databank by using the Databank API. The API provides a restful web interface to all of Databank's features. 
+</p>
+<ul>
+<li><a href="/api"> Databank API documentation </a></li>
+<li><a href="https://damssupport.ouls.ox.ac.uk/trac/databank/wiki/DatabankFeatures#Testcoverageofdatabank" target="_blank">Test coverage of databank</a></li>
+<li><a href="https://github.com/dataflow/RDFDatabank/tree/master/docs/using_databank_api" target="_blank">Using the API - example code in Python</a></li>
+</ul>
+
+<h3>Running your own instance of Databank</h3>
+<p>Databank is written in Python. The Databank code is licensed under <a href="http://en.wikipedia.org/wiki/MIT_License" target="_blank">MIT</a> and can be checked out from <a href="https://github.com/dataflow/RDFDatabank" target="_blank">https://github.com/dataflow/RDFDatabank</a>
+</p>
+<p>For instructions on installing Databank, follow <a href="https://raw.github.com/dataflow/RDFDatabank/master/docs/Databank_VM_Installation.txt" target="_blank">this document</a></p>
+
+<a href="mailto:dataflow-devel@googlegroups.com"> Get in touch with the developers of Databank</a>
+
+<p> </p>
