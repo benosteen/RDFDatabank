@@ -3,8 +3,12 @@
 <%def name="head_tags()">
   <title> List of Silos </title>
 </%def>
+<%
+n = len(c.silos)
+%>
 <h1> List of Silos </h1>
 % if c.silos:
+  <p>Number of silos: ${n}</p>
   <ul>
   % for silo in c.silos:
     <li><a href="/${silo}"><big><big>${silo}</big></big></a><br /><ul>

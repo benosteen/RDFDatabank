@@ -10,9 +10,9 @@
     WSGIApplicationGroup %{GLOBAL}
     WSGIPassAuthorization On
     # Setup mod_wsgi
-    WSGIScriptAlias / /opt/rdfdatabank/src/mod_wsgi/dispatch.wsgi
+    WSGIScriptAlias / /opt/RDFDatabank/mod_wsgi/dispatch.wsgi
 
-    <Directory /opt/rdfdatabank/src/mod_wsgi>
+    <Directory /opt/RDFDatabank/mod_wsgi>
     Order deny,allow
     Allow from all
     </Directory>

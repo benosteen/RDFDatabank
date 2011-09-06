@@ -1,7 +1,7 @@
 import logging
 import simplejson
 from pylons import request, response, session, config, tmpl_context as c, url
-from pylons.controllers.util import abort, redirect_to
+from pylons.controllers.util import abort, redirect
 from pylons.decorators import rest
 from pylons import app_globals as ag
 from rdfdatabank.lib.base import BaseController, render
@@ -50,6 +50,7 @@ class UsersController(BaseController):
             for u in c.users:
                 if not u in ag.users:
                     c.users.remove(u)
+                    continue
                 if ag.users[u]['role'] == "admin" and ident.get('role') == "manager":
                     c.users.remove(u)
             accept_list = None
@@ -97,7 +98,7 @@ class UsersController(BaseController):
                         continue
                     if s and not ag.granary.issilo(s):
                         owner_of_silos.remove(s)
-                ag.users[params['username']] = {'owner':owner_of_silos}
+                ag.users[params['username']]['owner'] = owner_of_silos
                 if 'name' in params and params['name']:
                     ag.users[params['username']]['name'] = params['name']
                 if 'first_name' in params and params['first_name']:
@@ -144,7 +145,7 @@ class UsersController(BaseController):
             mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                    redirect_to(controller="users", action="userview", silo_name=silo_name, username=params['username'])
+                    redirect(url(controller="users", action="userview", silo_name=silo_name, username=params['username']))
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = "text/plain"
                     return response_message
@@ -243,7 +244,7 @@ class UsersController(BaseController):
                             continue
                         if s and not ag.granary.issilo(s):
                             owner_of_silos.remove(s)
-                    ag.users[username] = {'owner':owner_of_silos}
+                    ag.users[username]['owner'] = owner_of_silos
                     if 'name' in params and params['name']:
                         ag.users[username]['name'] = params['name']
                     if 'first_name' in params and params['first_name']:
@@ -314,7 +315,7 @@ class UsersController(BaseController):
             mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                    redirect_to(controller="users", action="userview", silo_name=silo_name, username=username)
+                    redirect(url(controller="users", action="userview", silo_name=silo_name, username=username))
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = "text/plain"
                     return response_message

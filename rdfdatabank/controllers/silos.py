@@ -80,12 +80,12 @@ class SilosController(BaseController):
         
         rdfsilo = ag.granary.get_rdf_silo(silo)       
         c.embargos = {}
-        #c.items = []
+        c.items = []
         for item in rdfsilo.list_items():
             #c.embargos[item] = None
-            #c.embargos[item] = is_embargoed(rdfsilo, item)
-            #c.items.append(item)
-            c.embargos[item] = ()
+            c.embargos[item] = is_embargoed(rdfsilo, item)
+            c.items.append(item)
+            #c.embargos[item] = ()
 
         # conneg return
         accept_list = None

@@ -1,7 +1,6 @@
 import logging
 import simplejson
 from pylons import request, response, session, config, tmpl_context as c, url
-#from pylons.controllers.util import abort, redirect_to
 from pylons.controllers.util import abort, redirect
 from pylons.decorators import rest
 from pylons import app_globals as ag
@@ -83,7 +82,7 @@ class AdminController(BaseController):
                     else:
                         silos_owned = ag.users[u]['owner']
                         if isinstance(ag.users[u]['owner'], basestring):
-                            silos_owned = [x.strip() for x in ag.users[o]['owner'].split(",") if x]
+                            silos_owned = [x.strip() for x in ag.users[u]['owner'].split(",") if x]
                         if not silo_name in silos_owned:
                             silos_owned.append(silo_name)
                             ag.users[u]['owner'] = silos_owned
@@ -464,7 +463,7 @@ class AdminController(BaseController):
         mimetype = accept_list.pop(0)
         while(mimetype):
             if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                redirect_to(controller="admin", action="archive", silo_name=silo_name)
+                redirect(url(controller="admin", action="archive", silo_name=silo_name))
             elif str(mimetype).lower() in ["text/plain", "application/json"]:
                 response.content_type = "text/plain"
                 return response_message

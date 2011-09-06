@@ -24,6 +24,9 @@ class DatasetsController(BaseController):
             abort(404)
         c.silo_name = silo
         granary_list = ag.granary.silos
+        f = open('/tmp/ds.log', 'a')
+        f.write(str(granary_list))
+        f.close()
         ident = request.environ.get('repoze.who.identity')
         c.ident = ident
 
@@ -123,7 +126,7 @@ class DatasetsController(BaseController):
             mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                    redirect_to(controller="datasets", action="datasetview", silo=silo, id=id)
+                    redirect(url(controller="datasets", action="datasetview", silo=silo, id=id))
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = "text/plain"
                     response.status_int = 201

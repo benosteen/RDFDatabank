@@ -11,6 +11,6 @@ class ApiController(BaseController):
 
     def apiview(self, api_name):
         if api_name not in ['silos', 'datasets', 'states', 'items']:
-            redirect_to(controller="api", action="apiview", api_name="silos")
+            redirect(url(controller="api", action="apiview", api_name="silos"))
         c.api_file = "%s_api.html"%api_name    
         return render('/api.html')

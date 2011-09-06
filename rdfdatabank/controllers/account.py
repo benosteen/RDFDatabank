@@ -1,7 +1,7 @@
 from pylons import url
 from pylons import request, response, session, tmpl_context as c, url, app_globals as ag
 from rdfdatabank.lib.base import BaseController, render
-from pylons.controllers.util import abort, redirect_to
+from pylons.controllers.util import abort, redirect
 from paste.request import get_cookies
 from webob.exc import HTTPUnauthorized
 
@@ -14,7 +14,6 @@ class AccountController(BaseController):
 
         #if not c.ident:
         #    abort(401, "Not Authorised")
-        #redirect_to(referer)
         c.login_counter = request.environ['repoze.who.logins']
         if c.login_counter > 0:
             session['login_flash'] = """Wrong credentials. Have you registered? <a href="register">Register</a>"""
@@ -36,7 +35,7 @@ class AccountController(BaseController):
             #    session['user_uri'] = str(user_det['uri'])
             session['user_id'] = userid
             session.save()
-            return redirect_to(came_from)
+            return redirect(url(came_from))
         else:
             # Login failed
             try:
@@ -44,7 +43,7 @@ class AccountController(BaseController):
             except:
                 login_counter = 0
             destination = "/login?came_from=%s&logins=%s" % (came_from, login_counter)
-            return redirect_to(destination)
+            return redirect(url(destination))
 
     def logout(self):
         c.userid = None
@@ -64,4 +63,4 @@ class AccountController(BaseController):
             del session['user_email']
         session.save()
         #return render('/logout.html')
-        return redirect_to(came_from)
+        return redirect(url(came_from))
