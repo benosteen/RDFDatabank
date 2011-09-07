@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/env python
 from pylons import app_globals as ag
 from datetime import datetime

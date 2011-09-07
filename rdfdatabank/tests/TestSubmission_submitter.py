@@ -1,5 +1,7 @@
 #!/usr/bin/python
 # $Id:  $
+# -*- coding: utf-8 -*-
+
 """
 Databank submission test cases for user with role submitter. 
 These tests are for a databank instance with visible metadata

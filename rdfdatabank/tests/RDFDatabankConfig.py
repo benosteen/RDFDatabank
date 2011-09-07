@@ -1,4 +1,6 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 # $Id: $
 """
 Define configuration for RDFDatabank testing

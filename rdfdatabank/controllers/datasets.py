@@ -1,3 +1,4 @@
+#-*- coding: utf-8 -*-
 import logging
 import re, os, shutil, codecs
 import simplejson
@@ -51,7 +52,10 @@ class DatasetsController(BaseController):
             c_silo = ag.granary.get_rdf_silo(silo)
             c.embargos = {}
             for item in c_silo.list_items():
-                c.embargos[item] = is_embargoed(c_silo, item)
+                try:
+                    c.embargos[item] = is_embargoed(c_silo, item)
+                except:
+                    c.embargos[item] = None
             c.items = c.embargos.keys()
             # conneg return
             accept_list = None

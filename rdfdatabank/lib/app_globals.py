@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """The application's Globals object"""
 
 from pylons import config

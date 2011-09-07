@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
 from time import sleep
 from redis import Redis
@@ -70,12 +71,12 @@ def allowable_id2(strg):
     return not bool(search(strg))
 
 def is_embargoed(silo, id, refresh=False):
-    # TODO evaluate r.expire settings for these keys - popularity resets ttl or increases it?
-    r = Redis()
+    # TODO evaluate ag.r.expire settings for these keys - popularity resets ttl or increases it?
+    #r = Redis()
     e = None
     e_d = None
-    e = r.get("%s:%s:embargoed" % (silo.state['storage_dir'], id))
-    e_d = r.get("%s:%s:embargoed_until" % (silo.state['storage_dir'], id))
+    e = ag.r.get("%s:%s:embargoed" % (silo.state['storage_dir'], id))
+    e_d = ag.r.get("%s:%s:embargoed_until" % (silo.state['storage_dir'], id))
 
     if refresh or (not e or not e_d):
         if silo.exists(id):
@@ -86,17 +87,17 @@ def is_embargoed(silo, id, refresh=False):
                 e = True
             else:
                 e = False
-            r.set("%s:%s:embargoed" % (silo.state['storage_dir'], id), e)
-            r.set("%s:%s:embargoed_until" % (silo.state['storage_dir'], id), e_d)
+            ag.r.set("%s:%s:embargoed" % (silo.state['storage_dir'], id), e)
+            ag.r.set("%s:%s:embargoed_until" % (silo.state['storage_dir'], id), e_d)
     return (e, e_d)
 
 def is_embargoed_with_exceptions(silo, id, refresh=False):
-    # TODO evaluate r.expire settings for these keys - popularity resets ttl or increases it?
-    r = Redis()
+    # TODO evaluate ag.r.expire settings for these keys - popularity resets ttl or increases it?
+    #r = Redis()
     e = None
     e_d = None
     try:
-        e = r.get("%s:%s:embargoed" % (silo.state['storage_dir'], id))
+        e = ag.r.get("%s:%s:embargoed" % (silo.state['storage_dir'], id))
     except ConnectionError:  # The client can sometimes be timed out and disconnected at the server.
         try:
             r = Redis()
@@ -104,7 +105,7 @@ def is_embargoed_with_exceptions(silo, id, refresh=False):
         except:
             pass
     try:
-        e_d = r.get("%s:%s:embargoed_until" % (silo.state['storage_dir'], id))
+        e_d = ag.r.get("%s:%s:embargoed_until" % (silo.state['storage_dir'], id))
     except ConnectionError:  # The client can sometimes be timed out and disconnected at the server.
         try:
             r = Redis()
@@ -122,8 +123,8 @@ def is_embargoed_with_exceptions(silo, id, refresh=False):
             else:
                 e = False
             try:
-                r.set("%s:%s:embargoed" % (silo.state['storage_dir'], id), e)
-                r.set("%s:%s:embargoed_until" % (silo.state['storage_dir'], id), e_d)
+                ag.r.set("%s:%s:embargoed" % (silo.state['storage_dir'], id), e)
+                ag.r.set("%s:%s:embargoed_until" % (silo.state['storage_dir'], id), e_d)
             except ConnectionError:  # The client can sometimes be timed out and disconnected at the server.
                 pass
     return (e, e_d)
@@ -131,7 +132,7 @@ def is_embargoed_with_exceptions(silo, id, refresh=False):
 def is_embargoed_no_redis(silo, id, refresh=False):
     #Redis kept crashing for silos with a largo number of data packages (~80,000). I tried re-connecting, it didn't work. 
     #So not using Redis
-    # TODO evaluate r.expire settings for these keys - popularity resets ttl or increases it?
+    # TODO evaluate ag.r.expire settings for these keys - popularity resets ttl or increases it?
     if silo.exists(id):
         item = silo.get_item(id)
         e = item.metadata.get("embargoed")

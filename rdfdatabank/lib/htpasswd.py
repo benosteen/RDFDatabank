@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 """Replacement for htpasswd"""
 #Downloaded from: http://trac.edgewall.org/browser/trunk/contrib/htpasswd.py
 # Original author: Eli Carter

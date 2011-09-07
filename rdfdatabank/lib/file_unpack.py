@@ -1,8 +1,9 @@
+# -*- coding: utf-8 -*-
 import subprocess
 from threading import Thread
 from datetime import datetime, timedelta
 import os, shutil
-from redis import Redis
+#from redis import Redis
 from uuid import uuid4
 from rdflib import URIRef, Literal
 from rdfdatabank.lib.utils import create_new, munge_manifest, test_rdf

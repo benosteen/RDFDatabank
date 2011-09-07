@@ -1,3 +1,4 @@
+#-*- coding: utf-8 -*-
 """Pylons middleware initialization"""
 
 #from paste import httpexceptions

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-<form method="POST" enctype="multipart/form-data" action="/${c.silo_name}/datasets/${c.current}">
+<form method="POST" enctype="multipart/form-data" action="/${c.silo_name}/datasets/${c.current}" accept-charset="UTF-8">
 <label for="embargoed">Embargoed?</label>
 % if c.embargos:
   % if c.embargos[c.current][0] not in ['False', 'false', 0, False]:

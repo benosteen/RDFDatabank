@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import cgi
 
 from paste.urlparser import PkgResourcesParser

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 <p> Alter Silo </p>
 <p>
-<form method="POST" enctype="multipart/form-data" action="/${c.silo_name}/admin">
+<form method="POST" enctype="multipart/form-data" action="/${c.silo_name}/admin" accept-charset="UTF-8">
 <ul>
 <li><label for="silo">Silo label (eg 'a' -> /a/datasets/...)</label><input type="hidden" name="silo" value="${c.silo_name}" /> ${c.silo_name}</li>
 % if c.kw:

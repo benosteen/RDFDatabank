@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import logging
 import simplejson
 from pylons import request, response, session, config, tmpl_context as c, url
