@@ -8087,11 +8087,11 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         rdfgraph = Graph()
         rdfgraph.parse('response.xml', format='xml')
         subj  = URIRef(self.getRequestUri("datasets/TestSubmission-testrdf3"))
-        subj2 = URIRef(self.getRequestUri("datasets/TestSubmission-testrdf3/directory/hebrew.txt")) 
+        subj2 = URIRef(self.getRequestUri("datasets/TestSubmission-testrdf3/testrdf3/directory/hebrew.txt")) 
         base = self.getRequestUri("datasets/TestSubmission-testrdf3/")
         stype = URIRef(oxds+"Grouping")
         stype2 = URIRef(oxds+"item")
-        self.assertEqual(len(rdfgraph),28,'Graph length %i' %len(rdfgraph))
+        self.assertEqual(len(rdfgraph),32,'Graph length %i' %len(rdfgraph))
         self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         self.failUnless((subj,URIRef(dcterms+"isVersionOf"),None) in rdfgraph, 'dcterms:isVersionOf')
@@ -8120,15 +8120,14 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dc+"description"),"file1.a is another file") in rdfgraph, 'dc:description')
         self.failUnless((subj,URIRef(dc+"description"),"file1.b is another file") in rdfgraph, 'dc:description')
         self.failUnless((subj,URIRef(dc+"description"),"This is a archived test item 2a ") in rdfgraph, 'dc:description')
-
-        #self.failUnless((subj2,RDF.type,stype2) in rdfgraph, 'Testing submission type: '+subj2+", "+stype2)
-        #self.failUnless((subj2,URIRef(dcterms+"title"),"Hebrew text") in rdfgraph, 'dcterms:title')
-        #self.failUnless((subj2,URIRef(dcterms+"source"),"http://genizah.bodleian.ox.ac.uk/") in rdfgraph, 'dcterms:source')
+        self.failUnless((subj2,RDF.type,stype2) in rdfgraph, 'Testing submission type: '+subj2+", "+stype2)
+        self.failUnless((subj2,URIRef(dcterms+"title"),"Hebrew text") in rdfgraph, 'dcterms:title')
+        self.failUnless((subj2,URIRef(dcterms+"source"),"http://genizah.bodleian.ox.ac.uk/") in rdfgraph, 'dcterms:source')
         #Get the file hebrew.txt
         (resp, hebrew_data) = self.doHTTP_GET(
             resource="datasets/TestSubmission-testrdf3/testrdf3/directory/hebrew.txt", 
             expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
-        #self.failUnless((subj,RDF.value,Literal(hebrew_data)) in rdfgraph, 'rdf:value')
+        #self.failUnless((subj2,RDF.value,Literal(hebrew_data)) in rdfgraph, 'rdf:value')
         # Delete the dataset TestSubmission-testrdf3
         resp = self.doHTTP_DELETE(
             resource="datasets/TestSubmission-testrdf3", 
