@@ -7,6 +7,7 @@ from pylons.decorators import rest
 from pylons import app_globals as ag
 from rdfdatabank.lib.base import BaseController, render
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
+import codecs
 
 log = logging.getLogger(__name__)
 
@@ -89,8 +90,8 @@ class AdminController(BaseController):
                             ag.users[u]['owner'] = silos_owned
                             users_added = True
                 if users_added:
-                    f = open(ag.userfile, 'w')
-                    f.write('_USERS = %s'%str(ag.users))
+                    f = codecs.open(ag.userfile, 'w', 'utf-8')
+                    f.write('# -*- coding: utf-8 -*-\n_USERS = %s'%str(ag.users))
                     f.close()
  
                 # conneg return
@@ -205,8 +206,8 @@ class AdminController(BaseController):
                                 ag.users[u]['owner'] = silos_owned
                                 users_added = True
                 if users_added:
-                    f = open(ag.userfile, 'w')
-                    f.write('_USERS = %s'%str(ag.users))
+                    f = codecs.open(ag.userfile, 'w', 'utf-8')
+                    f.write('# -*- coding: utf-8 -*-\n_USERS = %s'%str(ag.users))
                     f.close()
 
                 # conneg return
@@ -274,8 +275,8 @@ class AdminController(BaseController):
                                 ag.users[u]['owner'] = silos_owned
                                 users_added = True
                 if users_added:
-                    f = open(ag.userfile, 'w')
-                    f.write('_USERS = %s'%str(ag.users))
+                    f = codecs.open(ag.userfile, 'w', 'utf-8')
+                    f.write('# -*- coding: utf-8 -*-\n_USERS = %s'%str(ag.users))
                     f.close()
                  
                 # conneg return
@@ -422,8 +423,8 @@ class AdminController(BaseController):
             if 'last_name' in params and params['last_name']:
                 ag.users[params['username']]['last_name'] = params['last_name']
 
-        f = open(ag.userfile, 'w')
-        f.write('_USERS = %s'%str(ag.users))
+        f = codecs.open(ag.userfile, 'w', 'utf-8')
+        f.write('# -*- coding: utf-8 -*-\n_USERS = %s'%str(ag.users))
         f.close()
         #reload(users)
         #silos_to_be_added = ag.users[params['username']]['owner']

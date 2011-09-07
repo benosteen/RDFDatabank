@@ -25,9 +25,9 @@ class DatasetsController(BaseController):
             abort(404)
         c.silo_name = silo
         granary_list = ag.granary.silos
-        f = open('/tmp/ds.log', 'a')
-        f.write(str(granary_list))
-        f.close()
+        #f = open('/tmp/ds.log', 'a')
+        #f.write(str(granary_list))
+        #f.close()
         ident = request.environ.get('repoze.who.identity')
         c.ident = ident
 
@@ -465,10 +465,6 @@ class DatasetsController(BaseController):
                     upload.file.close()
                     mani_file_obj.close()
                     #test rdf file
-                    #mani_file_obj = codecs.open(mani_file, 'r', 'utf-8')
-                    #manifest_str = mani_file_obj.read()
-                    #mani_file_obj.close()
-                    #if not test_rdf(manifest_str):
                     if not test_rdf(mani_file):
                         response.status_int = 400
                         return "Bad manifest file"
@@ -560,8 +556,8 @@ class DatasetsController(BaseController):
                     # Otherwise this dataset will not be accessible
                     text = params['text']
                     fname = '/tmp/%s'%uuid4().hex
-                    #f = codecs.open(fname, 'w', 'utf-8')
-                    f = open(fname, 'w')
+                    f = codecs.open(fname, 'w', 'utf-8')
+                    #f = open(fname, 'w')
                     f.write(text)
                     f.close()
                     #if not test_rdf(text):
@@ -905,7 +901,6 @@ class DatasetsController(BaseController):
             #Check if path is manifest.rdf - If, yes Munge
             if "manifest.rdf" in path:
                 fname = '/tmp/%s'%uuid4().hex
-                #f = codecs.open(fname, 'w', 'utf-8')
                 f = open(fname, 'w')
                 f.write(content)
                 f.close()
@@ -1003,10 +998,6 @@ class DatasetsController(BaseController):
                 upload.file.close()
                 mani_file_obj.close()
                 #test rdf file
-                #mani_file_obj = codecs.open(mani_file, 'r', 'utf-8')
-                #manifest_str = mani_file_obj.read()
-                #mani_file_obj.close()
-                #if not test_rdf(manifest_str):
                 if not test_rdf(mani_file):
                     response.status_int = 400
                     return "Bad manifest file"

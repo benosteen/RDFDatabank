@@ -109,8 +109,8 @@ class UsersController(BaseController):
             else:   
                 abort(400, " No valid parameters found")
 
-            f = open(ag.userfile, 'w')
-            f.write('_USERS = %s'%str(ag.users))
+            f = codecs.open(ag.userfile, 'w', 'utf-8')
+            f.write('# -*- coding: utf-8 -*-\n_USERS = %s'%str(ag.users))
             f.close()
             #reload(users)
             #silos_to_be_added = ag.users[params['username']]['owner']
@@ -273,8 +273,8 @@ class UsersController(BaseController):
                 if 'last_name' in params and params['last_name']:
                     ag.users[username]['last_name'] = params['last_name']
 
-            f = open(ag.userfile, 'w')
-            f.write('_USERS = %s'%str(ag.users))
+            f = codecs.open(ag.userfile, 'w', 'utf-8')
+            f.write('# -*- coding: utf-8 -*-\n_USERS = %s'%str(ag.users))
             f.close()
             #reload(users)
             #silos_to_be_added = ag.users[params['username']]['owner']
