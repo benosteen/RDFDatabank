@@ -18,7 +18,7 @@ class AccountController(BaseController):
         #    abort(401, "Not Authorised")
         c.login_counter = request.environ['repoze.who.logins']
         if c.login_counter > 0:
-            session['login_flash'] = """Wrong credentials. Have you registered? <a href="register">Register</a>"""
+            session['login_flash'] = """Wrong credentials. Have you been registered?"""
             session.save()
         c.came_from = request.params.get('came_from') or "/"
         return render('/login.html')
