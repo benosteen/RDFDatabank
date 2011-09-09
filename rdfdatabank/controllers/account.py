@@ -5,6 +5,7 @@ from rdfdatabank.lib.base import BaseController, render
 from pylons.controllers.util import abort, redirect
 from paste.request import get_cookies
 from webob.exc import HTTPUnauthorized
+from urllib import unquote
 
 class AccountController(BaseController):
     def login(self):
@@ -20,13 +21,15 @@ class AccountController(BaseController):
             session['login_flash'] = """Wrong credentials. Have you registered? <a href="register">Register</a>"""
             session.save()
         c.came_from = request.params.get('came_from') or "/"
-        c.came_from = str(c.came_from).replace('%2F', '/').replace('%2f', '/').lstrip('/')
         return render('/login.html')
 
     def welcome(self):
         identity = request.environ.get("repoze.who.identity")
         came_from = request.params.get('came_from') or "/"
-        came_from = str(came_from).replace('%2F', '/').replace('%2f', '/').lstrip('/')
+        came_from = unquote(came_from)
+        came_from = unquote(came_from)
+        came_from = unquote(came_from)
+        came_from = str(came_from)
         if identity:
             # Login succeeded
             userid = identity['repoze.who.userid']
@@ -53,7 +56,10 @@ class AccountController(BaseController):
         #display_message("We hope to see you soon!", status="success")
         came_from = request.params.get('came_from') or "/"
         #came_from = request.params.get('came_from', '') or "/"
-        came_from = str(came_from).replace('%2F', '/').replace('%2f', '/').lstrip('/')
+        came_from = unquote(came_from)
+        came_from = unquote(came_from)
+        came_from = unquote(came_from)
+        came_from = str(came_from)
         if session.has_key('user_name'):
             del session['user_name']
         if session.has_key('user_uri'):
