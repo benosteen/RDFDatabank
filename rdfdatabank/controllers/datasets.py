@@ -165,7 +165,7 @@ class DatasetsController(BaseController):
 
         c.version = None
         c.editor = False
-              
+        
         if not (http_method == "GET"):
             #identity management of item 
             if not request.environ.get('repoze.who.identity'):
@@ -438,11 +438,13 @@ class DatasetsController(BaseController):
                 if not (ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]):
                     abort(403)
 
+                upload = params.get('file')
+                if not upload:
+                    abort(400, "No file was recived")
                 filename = params.get('filename')
                 if not filename:
                     filename = params['file'].filename
-                upload = params.get('file')
-                if JAILBREAK.search(filename) != None:
+                if filename and JAILBREAK.search(filename) != None:
                     abort(400, "'..' cannot be used in the path or as a filename")
                 target_path = filename
                 
@@ -529,6 +531,8 @@ class DatasetsController(BaseController):
                 filename = params.get('filename')
                 if not filename:
                     abort(400, "Bad Request. Must supply a filename")
+                if JAILBREAK.search(filename) != None:
+                    abort(400, "'..' cannot be used in the path or as a filename")
 
                 creator = None
                 if item.manifest and item.manifest.state and 'metadata' in item.manifest.state and item.manifest.state['metadata'] and \
@@ -537,8 +541,6 @@ class DatasetsController(BaseController):
                 if not (ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]):
                     abort(403)
                 
-                if JAILBREAK.search(filename) != None:
-                    abort(400, "'..' cannot be used in the path or as a filename")
                 target_path = filename
                 
                 if item.isfile(target_path):
@@ -973,7 +975,11 @@ class DatasetsController(BaseController):
             params = request.POST
             filename = params.get('filename')
             upload = params.get('file')
-            if JAILBREAK.search(filename) != None:
+            if not upload:
+                abort(400, "No file was recived")
+            if not filename:
+                filename = params['file'].filename
+            if filename and JAILBREAK.search(filename) != None:
                 abort(400, "'..' cannot be used in the path or as a filename")
             target_path = path
             if item.isdir(path) and filename:

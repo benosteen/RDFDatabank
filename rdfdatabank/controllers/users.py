@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 import simplejson
+import codecs
 from pylons import request, response, session, config, tmpl_context as c, url
 from pylons.controllers.util import abort, redirect
 from pylons.decorators import rest
