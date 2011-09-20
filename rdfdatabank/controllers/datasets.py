@@ -3,6 +3,8 @@ import logging
 import re, os, shutil, codecs
 import simplejson
 from datetime import datetime, timedelta
+from dateutil.relativedelta import *
+from dateutil.parser import parse
 import time
 from uuid import uuid4
 from pylons import request, response, session, tmpl_context as c, url, app_globals as ag
@@ -10,7 +12,7 @@ from pylons.controllers.util import abort, redirect
 from pylons.decorators import rest
 from paste.fileapp import FileApp
 from rdfdatabank.lib.base import BaseController, render
-from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text, test_rdf, munge_manifest, serialisable_stat, allowable_id2
+from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text, test_rdf, munge_manifest, serialisable_stat, allowable_id2, get_rdf_template
 from rdfdatabank.lib.file_unpack import get_zipfiles_in_dataset
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 
@@ -218,13 +220,15 @@ class DatasetsController(BaseController):
                     if ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]:
                         c.editor = True
 
-            if c.version and not c.version == currentversion:
-                c.editor = False
-
+            
             c.show_files = True
             #Only the administrator, manager and creator can view embargoed files.
             if embargoed and not c.editor:
                 c.show_files = False
+
+            #Display but do not edit previous versions of files, since preious versions are read only.
+            if c.version and not c.version == currentversion:
+                c.editor = False
 
             # View options
             if "view" in options and c.editor:
@@ -240,7 +244,8 @@ class DatasetsController(BaseController):
             c.embargos[id] = is_embargoed(c_silo, id)
             c.parts = item.list_parts(detailed=True)
             c.manifest_pretty = item.rdf_to_string(format="pretty-xml")
-            c.manifest = item.rdf_to_string()
+            #c.manifest = item.rdf_to_string()
+            c.manifest = get_rdf_template(item.uri, id)
             c.zipfiles = get_zipfiles_in_dataset(item)
             c.readme_text = None
             #if item.isfile("README"):
@@ -366,20 +371,28 @@ class DatasetsController(BaseController):
                     abort(403)
                 item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                 #if params.has_key('embargoed'):
-                if (params.has_key('embargo_change') and params.has_key('embargoed')) or \
-                   (params.has_key('embargoed') and params['embargoed'].lower() == 'true'):
+                if (params.has_key('embargo_change') and params.has_key('embargoed') and \
+                   params['embargoed'].lower() in ['true', '1'] and params['embargo_change'].lower() in ['true', '1']) or \
+                   (params.has_key('embargoed') and params['embargoed'].lower() in ['true', '1']):
+                    embargoed_until_date = None
                     if params.has_key('embargoed_until') and params['embargoed_until']:
-                        embargoed_until_date = params['embargoed_until']
-                    elif params.has_key('embargo_days_from_now') and params['embargo_days_from_now']:
-                        embargoed_until_date = (datetime.now() + timedelta(days=params['embargo_days_from_now'])).isoformat()
-                    else:
-                        embargoed_until_date = (datetime.now() + timedelta(days=365*70)).isoformat()
+                        try:
+                            embargoed_until_date = parse(params['embargoed_until']).isoformat()
+                        except:
+                            embargoed_until_date = (datetime.now() + relativedelta(years=+70)).isoformat()
+                    elif params.has_key('embargo_days_from_now') and params['embargo_days_from_now'].isdigit():
+                        embargoed_until_date = (datetime.now() + timedelta(days=int(params['embargo_days_from_now']))).isoformat()
+                    #It is embargoed indefinitely by default
+                    #else:
+                    #    embargoed_until_date = (datetime.now() + timedelta(days=365*70)).isoformat()
                     item.metadata['embargoed'] = True
-                    item.metadata['embargoed_until'] = embargoed_until_date
+                    item.metadata['embargoed_until'] = ''
                     item.del_triple(item.uri, u"oxds:isEmbargoed")
                     item.del_triple(item.uri, u"oxds:embargoedUntil")
                     item.add_triple(item.uri, u"oxds:isEmbargoed", 'True')
-                    item.add_triple(item.uri, u"oxds:embargoedUntil", embargoed_until_date)
+                    if embargoed_until_date:
+                        item.metadata['embargoed_until'] = embargoed_until_date
+                        item.add_triple(item.uri, u"oxds:embargoedUntil", embargoed_until_date)
                 else:
                     #if is_embargoed(c_silo, id)[0] == True:
                     item.metadata['embargoed'] = False
@@ -822,12 +835,14 @@ class DatasetsController(BaseController):
                     if ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]:
                         c.editor = True
 
-            if c.version and not c.version == currentversion:
-                c.editor = False
-
             c.show_files = True
+            #Only the administrator, manager and creator can view embargoed files.
             if embargoed and not c.editor:
                 c.show_files = False
+
+            #Display but do not edit previous versions of files, since preious versions are read only.
+            if c.version and not c.version == currentversion:
+                c.editor = False
 
             # View options
             if "view" in options and c.editor:
@@ -1063,6 +1078,11 @@ class DatasetsController(BaseController):
                     response.status_int = 403
                     response.status = "403 Forbidden"
                     return "Forbidden - Cannot delete the manifest"
+                if '3=' in path or '4=' in path:
+                    response.content_type = "text/plain"
+                    response.status_int = 403
+                    response.status = "403 Forbidden"
+                    return "Forbidden - These files are generated by the system and connot be deleted"
                 item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                 item.del_stream(path)
                 item.del_triple(item.uri, u"dcterms:modified")
