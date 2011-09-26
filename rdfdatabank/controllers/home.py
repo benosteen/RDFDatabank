@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import logging
 
 from rdfdatabank.lib.base import BaseController, render

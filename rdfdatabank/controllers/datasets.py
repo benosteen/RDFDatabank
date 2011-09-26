@@ -1,7 +1,10 @@
+#-*- coding: utf-8 -*-
 import logging
 import re, os, shutil, codecs
 import simplejson
 from datetime import datetime, timedelta
+from dateutil.relativedelta import *
+from dateutil.parser import parse
 import time
 from uuid import uuid4
 from pylons import request, response, session, tmpl_context as c, url, app_globals as ag
@@ -9,7 +12,7 @@ from pylons.controllers.util import abort, redirect
 from pylons.decorators import rest
 from paste.fileapp import FileApp
 from rdfdatabank.lib.base import BaseController, render
-from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text, test_rdf, munge_manifest, serialisable_stat, allowable_id2
+from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text, test_rdf, munge_manifest, serialisable_stat, allowable_id2, get_rdf_template
 from rdfdatabank.lib.file_unpack import get_zipfiles_in_dataset
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 
@@ -24,9 +27,9 @@ class DatasetsController(BaseController):
             abort(404)
         c.silo_name = silo
         granary_list = ag.granary.silos
-        f = open('/tmp/ds.log', 'a')
-        f.write(str(granary_list))
-        f.close()
+        #f = open('/tmp/ds.log', 'a')
+        #f.write(str(granary_list))
+        #f.close()
         ident = request.environ.get('repoze.who.identity')
         c.ident = ident
 
@@ -51,7 +54,10 @@ class DatasetsController(BaseController):
             c_silo = ag.granary.get_rdf_silo(silo)
             c.embargos = {}
             for item in c_silo.list_items():
-                c.embargos[item] = is_embargoed(c_silo, item)
+                try:
+                    c.embargos[item] = is_embargoed(c_silo, item)
+                except:
+                    c.embargos[item] = None
             c.items = c.embargos.keys()
             # conneg return
             accept_list = None
@@ -161,7 +167,7 @@ class DatasetsController(BaseController):
 
         c.version = None
         c.editor = False
-              
+        
         if not (http_method == "GET"):
             #identity management of item 
             if not request.environ.get('repoze.who.identity'):
@@ -214,13 +220,15 @@ class DatasetsController(BaseController):
                     if ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]:
                         c.editor = True
 
-            if c.version and not c.version == currentversion:
-                c.editor = False
-
+            
             c.show_files = True
             #Only the administrator, manager and creator can view embargoed files.
             if embargoed and not c.editor:
                 c.show_files = False
+
+            #Display but do not edit previous versions of files, since preious versions are read only.
+            if c.version and not c.version == currentversion:
+                c.editor = False
 
             # View options
             if "view" in options and c.editor:
@@ -236,7 +244,8 @@ class DatasetsController(BaseController):
             c.embargos[id] = is_embargoed(c_silo, id)
             c.parts = item.list_parts(detailed=True)
             c.manifest_pretty = item.rdf_to_string(format="pretty-xml")
-            c.manifest = item.rdf_to_string()
+            #c.manifest = item.rdf_to_string()
+            c.manifest = get_rdf_template(item.uri, id)
             c.zipfiles = get_zipfiles_in_dataset(item)
             c.readme_text = None
             #if item.isfile("README"):
@@ -362,20 +371,28 @@ class DatasetsController(BaseController):
                     abort(403)
                 item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                 #if params.has_key('embargoed'):
-                if (params.has_key('embargo_change') and params.has_key('embargoed')) or \
-                   (params.has_key('embargoed') and params['embargoed'].lower() == 'true'):
+                if (params.has_key('embargo_change') and params.has_key('embargoed') and \
+                   params['embargoed'].lower() in ['true', '1'] and params['embargo_change'].lower() in ['true', '1']) or \
+                   (params.has_key('embargoed') and params['embargoed'].lower() in ['true', '1']):
+                    embargoed_until_date = None
                     if params.has_key('embargoed_until') and params['embargoed_until']:
-                        embargoed_until_date = params['embargoed_until']
-                    elif params.has_key('embargo_days_from_now') and params['embargo_days_from_now']:
-                        embargoed_until_date = (datetime.now() + timedelta(days=params['embargo_days_from_now'])).isoformat()
-                    else:
-                        embargoed_until_date = (datetime.now() + timedelta(days=365*70)).isoformat()
+                        try:
+                            embargoed_until_date = parse(params['embargoed_until']).isoformat()
+                        except:
+                            embargoed_until_date = (datetime.now() + relativedelta(years=+70)).isoformat()
+                    elif params.has_key('embargo_days_from_now') and params['embargo_days_from_now'].isdigit():
+                        embargoed_until_date = (datetime.now() + timedelta(days=int(params['embargo_days_from_now']))).isoformat()
+                    #It is embargoed indefinitely by default
+                    #else:
+                    #    embargoed_until_date = (datetime.now() + timedelta(days=365*70)).isoformat()
                     item.metadata['embargoed'] = True
-                    item.metadata['embargoed_until'] = embargoed_until_date
+                    item.metadata['embargoed_until'] = ''
                     item.del_triple(item.uri, u"oxds:isEmbargoed")
                     item.del_triple(item.uri, u"oxds:embargoedUntil")
                     item.add_triple(item.uri, u"oxds:isEmbargoed", 'True')
-                    item.add_triple(item.uri, u"oxds:embargoedUntil", embargoed_until_date)
+                    if embargoed_until_date:
+                        item.metadata['embargoed_until'] = embargoed_until_date
+                        item.add_triple(item.uri, u"oxds:embargoedUntil", embargoed_until_date)
                 else:
                     #if is_embargoed(c_silo, id)[0] == True:
                     item.metadata['embargoed'] = False
@@ -434,11 +451,13 @@ class DatasetsController(BaseController):
                 if not (ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]):
                     abort(403)
 
+                upload = params.get('file')
+                if not upload:
+                    abort(400, "No file was recived")
                 filename = params.get('filename')
                 if not filename:
                     filename = params['file'].filename
-                upload = params.get('file')
-                if JAILBREAK.search(filename) != None:
+                if filename and JAILBREAK.search(filename) != None:
                     abort(400, "'..' cannot be used in the path or as a filename")
                 target_path = filename
                 
@@ -461,10 +480,6 @@ class DatasetsController(BaseController):
                     upload.file.close()
                     mani_file_obj.close()
                     #test rdf file
-                    #mani_file_obj = codecs.open(mani_file, 'r', 'utf-8')
-                    #manifest_str = mani_file_obj.read()
-                    #mani_file_obj.close()
-                    #if not test_rdf(manifest_str):
                     if not test_rdf(mani_file):
                         response.status_int = 400
                         return "Bad manifest file"
@@ -529,6 +544,8 @@ class DatasetsController(BaseController):
                 filename = params.get('filename')
                 if not filename:
                     abort(400, "Bad Request. Must supply a filename")
+                if JAILBREAK.search(filename) != None:
+                    abort(400, "'..' cannot be used in the path or as a filename")
 
                 creator = None
                 if item.manifest and item.manifest.state and 'metadata' in item.manifest.state and item.manifest.state['metadata'] and \
@@ -537,8 +554,6 @@ class DatasetsController(BaseController):
                 if not (ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]):
                     abort(403)
                 
-                if JAILBREAK.search(filename) != None:
-                    abort(400, "'..' cannot be used in the path or as a filename")
                 target_path = filename
                 
                 if item.isfile(target_path):
@@ -556,8 +571,8 @@ class DatasetsController(BaseController):
                     # Otherwise this dataset will not be accessible
                     text = params['text']
                     fname = '/tmp/%s'%uuid4().hex
-                    #f = codecs.open(fname, 'w', 'utf-8')
-                    f = open(fname, 'w')
+                    f = codecs.open(fname, 'w', 'utf-8')
+                    #f = open(fname, 'w')
                     f.write(text)
                     f.close()
                     #if not test_rdf(text):
@@ -822,12 +837,14 @@ class DatasetsController(BaseController):
                     if ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]:
                         c.editor = True
 
-            if c.version and not c.version == currentversion:
-                c.editor = False
-
             c.show_files = True
+            #Only the administrator, manager and creator can view embargoed files.
             if embargoed and not c.editor:
                 c.show_files = False
+
+            #Display but do not edit previous versions of files, since preious versions are read only.
+            if c.version and not c.version == currentversion:
+                c.editor = False
 
             # View options
             if "view" in options and c.editor:
@@ -901,7 +918,6 @@ class DatasetsController(BaseController):
             #Check if path is manifest.rdf - If, yes Munge
             if "manifest.rdf" in path:
                 fname = '/tmp/%s'%uuid4().hex
-                #f = codecs.open(fname, 'w', 'utf-8')
                 f = open(fname, 'w')
                 f.write(content)
                 f.close()
@@ -974,7 +990,11 @@ class DatasetsController(BaseController):
             params = request.POST
             filename = params.get('filename')
             upload = params.get('file')
-            if JAILBREAK.search(filename) != None:
+            if not upload:
+                abort(400, "No file was recived")
+            if not filename:
+                filename = params['file'].filename
+            if filename and JAILBREAK.search(filename) != None:
                 abort(400, "'..' cannot be used in the path or as a filename")
             target_path = path
             if item.isdir(path) and filename:
@@ -999,10 +1019,6 @@ class DatasetsController(BaseController):
                 upload.file.close()
                 mani_file_obj.close()
                 #test rdf file
-                #mani_file_obj = codecs.open(mani_file, 'r', 'utf-8')
-                #manifest_str = mani_file_obj.read()
-                #mani_file_obj.close()
-                #if not test_rdf(manifest_str):
                 if not test_rdf(mani_file):
                     response.status_int = 400
                     return "Bad manifest file"
@@ -1068,6 +1084,11 @@ class DatasetsController(BaseController):
                     response.status_int = 403
                     response.status = "403 Forbidden"
                     return "Forbidden - Cannot delete the manifest"
+                if '3=' in path or '4=' in path:
+                    response.content_type = "text/plain"
+                    response.status_int = 403
+                    response.status = "403 Forbidden"
+                    return "Forbidden - These files are generated by the system and connot be deleted"
                 item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
                 item.del_stream(path)
                 item.del_triple(item.uri, u"dcterms:modified")

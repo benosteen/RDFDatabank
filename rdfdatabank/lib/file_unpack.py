@@ -1,8 +1,9 @@
+# -*- coding: utf-8 -*-
 import subprocess
 from threading import Thread
 from datetime import datetime, timedelta
 import os, shutil
-from redis import Redis
+#from redis import Redis
 from uuid import uuid4
 from rdflib import URIRef, Literal
 from rdfdatabank.lib.utils import create_new, munge_manifest, test_rdf
@@ -18,8 +19,12 @@ class BadZipfile(Exception):
     """Cannot open zipfile using commandline tool 'unzip' to target directory"""
    
 def check_file_mimetype(real_filepath, mimetype):
+    if os.path.isdir(real_filepath):
+        return False
     if os.path.islink(real_filepath):
         real_filepath = os.readlink(real_filepath)
+    if not os.path.isfile(real_filepath):
+        return False
     p = subprocess.Popen("file -ib '%s'" %(real_filepath), shell=True, stdout=subprocess.PIPE)
     output_file = p.stdout
     output_str = output_file.read()
@@ -28,11 +33,15 @@ def check_file_mimetype(real_filepath, mimetype):
     else:
         return False
         
-def get_zipfiles_in_dataset_old(dataset):
+def get_zipfiles_in_dataset(dataset):
     derivative = dataset.list_rdf_objects("*", "ore:aggregates")
     zipfiles = {}
-    if derivative and derivative.values() and derivative.values()[0]:
-        for file_uri in derivative.values()[0]:
+    #if derivative and derivative.values() and derivative.values()[0]:
+    if derivative:
+        #for file_uri in derivative.values()[0]:
+        for file_uri in derivative:
+            if not file_uri.lower().endswith('.zip'):
+                continue
             filepath = file_uri[len(dataset.uri)+1:]
             real_filepath = dataset.to_dirpath(filepath)
             if os.path.islink(real_filepath):
@@ -42,7 +51,7 @@ def get_zipfiles_in_dataset_old(dataset):
                 zipfiles[filepath]="%s-%s"%(dataset.item_id, fn)
     return zipfiles
 
-def get_zipfiles_in_dataset(dataset):
+def get_zipfiles_in_dataset_new(dataset):
     p = subprocess.Popen("""file -iL `find %s -name '*.zip'` | grep  "application/zip" | awk -F":" '{print $1}'""" %dataset.to_dirpath(), shell=True, stdout=subprocess.PIPE)
     stdout_value = p.communicate()[0]
     zipfiles = {}
@@ -147,6 +156,9 @@ def unpack_zip_item(target_dataset, current_dataset, zip_item, silo, ident):
     if os.path.islink(filepath):
         filepath = os.readlink(filepath)
 
+    emb = target_dataset.metadata.get('embargoed')
+    emb_until = target_dataset.metadata.get('embargoed_until')
+
     # -- Step 1 -----------------------------
     unpacked_dir = unzip_file(filepath)
 
@@ -180,9 +192,15 @@ def unpack_zip_item(target_dataset, current_dataset, zip_item, silo, ident):
     target_dataset.add_triple(target_dataset.uri, u"rdf:type", "oxds:Grouping")
     target_dataset.add_triple(target_dataset.uri, "dcterms:isVersionOf", file_uri)
     #TODO: Adding the following metadata again as moving directory deletes all this information. Need to find a better way
-    embargoed_until_date = (datetime.now() + timedelta(days=365*70)).isoformat()
-    target_dataset.add_triple(target_dataset.uri, u"oxds:isEmbargoed", 'True')
-    target_dataset.add_triple(target_dataset.uri, u"oxds:embargoedUntil", embargoed_until_date)
+    if emb:
+        target_dataset.add_triple(target_dataset.uri, u"oxds:isEmbargoed", 'True')
+        if emb_until:
+            target_dataset.add_triple(target_dataset.uri, u"oxds:embargoedUntil", emb_until)
+    else:
+        target_dataset.add_triple(target_dataset.uri, u"oxds:isEmbargoed", 'False')
+    #The embargo
+    #embargoed_until_date = (datetime.now() + timedelta(days=365*70)).isoformat()
+    #target_dataset.add_triple(target_dataset.uri, u"oxds:embargoedUntil", embargoed_until_date)
     target_dataset.add_triple(target_dataset.uri, u"dcterms:identifier", target_dataset.item_id)
     target_dataset.add_triple(target_dataset.uri, u"dcterms:mediator", ident)
     target_dataset.add_triple(target_dataset.uri, u"dcterms:publisher", ag.publisher)

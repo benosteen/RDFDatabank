@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from rdfdatabank.config.users import _USERS as _DATA
 
 class IdentMDProvider(object):

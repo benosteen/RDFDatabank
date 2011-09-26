@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 % if c.zipfile:
-<form method="POST" action="/${c.silo_name}/items/${c.id}">
+<form method="POST" action="/${c.silo_name}/items/${c.id}" accept-charset="UTF-8">
 <input type="submit" name="Unpack" value="Unpack"/>
 % if len(c.zipfile) > 50:
 <% c.disp = "...%s"%c.zipfile[-50:] %>

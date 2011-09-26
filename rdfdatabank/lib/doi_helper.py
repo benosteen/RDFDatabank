@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from rdfdatabank.lib.doi_schema import DataciteDoiSchema
 from pylons import app_globals as ag
 import os, codecs, uuid

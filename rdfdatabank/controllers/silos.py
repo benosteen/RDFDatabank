@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import logging
 from datetime import datetime, timedelta
 import re
@@ -82,8 +83,11 @@ class SilosController(BaseController):
         c.embargos = {}
         c.items = []
         for item in rdfsilo.list_items():
-            #c.embargos[item] = None
-            c.embargos[item] = is_embargoed(rdfsilo, item)
+            c.embargos[item] = None
+            try:
+                c.embargos[item] = is_embargoed(rdfsilo, item)
+            except:
+                pass
             c.items.append(item)
             #c.embargos[item] = ()
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #Downloaded from http://code.activestate.com/recipes/576918/
 #Created by Michael Fogleman 
 #Short URL Generator

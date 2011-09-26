@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from pylons import request, response, session, tmpl_context as c, url, app_globals as ag
 from pylons.controllers.util import abort
 from pylons.decorators import rest

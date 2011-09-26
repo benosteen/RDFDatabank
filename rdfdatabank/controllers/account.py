@@ -1,9 +1,11 @@
+#-*- coding: utf-8 -*-
 from pylons import url
 from pylons import request, response, session, tmpl_context as c, url, app_globals as ag
 from rdfdatabank.lib.base import BaseController, render
 from pylons.controllers.util import abort, redirect
 from paste.request import get_cookies
 from webob.exc import HTTPUnauthorized
+from urllib import unquote
 
 class AccountController(BaseController):
     def login(self):
@@ -16,15 +18,17 @@ class AccountController(BaseController):
         #    abort(401, "Not Authorised")
         c.login_counter = request.environ['repoze.who.logins']
         if c.login_counter > 0:
-            session['login_flash'] = """Wrong credentials. Have you registered? <a href="register">Register</a>"""
+            session['login_flash'] = """Wrong credentials. Have you been registered?"""
             session.save()
         c.came_from = request.params.get('came_from') or "/"
-        c.came_from = str(c.came_from)
         return render('/login.html')
 
     def welcome(self):
         identity = request.environ.get("repoze.who.identity")
         came_from = request.params.get('came_from') or "/"
+        came_from = unquote(came_from)
+        came_from = unquote(came_from)
+        came_from = unquote(came_from)
         came_from = str(came_from)
         if identity:
             # Login succeeded
@@ -52,6 +56,9 @@ class AccountController(BaseController):
         #display_message("We hope to see you soon!", status="success")
         came_from = request.params.get('came_from') or "/"
         #came_from = request.params.get('came_from', '') or "/"
+        came_from = unquote(came_from)
+        came_from = unquote(came_from)
+        came_from = unquote(came_from)
         came_from = str(came_from)
         if session.has_key('user_name'):
             del session['user_name']

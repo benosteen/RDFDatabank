@@ -1,4 +1,7 @@
+# -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
+from dateutil.relativedelta import *
+from dateutil.parser import parse
 from time import sleep
 from redis import Redis
 from redis.exceptions import ConnectionError
@@ -12,6 +15,7 @@ from StringIO import StringIO
 from rdflib import StringInputSource
 #from rdflib.parser import StringInputSource
 from rdflib import Namespace, RDF, RDFS, URIRef, Literal, BNode
+
 
 from uuid import uuid4
 import re
@@ -70,12 +74,12 @@ def allowable_id2(strg):
     return not bool(search(strg))
 
 def is_embargoed(silo, id, refresh=False):
-    # TODO evaluate r.expire settings for these keys - popularity resets ttl or increases it?
-    r = Redis()
+    # TODO evaluate ag.r.expire settings for these keys - popularity resets ttl or increases it?
+    #r = Redis()
     e = None
     e_d = None
-    e = r.get("%s:%s:embargoed" % (silo.state['storage_dir'], id))
-    e_d = r.get("%s:%s:embargoed_until" % (silo.state['storage_dir'], id))
+    e = ag.r.get("%s:%s:embargoed" % (silo.state['storage_dir'], id))
+    e_d = ag.r.get("%s:%s:embargoed_until" % (silo.state['storage_dir'], id))
 
     if refresh or (not e or not e_d):
         if silo.exists(id):
@@ -86,17 +90,17 @@ def is_embargoed(silo, id, refresh=False):
                 e = True
             else:
                 e = False
-            r.set("%s:%s:embargoed" % (silo.state['storage_dir'], id), e)
-            r.set("%s:%s:embargoed_until" % (silo.state['storage_dir'], id), e_d)
+            ag.r.set("%s:%s:embargoed" % (silo.state['storage_dir'], id), e)
+            ag.r.set("%s:%s:embargoed_until" % (silo.state['storage_dir'], id), e_d)
     return (e, e_d)
 
 def is_embargoed_with_exceptions(silo, id, refresh=False):
-    # TODO evaluate r.expire settings for these keys - popularity resets ttl or increases it?
-    r = Redis()
+    # TODO evaluate ag.r.expire settings for these keys - popularity resets ttl or increases it?
+    #r = Redis()
     e = None
     e_d = None
     try:
-        e = r.get("%s:%s:embargoed" % (silo.state['storage_dir'], id))
+        e = ag.r.get("%s:%s:embargoed" % (silo.state['storage_dir'], id))
     except ConnectionError:  # The client can sometimes be timed out and disconnected at the server.
         try:
             r = Redis()
@@ -104,7 +108,7 @@ def is_embargoed_with_exceptions(silo, id, refresh=False):
         except:
             pass
     try:
-        e_d = r.get("%s:%s:embargoed_until" % (silo.state['storage_dir'], id))
+        e_d = ag.r.get("%s:%s:embargoed_until" % (silo.state['storage_dir'], id))
     except ConnectionError:  # The client can sometimes be timed out and disconnected at the server.
         try:
             r = Redis()
@@ -122,8 +126,8 @@ def is_embargoed_with_exceptions(silo, id, refresh=False):
             else:
                 e = False
             try:
-                r.set("%s:%s:embargoed" % (silo.state['storage_dir'], id), e)
-                r.set("%s:%s:embargoed_until" % (silo.state['storage_dir'], id), e_d)
+                ag.r.set("%s:%s:embargoed" % (silo.state['storage_dir'], id), e)
+                ag.r.set("%s:%s:embargoed_until" % (silo.state['storage_dir'], id), e_d)
             except ConnectionError:  # The client can sometimes be timed out and disconnected at the server.
                 pass
     return (e, e_d)
@@ -131,7 +135,7 @@ def is_embargoed_with_exceptions(silo, id, refresh=False):
 def is_embargoed_no_redis(silo, id, refresh=False):
     #Redis kept crashing for silos with a largo number of data packages (~80,000). I tried re-connecting, it didn't work. 
     #So not using Redis
-    # TODO evaluate r.expire settings for these keys - popularity resets ttl or increases it?
+    # TODO evaluate ag.r.expire settings for these keys - popularity resets ttl or increases it?
     if silo.exists(id):
         item = silo.get_item(id)
         e = item.metadata.get("embargoed")
@@ -145,23 +149,31 @@ def is_embargoed_no_redis(silo, id, refresh=False):
 def create_new(silo, id, creator, title=None, embargoed=True, embargoed_until=None, embargo_days_from_now=None, **kw):
     item = silo.get_item(id, startversion="0")
     item.metadata['createdby'] = creator
-    item.metadata['embargoed'] = embargoed
+    item.metadata['embargoed_until'] = ''
     item.metadata['uuid'] = uuid4().hex
     item.add_namespace('oxds', "http://vocab.ox.ac.uk/dataset/schema#")
     item.add_triple(item.uri, u"rdf:type", "oxds:DataSet")
 
-    if embargoed:
-        if embargoed_until:
-            embargoed_until_date = embargoed_until
-        elif embargo_days_from_now:
-            embargoed_until_date = (datetime.now() + timedelta(days=embargo_days_from_now)).isoformat()
-        else:
-            embargoed_until_date = (datetime.now() + timedelta(days=365*70)).isoformat()
-        item.metadata['embargoed_until'] = embargoed_until_date
+    if embargoed==True or embargoed.lower() in ['true', '1'] :
+        item.metadata['embargoed'] = True
         item.add_triple(item.uri, u"oxds:isEmbargoed", 'True')
-        item.add_triple(item.uri, u"oxds:embargoedUntil", embargoed_until_date)
+        embargoed_until_date = None
+        if embargoed_until:
+            try:
+                embargoed_until_date = parse(embargoed_until).isoformat()
+            except:
+                embargoed_until_date = (datetime.now() + relativedelta(years=+70)).isoformat()
+        elif embargo_days_from_now and embargo_days_from_now.isdigit():
+            embargoed_until_date = (datetime.now() + timedelta(days=int(embargo_days_from_now))).isoformat()
+        #TODO: Do we want the default embargo_until to be 70 years or indefinite. Going with indefinite
+        #else:
+        #    embargoed_until_date = (datetime.now() + relativedelta(years=+70)).isoformat()
+        if embargoed_until_date:
+            item.metadata['embargoed_until'] = embargoed_until_date
+            item.add_triple(item.uri, u"oxds:embargoedUntil", embargoed_until_date)
     else:
         item.add_triple(item.uri, u"oxds:isEmbargoed", 'False')
+        item.metadata['embargoed'] = False
     item.add_triple(item.uri, u"dcterms:identifier", id)
     item.add_triple(item.uri, u"dcterms:mediator", creator)
     item.add_triple(item.uri, u"dcterms:publisher", ag.publisher)
@@ -186,6 +198,14 @@ def get_readme_text(item, filename="README"):
     with item.get_stream(filename) as fn:
         text = fn.read().decode("utf-8")
     return u"%s\n\n%s" % (filename, text)
+
+def get_rdf_template(item_uri, item_id):
+    g = ConjunctiveGraph(identifier=item_uri)
+    g.bind('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#')
+    g.bind('dcterms', 'http://purl.org/dc/terms/')
+    g.add((URIRef(item_uri), URIRef('http://purl.org/dc/terms/identifier'), Literal(item_id)))
+    data2 = g.serialize(format='xml', encoding="utf-8") + '\n'
+    return data2
 
 #def test_rdf(text):
 def test_rdf(mfile):
