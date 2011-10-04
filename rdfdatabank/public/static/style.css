@@ -72,6 +72,37 @@ body {
     text-align: right;
 }
 
+#nav {
+  clear: both;
+  margin-bottom: 10px;
+}
+
+h1 {
+ clear:both;
+}
+
+#nav .lt ul {
+  padding: 10px 10px 10px 0px;
+  font-size: 2em;
+}
+
+#nav .lt ul li {
+  display: inline;
+  background-image: url("blksquare.gif");
+  background-position: 0px 10px;
+  background-repeat: no-repeat;
+  display: inline;
+  padding-left: 18px;
+}
+
+.rt a{
+    padding-right: 0px;
+}
+
+.rt ul {
+  padding-right: 0px;
+}
+
 .readme {
     font-size: 0.9em;
 }

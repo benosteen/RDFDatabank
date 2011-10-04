@@ -9,6 +9,7 @@ $Rev: $
 """
 import os, os.path
 from datetime import datetime, timedelta
+from dateutil.relativedelta import *
 import sys
 import unittest
 import logging
@@ -78,12 +79,25 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         return
 
     # Create empty test submission dataset
-    def createSubmissionDataset(self):
+    def createSubmissionDataset(self, embargoed=None, embargoed_until=None):
         # Create a new dataset, check response
         fields = \
             [ ("id", "TestSubmission")
             ]
+        if embargoed != None:
+            if embargoed:
+                fields.append(('embargoed', 'True'))
+            else:
+                fields.append(('embargoed', 'False'))
+        if embargoed_until != None:
+            if embargoed_until == True:
+                fields.append(('embargoed_until', 'True'))
+            elif embargoed_until == False:
+                fields.append(('embargoed_until', 'False'))
+            else:
+                fields.append(('embargoed_until', embargoed_until))
         files =[]
+        print "\n", fields, "\n"
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
         (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
@@ -470,6 +484,324 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(parts.keys()), 3, "Parts")
         self.assertEqual(len(parts['4=TestSubmission'].keys()), 13, "File stats for 4=TestSubmission")
         self.assertEqual(len(parts['manifest.rdf'].keys()), 13, "File stats for manifest.rdf")
+
+    def testEmbargoOnCreation(self):
+        """Create dataset - POST id to /silo_name"""
+        #---------------------------------------------------------------
+        # Create a new dataset, check response. No embargo information is passed.
+        self.createSubmissionDataset()
+        # Access dataset, check response
+        (resp, rdfdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),10,'Graph length %i' %len(rdfgraph))
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        dcterms = "http://purl.org/dc/terms/"
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        stype = URIRef(oxds+"DataSet")
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),'True') in rdfgraph, 'oxds:isEmbargoed')
+        self.assertTrue((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'0') in rdfgraph, 'oxds:currentVersion')
+        # Access state info
+        (resp, data) = self.doHTTP_GET(
+            resource="states/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        state = data['state']
+        d = (datetime.now() + relativedelta(years=+70)).isoformat()
+        d = d.split('T')[0]
+        self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
+        self.assertTrue(d in state['metadata']['embargoed_until'], "embargoed_until %s?"%d)
+        #---------------------------------------------------------------
+        # Delete dataset, check response
+        resp = self.doHTTP_DELETE(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK")
+        # Access dataset, test response indicating non-existent
+        (resp, respdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=404, expect_reason="Not Found")
+        #---------------------------------------------------------------
+        # Create a new dataset, check response. embargoed=None, embargo_until=True.
+        self.createSubmissionDataset(embargoed_until=True)
+        # Access dataset, check response
+        (resp, rdfdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),10,'Graph length %i' %len(rdfgraph))
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        stype = URIRef(oxds+"DataSet")
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),'True') in rdfgraph, 'oxds:isEmbargoed')
+        self.assertTrue((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'0') in rdfgraph, 'oxds:currentVersion')
+        # Access state info
+        (resp, data) = self.doHTTP_GET(
+            resource="states/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        state = data['state']
+        d = (datetime.now() + relativedelta(years=+70)).isoformat()
+        d = d.split('T')[0]
+        self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
+        self.assertTrue(d in state['metadata']['embargoed_until'], "embargoed_until %s?"%d)
+        #---------------------------------------------------------------
+        # Delete dataset, check response
+        resp = self.doHTTP_DELETE(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK")
+        # Access dataset, test response indicating non-existent
+        (resp, respdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=404, expect_reason="Not Found")
+        #---------------------------------------------------------------
+        # Create a new dataset, check response. embargoed=None, embargo_until=2012-08-12
+        d = '2012-08-12'
+        self.createSubmissionDataset(embargoed_until=d)
+        # Access dataset, check response
+        (resp, rdfdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),10,'Graph length %i' %len(rdfgraph))
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        stype = URIRef(oxds+"DataSet")
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),'True') in rdfgraph, 'oxds:isEmbargoed')
+        self.assertTrue((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'0') in rdfgraph, 'oxds:currentVersion')
+        # Access state info
+        (resp, data) = self.doHTTP_GET(
+            resource="states/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        state = data['state']
+        d = (datetime.now() + relativedelta(years=+70)).isoformat()
+        d = d.split('T')[0]
+        self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
+        self.assertTrue(d in state['metadata']['embargoed_until'], "embargoed_until %s?"%d)
+        #---------------------------------------------------------------
+        # Delete dataset, check response
+        resp = self.doHTTP_DELETE(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK")
+        # Access dataset, test response indicating non-existent
+        (resp, respdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=404, expect_reason="Not Found")
+        #---------------------------------------------------------------
+        # Create a new dataset, check response. embargoed=True, embargo_until=None.
+        self.createSubmissionDataset(embargoed=True)
+        # Access dataset, check response
+        (resp, rdfdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),9,'Graph length %i' %len(rdfgraph))
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        stype = URIRef(oxds+"DataSet")
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),'True') in rdfgraph, 'oxds:isEmbargoed')
+        self.assertFalse((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'0') in rdfgraph, 'oxds:currentVersion')
+        # Access state info
+        (resp, data) = self.doHTTP_GET(
+            resource="states/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        state = data['state']
+        self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
+        self.assertEqual(state['metadata']['embargoed_until'], '', "Embargoed?")
+        #---------------------------------------------------------------
+        # Delete dataset, check response
+        resp = self.doHTTP_DELETE(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK")
+        # Access dataset, test response indicating non-existent
+        (resp, respdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=404, expect_reason="Not Found")
+        #---------------------------------------------------------------
+        # Create a new dataset, check response. embargoed=True, embargo_until=True
+        self.createSubmissionDataset(embargoed=True, embargoed_until=True)
+        # Access dataset, check response
+        (resp, rdfdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),10,'Graph length %i' %len(rdfgraph))
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        dcterms = "http://purl.org/dc/terms/"
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        stype = URIRef(oxds+"DataSet")
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),'True') in rdfgraph, 'oxds:isEmbargoed')
+        self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'0') in rdfgraph, 'oxds:currentVersion')
+        # Access state info
+        (resp, data) = self.doHTTP_GET(
+            resource="states/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        state = data['state']
+        d = (datetime.now() + relativedelta(years=+70)).isoformat()
+        d = d.split('T')[0]
+        self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
+        self.assertTrue(d in state['metadata']['embargoed_until'], "embargoed_until %s?"%d)
+        #---------------------------------------------------------------
+        # Delete dataset, check response
+        resp = self.doHTTP_DELETE(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK")
+        # Access dataset, test response indicating non-existent
+        (resp, respdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=404, expect_reason="Not Found")
+        #---------------------------------------------------------------
+        # Create a new dataset, check response. embargoed=True, embargo_until=09-08-2012
+        d = '09-08-2012'
+        self.createSubmissionDataset(embargoed=True, embargoed_until=d)
+        # Access dataset, check response
+        (resp, rdfdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),10,'Graph length %i' %len(rdfgraph))
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        dcterms = "http://purl.org/dc/terms/"
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        stype = URIRef(oxds+"DataSet")
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),'True') in rdfgraph, 'oxds:isEmbargoed')
+        self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'0') in rdfgraph, 'oxds:currentVersion')
+        # Access state info
+        (resp, data) = self.doHTTP_GET(
+            resource="states/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        state = data['state']
+        self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
+        self.assertTrue('2012-08-09' in state['metadata']['embargoed_until'], "embargoed_until 2012-08-09?")
+        #---------------------------------------------------------------
+        # Delete dataset, check response
+        resp = self.doHTTP_DELETE(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK")
+        # Access dataset, test response indicating non-existent
+        (resp, respdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=404, expect_reason="Not Found")
+        #---------------------------------------------------------------
+        # Create a new dataset, check response. embargoed = False. 
+        self.createSubmissionDataset(embargoed=False)
+        # Access dataset, check response
+        (resp, rdfdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),9,'Graph length %i' %len(rdfgraph))
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        dcterms = "http://purl.org/dc/terms/"
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        stype = URIRef(oxds+"DataSet")
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),'False') in rdfgraph, 'oxds:isEmbargoed')
+        self.assertFalse((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'0') in rdfgraph, 'oxds:currentVersion')
+        # Access state info
+        (resp, data) = self.doHTTP_GET(
+            resource="states/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        state = data['state']
+        self.assertEqual(state['metadata']['embargoed'], False, "Embargoed?")
+        self.assertEqual(state['metadata']['embargoed_until'], '', "Embargoed?")
+        #---------------------------------------------------------------
+        # Delete dataset, check response
+        resp = self.doHTTP_DELETE(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK")
+        # Access dataset, test response indicating non-existent
+        (resp, respdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=404, expect_reason="Not Found")
+        #---------------------------------------------------------------
+        # Create a new dataset, check response. embargoed = False, embargoed_until = True
+        self.createSubmissionDataset(embargoed=False, embargoed_until=True)
+        # Access dataset, check response
+        (resp, rdfdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),9,'Graph length %i' %len(rdfgraph))
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        dcterms = "http://purl.org/dc/terms/"
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        stype = URIRef(oxds+"DataSet")
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),'False') in rdfgraph, 'oxds:isEmbargoed')
+        self.assertFalse((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'0') in rdfgraph, 'oxds:currentVersion')
+        # Access state info
+        (resp, data) = self.doHTTP_GET(
+            resource="states/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        state = data['state']
+        self.assertEqual(state['metadata']['embargoed'], False, "Embargoed?")
+        self.assertEqual(state['metadata']['embargoed_until'], '', "Embargoed?")
+        #---------------------------------------------------------------
+        # Delete dataset, check response
+        resp = self.doHTTP_DELETE(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK")
+        # Access dataset, test response indicating non-existent
+        (resp, respdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=404, expect_reason="Not Found")
+        #---------------------------------------------------------------
+        # Create a new dataset, check response. embargoed = False, embargoed_until = 12 sep 2013
+        d = '12 Sep 2013'
+        self.createSubmissionDataset(embargoed=False, embargoed_until=d)
+        # Access dataset, check response
+        (resp, rdfdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),9,'Graph length %i' %len(rdfgraph))
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        dcterms = "http://purl.org/dc/terms/"
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        stype = URIRef(oxds+"DataSet")
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),'False') in rdfgraph, 'oxds:isEmbargoed')
+        self.assertFalse((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'0') in rdfgraph, 'oxds:currentVersion')
+        # Access state info
+        (resp, data) = self.doHTTP_GET(
+            resource="states/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        state = data['state']
+        self.assertEqual(state['metadata']['embargoed'], False, "Embargoed?")
+        self.assertEqual(state['metadata']['embargoed_until'], '', "Embargoed?")
+
 
     def testFileUpload(self):
         """Upload file to dataset - POST file to /silo_name/datasets/dataset_name"""
@@ -1846,7 +2178,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
         # Delete embargo, check response
         fields = \
-            [ ("embargo_change", 'true')
+            [ ("embargoed", 'false')
             ]
         files =[]
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
@@ -1868,10 +2200,12 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         stype = URIRef(oxds+"DataSet")
         self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),'False') in rdfgraph, 'oxds:isEmbargoed')
+        self.assertFalse((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
         self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
         self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
         self.failUnless((subj,URIRef(dcterms+"mediator"),None) in rdfgraph, 'dcterms:mediator')
         self.failUnless((subj,URIRef(dcterms+"rights"),None) in rdfgraph, 'dcterms:rights')
+        self.failUnless((subj,URIRef(dcterms+"license"),None) in rdfgraph, 'dcterms:license')
         self.failUnless((subj,URIRef(dcterms+"publisher"),None) in rdfgraph, 'dcterms:publisher')
         self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
@@ -1901,15 +2235,110 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         stype = URIRef(oxds+"DataSet")
         self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
         self.failUnless((subj,URIRef(oxds+"isEmbargoed"),'True') in rdfgraph, 'oxds:isEmbargoed')
+        self.assertTrue((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        #Access state information and check
+        (resp, data) = self.doHTTP_GET(
+            resource="states/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        state = data['state']
+        d = (datetime.now() + relativedelta(years=+70)).isoformat()
+        d = d.split('T')[0]
+        self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
+        self.assertTrue(d in state['metadata']['embargoed_until'], "embargoed_until %s?"%d)
+        #-------------------------------------------------
+        # Change embargo without embargo_until date - embargoed = True, check response
+        fields = \
+            [ ("embargoed", 'true')
+            ]
+        files =[]
+        (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
+        (resp,respdata) = self.doHTTP_POST(
+            reqdata, reqtype, 
+            resource="datasets/TestSubmission", 
+            expect_status=204, expect_reason="Updated")
+        #Access dataset and check content
+        (resp, rdfdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),10,'Graph length %i' %len(rdfgraph))
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        dcterms = "http://purl.org/dc/terms/"
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        stype = URIRef(oxds+"DataSet")
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),'True') in rdfgraph, 'oxds:isEmbargoed')
+        self.assertFalse((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
+        self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
+        self.failUnless((subj,URIRef(dcterms+"mediator"),None) in rdfgraph, 'dcterms:mediator')
+        self.failUnless((subj,URIRef(dcterms+"rights"),None) in rdfgraph, 'dcterms:rights')
+        self.failUnless((subj,URIRef(dcterms+"license"),None) in rdfgraph, 'dcterms:license')
+        self.failUnless((subj,URIRef(dcterms+"publisher"),None) in rdfgraph, 'dcterms:publisher')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
+        #Access state information and check
+        (resp, data) = self.doHTTP_GET(
+            resource="states/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        state = data['state']
+        self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
+        self.assertEqual(state['metadata']['embargoed_until'], '', "embargoed_until?")
+        #-------------------------------------------------
+        #Change embargo - embargoed = true, embargoed_until = True
+        d = datetime.now().isoformat()
+        fields = \
+            [ ("embargoed", 'true')
+             ,("embargoed_until", 'true')
+            ]
+        files =[]
+        (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
+        (resp,respdata) = self.doHTTP_POST(
+            reqdata, reqtype, 
+            resource="datasets/TestSubmission", 
+            expect_status=204, expect_reason="Updated")
+        #Access dataset and check content
+        (resp, rdfdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),11,'Graph length %i' %len(rdfgraph))
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        dcterms = "http://purl.org/dc/terms/"
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        stype = URIRef(oxds+"DataSet")
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),'True') in rdfgraph, 'oxds:isEmbargoed')
         self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
-        # Delete embargo, check response
+        self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
+        self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
+        self.failUnless((subj,URIRef(dcterms+"mediator"),None) in rdfgraph, 'dcterms:mediator')
+        self.failUnless((subj,URIRef(dcterms+"rights"),None) in rdfgraph, 'dcterms:rights')
+        self.failUnless((subj,URIRef(dcterms+"license"),None) in rdfgraph, 'dcterms:license')
+        self.failUnless((subj,URIRef(dcterms+"publisher"),None) in rdfgraph, 'dcterms:publisher')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'2') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
+        #Access state information and check
+        (resp, data) = self.doHTTP_GET(
+            resource="states/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        state = data['state']
+        d = (datetime.now() + relativedelta(years=+70)).isoformat()
+        d = d.split('T')[0]
+        self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
+        self.assertTrue(d in state['metadata']['embargoed_until'], "embargoed_until %s?"%d)
+        #-------------------------------------------------
+        #Change embargo - embargoed = true, embargoed_until = datetime
         d = datetime.now()
-        delta = timedelta(days=365*3)
+        delta = timedelta(days=365*4)
         d2 = d + delta
         d2 = d2.isoformat()
         fields = \
-            [ ("embargo_change", 'true')
-             ,("embargoed", 'true')
+            [ ("embargoed", 'true')
              ,("embargoed_until", d2)
             ]
         files =[]
@@ -1937,8 +2366,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
         self.failUnless((subj,URIRef(dcterms+"mediator"),None) in rdfgraph, 'dcterms:mediator')
         self.failUnless((subj,URIRef(dcterms+"rights"),None) in rdfgraph, 'dcterms:rights')
+        self.failUnless((subj,URIRef(dcterms+"license"),None) in rdfgraph, 'dcterms:license')
         self.failUnless((subj,URIRef(dcterms+"publisher"),None) in rdfgraph, 'dcterms:publisher')
-        self.failUnless((subj,URIRef(oxds+"currentVersion"),'1') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'3') in rdfgraph, 'oxds:currentVersion')
         self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
         #Access state information and check
         (resp, data) = self.doHTTP_GET(
@@ -1947,6 +2377,480 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         state = data['state']
         self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
         self.assertEqual(state['metadata']['embargoed_until'], d2, "embargoed_until?")
+        #-------------------------------------------------
+        #Change embargo - embargoed = true, embargoed_until = datetime
+        d2 = '09 August 2013'
+        fields = \
+            [ ("embargoed", 'true')
+             ,("embargoed_until", d2)
+            ]
+        files =[]
+        (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
+        (resp,respdata) = self.doHTTP_POST(
+            reqdata, reqtype, 
+            resource="datasets/TestSubmission", 
+            expect_status=204, expect_reason="Updated")
+        #Access dataset and check content
+        (resp, rdfdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),11,'Graph length %i' %len(rdfgraph))
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        dcterms = "http://purl.org/dc/terms/"
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        stype = URIRef(oxds+"DataSet")
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),'True') in rdfgraph, 'oxds:isEmbargoed')
+        self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
+        self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
+        self.failUnless((subj,URIRef(dcterms+"mediator"),None) in rdfgraph, 'dcterms:mediator')
+        self.failUnless((subj,URIRef(dcterms+"rights"),None) in rdfgraph, 'dcterms:rights')
+        self.failUnless((subj,URIRef(dcterms+"license"),None) in rdfgraph, 'dcterms:license')
+        self.failUnless((subj,URIRef(dcterms+"publisher"),None) in rdfgraph, 'dcterms:publisher')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'4') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
+        #Access state information and check
+        (resp, data) = self.doHTTP_GET(
+            resource="states/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        state = data['state']
+        self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
+        self.assertTrue('2013-08-09' in state['metadata']['embargoed_until'], "embargoed_until 2013-08-09?")
+        #-------------------------------------------------
+        # Change embargo - embargoed_until = true and check response
+        fields = \
+            [ ("embargoed_until", 'true')
+            ]
+        files =[]
+        (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
+        (resp,respdata) = self.doHTTP_POST(
+            reqdata, reqtype, 
+            resource="datasets/TestSubmission", 
+            expect_status=400, expect_reason="Bad request")
+        #Access dataset and check content
+        (resp, rdfdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),11,'Graph length %i' %len(rdfgraph))
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        dcterms = "http://purl.org/dc/terms/"
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        stype = URIRef(oxds+"DataSet")
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),'True') in rdfgraph, 'oxds:isEmbargoed')
+        self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
+        self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
+        self.failUnless((subj,URIRef(dcterms+"mediator"),None) in rdfgraph, 'dcterms:mediator')
+        self.failUnless((subj,URIRef(dcterms+"rights"),None) in rdfgraph, 'dcterms:rights')
+        self.failUnless((subj,URIRef(dcterms+"license"),None) in rdfgraph, 'dcterms:license')
+        self.failUnless((subj,URIRef(dcterms+"publisher"),None) in rdfgraph, 'dcterms:publisher')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'4') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
+        #Access state information and check
+        (resp, data) = self.doHTTP_GET(
+            resource="states/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        state = data['state']
+        self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
+        self.assertTrue('2013-08-09' in state['metadata']['embargoed_until'], "embargoed_until 2013-08-09?")
+        #-------------------------------------------------
+        # Change embargo - embargoed_until = date and check response
+        d5 = datetime.now()
+        delta = timedelta(days=3)
+        d5 = d5 + delta
+        d5 = d5.isoformat()
+        fields = \
+            [ ("embargoed_until", d5)
+            ]
+        files =[]
+        (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
+        (resp,respdata) = self.doHTTP_POST(
+            reqdata, reqtype, 
+            resource="datasets/TestSubmission", 
+            expect_status=400, expect_reason="Bad request")
+        #Access dataset and check content
+        (resp, rdfdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),11,'Graph length %i' %len(rdfgraph))
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        dcterms = "http://purl.org/dc/terms/"
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        stype = URIRef(oxds+"DataSet")
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),'True') in rdfgraph, 'oxds:isEmbargoed')
+        self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
+        self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
+        self.failUnless((subj,URIRef(dcterms+"mediator"),None) in rdfgraph, 'dcterms:mediator')
+        self.failUnless((subj,URIRef(dcterms+"rights"),None) in rdfgraph, 'dcterms:rights')
+        self.failUnless((subj,URIRef(dcterms+"license"),None) in rdfgraph, 'dcterms:license')
+        self.failUnless((subj,URIRef(dcterms+"publisher"),None) in rdfgraph, 'dcterms:publisher')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'4') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
+        #Access state information and check
+        (resp, data) = self.doHTTP_GET(
+            resource="states/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        state = data['state']
+        self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
+        self.assertTrue('2013-08-09' in state['metadata']['embargoed_until'], "embargoed_until 2013-08-09?")
+        #-------------------------------------------------
+        #Delete embargo
+        fields = \
+            [ ("embargoed", 'false')
+            ]
+        files =[]
+        (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
+        (resp,respdata) = self.doHTTP_POST(
+            reqdata, reqtype, 
+            resource="datasets/TestSubmission", 
+            expect_status=204, expect_reason="Updated")
+        #Access dataset and check content
+        (resp, rdfdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),10,'Graph length %i' %len(rdfgraph))
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        dcterms = "http://purl.org/dc/terms/"
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        stype = URIRef(oxds+"DataSet")
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),'False') in rdfgraph, 'oxds:isEmbargoed')
+        self.assertFalse((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
+        self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
+        self.failUnless((subj,URIRef(dcterms+"mediator"),None) in rdfgraph, 'dcterms:mediator')
+        self.failUnless((subj,URIRef(dcterms+"rights"),None) in rdfgraph, 'dcterms:rights')
+        self.failUnless((subj,URIRef(dcterms+"license"),None) in rdfgraph, 'dcterms:license')
+        self.failUnless((subj,URIRef(dcterms+"publisher"),None) in rdfgraph, 'dcterms:publisher')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'5') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
+        #Access state information and check
+        (resp, data) = self.doHTTP_GET(
+            resource="states/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        state = data['state']
+        self.assertEqual(state['metadata']['embargoed'], False, "Embargoed?")
+        self.assertEqual(state['metadata']['embargoed_until'], '', "Embargoed until?")
+        #-------------------------------------------------
+        #Delete embargo
+        fields = \
+            [ ("embargoed", 'false')
+             ,("embargoed_until", 'true')
+            ]
+        files =[]
+        (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
+        (resp,respdata) = self.doHTTP_POST(
+            reqdata, reqtype, 
+            resource="datasets/TestSubmission", 
+            expect_status=204, expect_reason="Updated")
+        #Access dataset and check content
+        (resp, rdfdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),10,'Graph length %i' %len(rdfgraph))
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        dcterms = "http://purl.org/dc/terms/"
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        stype = URIRef(oxds+"DataSet")
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),'False') in rdfgraph, 'oxds:isEmbargoed')
+        self.assertFalse((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
+        self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
+        self.failUnless((subj,URIRef(dcterms+"mediator"),None) in rdfgraph, 'dcterms:mediator')
+        self.failUnless((subj,URIRef(dcterms+"rights"),None) in rdfgraph, 'dcterms:rights')
+        self.failUnless((subj,URIRef(dcterms+"license"),None) in rdfgraph, 'dcterms:license')
+        self.failUnless((subj,URIRef(dcterms+"publisher"),None) in rdfgraph, 'dcterms:publisher')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'6') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
+        #Access state information and check
+        (resp, data) = self.doHTTP_GET(
+            resource="states/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        state = data['state']
+        self.assertEqual(state['metadata']['embargoed'], False, "Embargoed?")
+        self.assertEqual(state['metadata']['embargoed_until'], '', "Embargoed until?")
+        #-------------------------------------------------
+        #Delete embargo
+        d = datetime.now()
+        delta = timedelta(days=4)
+        d3 = d + delta
+        d3 = d3.isoformat()
+        fields = \
+            [ ("embargoed", 'false')
+             ,("embargoed_until", d3)
+            ]
+        files =[]
+        (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
+        (resp,respdata) = self.doHTTP_POST(
+            reqdata, reqtype, 
+            resource="datasets/TestSubmission", 
+            expect_status=204, expect_reason="Updated")
+        #Access dataset and check content
+        (resp, rdfdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),10,'Graph length %i' %len(rdfgraph))
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        dcterms = "http://purl.org/dc/terms/"
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        stype = URIRef(oxds+"DataSet")
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),'False') in rdfgraph, 'oxds:isEmbargoed')
+        self.assertFalse((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
+        self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
+        self.failUnless((subj,URIRef(dcterms+"mediator"),None) in rdfgraph, 'dcterms:mediator')
+        self.failUnless((subj,URIRef(dcterms+"rights"),None) in rdfgraph, 'dcterms:rights')
+        self.failUnless((subj,URIRef(dcterms+"license"),None) in rdfgraph, 'dcterms:license')
+        self.failUnless((subj,URIRef(dcterms+"publisher"),None) in rdfgraph, 'dcterms:publisher')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'7') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
+        #Access state information and check
+        (resp, data) = self.doHTTP_GET(
+            resource="states/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        state = data['state']
+        self.assertEqual(state['metadata']['embargoed'], False, "Embargoed?")
+        self.assertEqual(state['metadata']['embargoed_until'], '', "Embargoed until?")
+        #-------------------------------------------------
+        #Change embargo - embargoed = true, embargoed_until = '09 Aug 2013'
+        d2 = '09 Aug 2013'
+        fields = \
+            [ ("embargoed", 'true')
+             ,("embargoed_until", d2)
+            ]
+        files =[]
+        (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
+        (resp,respdata) = self.doHTTP_POST(
+            reqdata, reqtype, 
+            resource="datasets/TestSubmission", 
+            expect_status=204, expect_reason="Updated")
+        #Access dataset and check content
+        (resp, rdfdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),11,'Graph length %i' %len(rdfgraph))
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        dcterms = "http://purl.org/dc/terms/"
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        stype = URIRef(oxds+"DataSet")
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),'True') in rdfgraph, 'oxds:isEmbargoed')
+        self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
+        self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
+        self.failUnless((subj,URIRef(dcterms+"mediator"),None) in rdfgraph, 'dcterms:mediator')
+        self.failUnless((subj,URIRef(dcterms+"rights"),None) in rdfgraph, 'dcterms:rights')
+        self.failUnless((subj,URIRef(dcterms+"license"),None) in rdfgraph, 'dcterms:license')
+        self.failUnless((subj,URIRef(dcterms+"publisher"),None) in rdfgraph, 'dcterms:publisher')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'8') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
+        #Access state information and check
+        (resp, data) = self.doHTTP_GET(
+            resource="states/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        state = data['state']
+        self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
+        self.assertTrue('2013-08-09' in state['metadata']['embargoed_until'], "embargoed_until 2013-08-09?")
+        #-------------------------------------------------
+        #Change embargo - embargoed = true, embargoed_until = '09 08 2015'
+        d2 = '09 08 2015'
+        fields = \
+            [ ("embargoed", 'true')
+             ,("embargoed_until", d2)
+            ]
+        files =[]
+        (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
+        (resp,respdata) = self.doHTTP_POST(
+            reqdata, reqtype, 
+            resource="datasets/TestSubmission", 
+            expect_status=204, expect_reason="Updated")
+        #Access dataset and check content
+        (resp, rdfdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),11,'Graph length %i' %len(rdfgraph))
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        dcterms = "http://purl.org/dc/terms/"
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        stype = URIRef(oxds+"DataSet")
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),'True') in rdfgraph, 'oxds:isEmbargoed')
+        self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
+        self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
+        self.failUnless((subj,URIRef(dcterms+"mediator"),None) in rdfgraph, 'dcterms:mediator')
+        self.failUnless((subj,URIRef(dcterms+"rights"),None) in rdfgraph, 'dcterms:rights')
+        self.failUnless((subj,URIRef(dcterms+"license"),None) in rdfgraph, 'dcterms:license')
+        self.failUnless((subj,URIRef(dcterms+"publisher"),None) in rdfgraph, 'dcterms:publisher')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'9') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
+        #Access state information and check
+        (resp, data) = self.doHTTP_GET(
+            resource="states/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        state = data['state']
+        self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
+        self.assertTrue('2015-08-09' in state['metadata']['embargoed_until'], "embargoed_until 2015-08-09?")
+        #-------------------------------------------------
+        #Change embargo - embargoed = true, embargoed_until = '09-08-16'
+        d2 = '09-08-16'
+        fields = \
+            [ ("embargoed", 'true')
+             ,("embargoed_until", d2)
+            ]
+        files =[]
+        (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
+        (resp,respdata) = self.doHTTP_POST(
+            reqdata, reqtype, 
+            resource="datasets/TestSubmission", 
+            expect_status=204, expect_reason="Updated")
+        #Access dataset and check content
+        (resp, rdfdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),11,'Graph length %i' %len(rdfgraph))
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        dcterms = "http://purl.org/dc/terms/"
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        stype = URIRef(oxds+"DataSet")
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),'True') in rdfgraph, 'oxds:isEmbargoed')
+        self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
+        self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
+        self.failUnless((subj,URIRef(dcterms+"mediator"),None) in rdfgraph, 'dcterms:mediator')
+        self.failUnless((subj,URIRef(dcterms+"license"),None) in rdfgraph, 'dcterms:license')
+        self.failUnless((subj,URIRef(dcterms+"rights"),None) in rdfgraph, 'dcterms:rights')
+        self.failUnless((subj,URIRef(dcterms+"publisher"),None) in rdfgraph, 'dcterms:publisher')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'10') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
+        #Access state information and check
+        (resp, data) = self.doHTTP_GET(
+            resource="states/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        state = data['state']
+        self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
+        self.assertTrue('2016-08-09' in state['metadata']['embargoed_until'], "embargoed_until 2016-08-09?")
+        #-------------------------------------------------
+        #Change embargo - embargoed = true, embargoed_until = '09/08/17'
+        d2 = '09/08/17'
+        fields = \
+            [ ("embargoed", 'true')
+             ,("embargoed_until", d2)
+            ]
+        files =[]
+        (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
+        (resp,respdata) = self.doHTTP_POST(
+            reqdata, reqtype, 
+            resource="datasets/TestSubmission", 
+            expect_status=204, expect_reason="Updated")
+        #Access dataset and check content
+        (resp, rdfdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),11,'Graph length %i' %len(rdfgraph))
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        dcterms = "http://purl.org/dc/terms/"
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        stype = URIRef(oxds+"DataSet")
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),'True') in rdfgraph, 'oxds:isEmbargoed')
+        self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
+        self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
+        self.failUnless((subj,URIRef(dcterms+"mediator"),None) in rdfgraph, 'dcterms:mediator')
+        self.failUnless((subj,URIRef(dcterms+"rights"),None) in rdfgraph, 'dcterms:rights')
+        self.failUnless((subj,URIRef(dcterms+"license"),None) in rdfgraph, 'dcterms:license')
+        self.failUnless((subj,URIRef(dcterms+"publisher"),None) in rdfgraph, 'dcterms:publisher')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'11') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
+        #Access state information and check
+        (resp, data) = self.doHTTP_GET(
+            resource="states/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        state = data['state']
+        self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
+        self.assertTrue('2017-08-09' in state['metadata']['embargoed_until'], "embargoed_until 2017-08-09?")
+        #-------------------------------------------------
+        #Change embargo - embargoed = true, embargoed_until = 'Aug 09, 2018'
+        d2 = 'Aug 09, 2018'
+        fields = \
+            [ ("embargoed", 'true')
+             ,("embargoed_until", d2)
+            ]
+        files =[]
+        (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
+        (resp,respdata) = self.doHTTP_POST(
+            reqdata, reqtype, 
+            resource="datasets/TestSubmission", 
+            expect_status=204, expect_reason="Updated")
+        #Access dataset and check content
+        (resp, rdfdata) = self.doHTTP_GET(
+            resource="datasets/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
+        rdfgraph = Graph()
+        rdfstream = StringIO(rdfdata)
+        rdfgraph.parse(rdfstream) 
+        self.assertEqual(len(rdfgraph),11,'Graph length %i' %len(rdfgraph))
+        oxds = "http://vocab.ox.ac.uk/dataset/schema#"
+        dcterms = "http://purl.org/dc/terms/"
+        subj  = URIRef(self.getRequestUri("datasets/TestSubmission"))
+        stype = URIRef(oxds+"DataSet")
+        self.failUnless((subj,RDF.type,stype) in rdfgraph, 'Testing submission type: '+subj+", "+stype)
+        self.failUnless((subj,URIRef(oxds+"isEmbargoed"),'True') in rdfgraph, 'oxds:isEmbargoed')
+        self.failUnless((subj,URIRef(oxds+"embargoedUntil"),None) in rdfgraph, 'oxds:embargoedUntil')
+        self.failUnless((subj,URIRef(dcterms+"identifier"),None) in rdfgraph, 'dcterms:identifier')
+        self.failUnless((subj,URIRef(dcterms+"created"),None) in rdfgraph, 'dcterms:created')
+        self.failUnless((subj,URIRef(dcterms+"mediator"),None) in rdfgraph, 'dcterms:mediator')
+        self.failUnless((subj,URIRef(dcterms+"rights"),None) in rdfgraph, 'dcterms:rights')
+        self.failUnless((subj,URIRef(dcterms+"license"),None) in rdfgraph, 'dcterms:license')
+        self.failUnless((subj,URIRef(dcterms+"publisher"),None) in rdfgraph, 'dcterms:publisher')
+        self.failUnless((subj,URIRef(oxds+"currentVersion"),'12') in rdfgraph, 'oxds:currentVersion')
+        self.failUnless((subj,URIRef(dcterms+"modified"),None) in rdfgraph, 'dcterms:modified')
+        #Access state information and check
+        (resp, data) = self.doHTTP_GET(
+            resource="states/TestSubmission", 
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        state = data['state']
+        self.assertEqual(state['metadata']['embargoed'], True, "Embargoed?")
+        self.assertTrue('2018-08-09' in state['metadata']['embargoed_until'], "embargoed_until 2018-08-09?")
+        #-------------------------------------------------
 
     def testFileUnpack(self):
         """Unpack zip file to a new dataset - POST zip filename to /silo_name/items/dataset_name"""
@@ -3129,6 +4033,7 @@ def getTestSuite(select="unit"):
             , "testDeleteDataset"
             , "testDatasetNaming"
             , "testDatasetStateInformation"
+            , "testEmbargoOnCreation"
             , "testFileUpload"
             , "testFileDelete"
             , "testFileUpdate"
