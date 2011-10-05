@@ -145,8 +145,9 @@ class SparqlQueryTestCase(unittest.TestCase):
             return ""
 
     def getRequestUri(self, rel):
-        #return "http://databank.ora.ox.ac.uk"+self.getRequestPath(rel)
-        #return "http://"+self._endpointhost+self.getRequestPath(rel)
+        return "http://"+self._endpointhost+self.getRequestPath(rel)
+
+    def getManifestUri(self, rel):
         return self._manifesturiroot+self.getRequestPath(rel)
 
     def doRequest(self, command, resource, reqdata=None, reqheaders={}, expect_status=200, expect_reason="OK"):
@@ -157,14 +158,10 @@ class SparqlQueryTestCase(unittest.TestCase):
         auth = base64.encodestring("%s:%s" % (self._endpointuser, self._endpointpass)).strip()
         reqheaders["Authorization"] = "Basic %s" % auth
         hc   = httplib.HTTPConnection(self._endpointhost)
-        #hc   = httplib.HTTPSConnection(self._endpointhost)
         path = self.getRequestPath(resource)
         response     = None
         responsedata = None
         repeat       = 10
-        #print "auth: ", self._endpointuser, self._endpointpass
-        #print "path: ", path
-        #print "-"*10
         while path and repeat > 0:
             repeat -= 1
             hc.request(command, path, reqdata, reqheaders)
@@ -178,9 +175,9 @@ class SparqlQueryTestCase(unittest.TestCase):
             else:
                 response.read()  # Seems to be needed to free up connection for new request
         logger.debug("Status: %i %s" % (response.status, response.reason))
+
         if expect_status != "*": self.assertEqual(response.status, expect_status)
-        if expect_status == 201: 
-            self.assertTrue(response.getheader('Content-Location', None))
+        if expect_status == 201: self.assertTrue(response.getheader('Content-Location', None))
         if expect_reason != "*": self.assertEqual(response.reason, expect_reason)
         responsedata = response.read()
         hc.close()

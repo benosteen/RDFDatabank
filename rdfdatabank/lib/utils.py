@@ -75,7 +75,6 @@ def allowable_id2(strg):
 
 def is_embargoed(silo, id, refresh=False):
     # TODO evaluate ag.r.expire settings for these keys - popularity resets ttl or increases it?
-    #r = Redis()
     e = None
     e_d = None
     e = ag.r.get("%s:%s:embargoed" % (silo.state['storage_dir'], id))
@@ -92,44 +91,6 @@ def is_embargoed(silo, id, refresh=False):
                 e = False
             ag.r.set("%s:%s:embargoed" % (silo.state['storage_dir'], id), e)
             ag.r.set("%s:%s:embargoed_until" % (silo.state['storage_dir'], id), e_d)
-    return (e, e_d)
-
-def is_embargoed_with_exceptions(silo, id, refresh=False):
-    # TODO evaluate ag.r.expire settings for these keys - popularity resets ttl or increases it?
-    #r = Redis()
-    e = None
-    e_d = None
-    try:
-        e = ag.r.get("%s:%s:embargoed" % (silo.state['storage_dir'], id))
-    except ConnectionError:  # The client can sometimes be timed out and disconnected at the server.
-        try:
-            r = Redis()
-            e = r.get("%s:%s:embargoed" % (silo.state['storage_dir'], id))
-        except:
-            pass
-    try:
-        e_d = ag.r.get("%s:%s:embargoed_until" % (silo.state['storage_dir'], id))
-    except ConnectionError:  # The client can sometimes be timed out and disconnected at the server.
-        try:
-            r = Redis()
-            e_d = r.get("%s:%s:embargoed_until" % (silo.state['storage_dir'], id))
-        except:
-            pass
-
-    if refresh or (not e or not e_d):
-        if silo.exists(id):
-            item = silo.get_item(id)
-            e = item.metadata.get("embargoed")
-            e_d = item.metadata.get("embargoed_until")
-            if e not in ['false', 0, False]:
-                e = True
-            else:
-                e = False
-            try:
-                ag.r.set("%s:%s:embargoed" % (silo.state['storage_dir'], id), e)
-                ag.r.set("%s:%s:embargoed_until" % (silo.state['storage_dir'], id), e_d)
-            except ConnectionError:  # The client can sometimes be timed out and disconnected at the server.
-                pass
     return (e, e_d)
 
 def is_embargoed_no_redis(silo, id, refresh=False):

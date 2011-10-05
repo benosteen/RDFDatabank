@@ -9,6 +9,7 @@ $Rev: $
 """
 import os, os.path
 from datetime import datetime, timedelta
+from time import sleep
 import sys
 import unittest
 import logging
@@ -187,7 +188,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         return
 
     def testFileUploadBulk(self):
-        for i in range(0, 10000):       
+        for i in range(0, 1500):       
             """Upload file to dataset - POST file to /silo_name/datasets/dataset_name"""
             # Create a new dataset, check response
             start = datetime.now()
@@ -264,6 +265,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             self.assertEqual(len(parts['4=%s'%dataset_id].keys()), 13, "File stats for 4=%s"%dataset_id)
             self.assertEqual(len(parts['manifest.rdf'].keys()), 13, "File stats for manifest.rdf")
             self.assertEqual(len(parts['testdir.zip'].keys()), 13, "File stats for testdir.zip")
+            sleep(5)
  
     # Sentinel/placeholder tests
 
