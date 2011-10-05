@@ -12,7 +12,7 @@ from pylons.controllers.util import abort, redirect
 from pylons.decorators import rest
 from paste.fileapp import FileApp
 from rdfdatabank.lib.base import BaseController, render
-from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text, test_rdf, munge_manifest, serialisable_stat, allowable_id2, get_rdf_template
+from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text, test_rdf, munge_manifest, serialisable_stat, allowable_id2, get_embargo_values, get_rdf_template
 from rdfdatabank.lib.file_unpack import get_zipfiles_in_dataset
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 
@@ -361,7 +361,7 @@ class DatasetsController(BaseController):
                 response.headers["Content-Location"] = url(controller="datasets", action="datasetview", silo=silo, id=id) 
                 response.status = "201 Created"
                 return "201 Created"
-            elif params.has_key('embargo_change') or params.has_key('embargoed'):
+            elif params.has_key('embargoed') and params['embargoed']:
                 item = c_silo.get_item(id)
                 creator = None
                 if item.manifest and item.manifest.state and 'metadata' in item.manifest.state and item.manifest.state['metadata'] and \
@@ -369,48 +369,41 @@ class DatasetsController(BaseController):
                     creator = item.manifest.state['metadata']['createdby']
                 if not (ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]):
                     abort(403)
+                if not params['embargoed'].lower() in ['true', 'false', '0', '1']:
+                    abort(400, "The value for embargoed has to be either 'True' or 'False'")
+
                 item.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
-                #if params.has_key('embargoed'):
-                if (params.has_key('embargo_change') and params.has_key('embargoed') and \
-                   params['embargoed'].lower() in ['true', '1'] and params['embargo_change'].lower() in ['true', '1']) or \
-                   (params.has_key('embargoed') and params['embargoed'].lower() in ['true', '1']):
-                    embargoed_until_date = None
-                    if params.has_key('embargoed_until') and params['embargoed_until']:
-                        try:
-                            embargoed_until_date = parse(params['embargoed_until']).isoformat()
-                        except:
-                            embargoed_until_date = (datetime.now() + relativedelta(years=+70)).isoformat()
-                    elif params.has_key('embargo_days_from_now') and params['embargo_days_from_now'].isdigit():
-                        embargoed_until_date = (datetime.now() + timedelta(days=int(params['embargo_days_from_now']))).isoformat()
-                    #It is embargoed indefinitely by default
-                    #else:
-                    #    embargoed_until_date = (datetime.now() + timedelta(days=365*70)).isoformat()
-                    item.metadata['embargoed'] = True
-                    item.metadata['embargoed_until'] = ''
-                    item.del_triple(item.uri, u"oxds:isEmbargoed")
-                    item.del_triple(item.uri, u"oxds:embargoedUntil")
-                    item.add_triple(item.uri, u"oxds:isEmbargoed", 'True')
-                    if embargoed_until_date:
-                        item.metadata['embargoed_until'] = embargoed_until_date
-                        item.add_triple(item.uri, u"oxds:embargoedUntil", embargoed_until_date)
+                if params.has_key('embargoed_until') and params['embargoed_until']:
+                    e, e_d = get_embargo_values(embargoed=params['embargoed'], embargoed_until=params['embargoed_until'])
+                elif params.has_key('embargo_days_from_now') and params['embargo_days_from_now']:
+                    e, e_d = get_embargo_values(embargoed=params['embargoed'], embargo_days_from_now=params['embargo_days_from_now'])
                 else:
-                    #if is_embargoed(c_silo, id)[0] == True:
+                    e, e_d = get_embargo_values(embargoed=params['embargoed'])
+                
+                item.metadata['embargoed_until'] = ''
+                item.del_triple(item.uri, u"oxds:isEmbargoed")
+                item.del_triple(item.uri, u"oxds:embargoedUntil")
+                ag.r.set("%s:%s:embargoed_until" % (c_silo.state['storage_dir'], id), ' ')
+
+                if e:
+                    item.metadata['embargoed'] = True
+                    item.add_triple(item.uri, u"oxds:isEmbargoed", 'True')
+                    ag.r.set("%s:%s:embargoed" % (c_silo.state['storage_dir'], id), True)
+                    if e_d:
+                        item.metadata['embargoed_until'] = e_d
+                        item.add_triple(item.uri, u"oxds:embargoedUntil", e_d)
+                        ag.r.set("%s:%s:embargoed_until" % (c_silo.state['storage_dir'], id), e_d)
+                else:
                     item.metadata['embargoed'] = False
-                    item.metadata['embargoed_until'] = ''
-                    item.del_triple(item.uri, u"oxds:isEmbargoed")
-                    item.del_triple(item.uri, u"oxds:embargoedUntil")
                     item.add_triple(item.uri, u"oxds:isEmbargoed", 'False')
+                    ag.r.set("%s:%s:embargoed" % (c_silo.state['storage_dir'], id), False)
+
                 item.del_triple(item.uri, u"dcterms:modified")
                 item.add_triple(item.uri, u"dcterms:modified", datetime.now())
                 item.del_triple(item.uri, u"oxds:currentVersion")
                 item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
                 item.sync()
-                item.sync()
-                e, e_d = is_embargoed(c_silo, id, refresh=True)
-                
-                # Broadcast change as message
-                ag.b.embargo_change(silo, id, item.metadata['embargoed'], item.metadata['embargoed_until'], ident=ident['repoze.who.userid'])
-                
+
                 # conneg return
                 accept_list = None
                 if 'HTTP_ACCEPT' in request.environ:
@@ -452,8 +445,8 @@ class DatasetsController(BaseController):
                     abort(403)
 
                 upload = params.get('file')
-                if not upload:
-                    abort(400, "No file was recived")
+                #if not upload:
+                #    abort(400, "No file was recived")
                 filename = params.get('filename')
                 if not filename:
                     filename = params['file'].filename
@@ -990,8 +983,8 @@ class DatasetsController(BaseController):
             params = request.POST
             filename = params.get('filename')
             upload = params.get('file')
-            if not upload:
-                abort(400, "No file was recived")
+            #if not upload:
+            #    abort(400, "No file was recived")
             if not filename:
                 filename = params['file'].filename
             if filename and JAILBREAK.search(filename) != None:

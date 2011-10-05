@@ -3,8 +3,6 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import *
 from dateutil.parser import parse
 from time import sleep
-from redis import Redis
-from redis.exceptions import ConnectionError
 import os
 import simplejson
 
@@ -13,7 +11,6 @@ from pylons import app_globals as ag
 from rdflib import ConjunctiveGraph
 from StringIO import StringIO
 from rdflib import StringInputSource
-#from rdflib.parser import StringInputSource
 from rdflib import Namespace, RDF, RDFS, URIRef, Literal, BNode
 
 
@@ -51,7 +48,7 @@ def authz(granary_list,ident):
                 if ident['repoze.who.userid'] in owners:
                     authd.append(item)
         return authd
-    else:
+    elif 'owner' in ident:
         authd = []
         silos_owned = ident['owner']
         for item in granary_list:
@@ -62,6 +59,10 @@ def authz(granary_list,ident):
                 if ident['repoze.who.userid'] in owners:
                     authd.append(item)
         return authd
+    else:
+        authd = []
+        return authd
+        
 
 def allowable_id(identifier):
     if ID_PATTERN.match(identifier):
@@ -93,48 +94,60 @@ def is_embargoed(silo, id, refresh=False):
             ag.r.set("%s:%s:embargoed_until" % (silo.state['storage_dir'], id), e_d)
     return (e, e_d)
 
-def is_embargoed_no_redis(silo, id, refresh=False):
-    #Redis kept crashing for silos with a largo number of data packages (~80,000). I tried re-connecting, it didn't work. 
-    #So not using Redis
-    # TODO evaluate ag.r.expire settings for these keys - popularity resets ttl or increases it?
-    if silo.exists(id):
-        item = silo.get_item(id)
-        e = item.metadata.get("embargoed")
-        e_d = item.metadata.get("embargoed_until")
-        if e not in ['false', 0, False]:
-            e = True
-        else:
-            e = False
-    return (e, e_d)
+def get_embargo_values(embargoed=None, embargoed_until=None, embargo_days_from_now=None):
+    e_status=None
+    e_date=None
+    if embargoed == None:
+        #No embargo details are supplied by user
+        e_status = True
+        e_date = (datetime.now() + relativedelta(years=+70)).isoformat()
+    elif embargoed==True or embargoed.lower() in ['true', '1'] :
+        #embargo status is True
+        e_status = True
+        e_date = None
+        if embargoed_until:
+            try:
+                e_date = parse(embargoed_until, dayfirst=True, yearfirst=False).isoformat()
+            except:
+                e_date = (datetime.now() + relativedelta(years=+70)).isoformat()
+        elif embargo_days_from_now:
+            if embargo_days_from_now.isdigit():
+                e_date = (datetime.now() + timedelta(days=int(embargo_days_from_now))).isoformat()
+            else:
+                e_date = (datetime.now() + relativedelta(years=+70)).isoformat()
+    elif embargoed==False or embargoed.lower() in ['false', '0'] :
+        e_status = False
+    else:
+        #Default case: Treat it as though embargo=None
+        e_status = True
+        e_date = (datetime.now() + relativedelta(years=+70)).isoformat()
+    return (e_status, e_date)
 
-def create_new(silo, id, creator, title=None, embargoed=True, embargoed_until=None, embargo_days_from_now=None, **kw):
+def create_new(silo, id, creator, title=None, embargoed=None, embargoed_until=None, embargo_days_from_now=None, **kw):
     item = silo.get_item(id, startversion="0")
     item.metadata['createdby'] = creator
-    item.metadata['embargoed_until'] = ''
     item.metadata['uuid'] = uuid4().hex
     item.add_namespace('oxds', "http://vocab.ox.ac.uk/dataset/schema#")
     item.add_triple(item.uri, u"rdf:type", "oxds:DataSet")
 
-    if embargoed==True or embargoed.lower() in ['true', '1'] :
+    item.metadata['embargoed_until'] = ''
+    item.del_triple(item.uri, u"oxds:isEmbargoed")
+    item.del_triple(item.uri, u"oxds:embargoedUntil")
+    ag.r.set("%s:%s:embargoed_until" % (silo.state['storage_dir'], id), ' ')
+    e, e_d = get_embargo_values(embargoed=embargoed, embargoed_until=embargoed_until, embargo_days_from_now=embargo_days_from_now)
+    if e:
         item.metadata['embargoed'] = True
         item.add_triple(item.uri, u"oxds:isEmbargoed", 'True')
-        embargoed_until_date = None
-        if embargoed_until:
-            try:
-                embargoed_until_date = parse(embargoed_until).isoformat()
-            except:
-                embargoed_until_date = (datetime.now() + relativedelta(years=+70)).isoformat()
-        elif embargo_days_from_now and embargo_days_from_now.isdigit():
-            embargoed_until_date = (datetime.now() + timedelta(days=int(embargo_days_from_now))).isoformat()
-        #TODO: Do we want the default embargo_until to be 70 years or indefinite. Going with indefinite
-        #else:
-        #    embargoed_until_date = (datetime.now() + relativedelta(years=+70)).isoformat()
-        if embargoed_until_date:
-            item.metadata['embargoed_until'] = embargoed_until_date
-            item.add_triple(item.uri, u"oxds:embargoedUntil", embargoed_until_date)
+        ag.r.set("%s:%s:embargoed" % (silo.state['storage_dir'], id), True)
+        if e_d:
+            item.metadata['embargoed_until'] = e_d
+            item.add_triple(item.uri, u"oxds:embargoedUntil", e_d)        
+            ag.r.set("%s:%s:embargoed_until" % (silo.state['storage_dir'], id), e_d)
     else:
-        item.add_triple(item.uri, u"oxds:isEmbargoed", 'False')
         item.metadata['embargoed'] = False
+        item.add_triple(item.uri, u"oxds:isEmbargoed", 'False')
+        ag.r.set("%s:%s:embargoed" % (silo.state['storage_dir'], id), False)
+
     item.add_triple(item.uri, u"dcterms:identifier", id)
     item.add_triple(item.uri, u"dcterms:mediator", creator)
     item.add_triple(item.uri, u"dcterms:publisher", ag.publisher)
@@ -293,18 +306,10 @@ def read_manifest(item, manifest_file):
 
 def manifest_type(manifest_file):
     mani_types = []
-    #fname = '/tmp/%s'%uuid4().hex
-    #f = codecs.open(fname, 'w', 'utf-8')
-    #f.write(manifest_str)
-    #f.close()
-    
     g = ConjunctiveGraph()
-    #gparsed = g.parse(StringInputSource(manifest_str), format='xml')
-    #gparsed = g.parse(StringIO(manifest_str), format='xml')
     gparsed = g.parse(manifest_file, format='xml')
     for s,p,o in gparsed.triples((None, RDF.type, None)):
         mani_types.append(str(o))
-    #os.remove(fname) 
     if "http://vocab.ox.ac.uk/dataset/schema#DataSet" in mani_types:
         return "http://vocab.ox.ac.uk/dataset/schema#DataSet"
     elif "http://vocab.ox.ac.uk/dataset/schema#Grouping" in mani_types:

@@ -3,17 +3,21 @@
 <label for="embargoed">Embargoed?</label>
 % if c.embargos:
   % if c.embargos[c.current][0] not in ['False', 'false', 0, False]:
-    <input type="checkbox" name="embargoed" checked="true"/>
+    <input type="checkbox" name="embargoed_chkbox" checked="true" onclick="document.getElementById('embargoed').value = this.checked;"/>
+    <input type="hidden" name="embargoed" value="true" id="embargoed"/>
   % else:
-    <input type="checkbox" name="embargoed"/>
+    <input type="checkbox" name="embargoed_chkbox" onclick="document.getElementById('embargoed').value = this.checked;"/>
+    <input type="hidden" name="embargoed" value="false" id="embargoed"/>
   % endif
   <br />
   <label for="embargoed_until">Embargoed until (date)</label>
   <input type="text" name="embargoed_until" value="${c.embargos[c.current][1]}" />
 % else:
-  <input type="checkbox" name="embargoed"/>
+  <input type="checkbox" name="embargoed_chkbox" onclick="document.getElementById('embargoed').value = this.checked;"/>
+  <input type="hidden" name="embargoed" value="false" id="embargoed"/>
+  <br />
+  <label for="embargoed_until">Embargoed until (date)</label>
   <input type="text" name="embargoed_until" />
 % endif
-<input type="hidden" name="embargo_change" value="true"/>
 <input type="submit" value="Change embargo"/>
 </form>
