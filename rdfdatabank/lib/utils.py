@@ -3,8 +3,6 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import *
 from dateutil.parser import parse
 from time import sleep
-from redis import Redis
-from redis.exceptions import ConnectionError
 import os
 import simplejson
 
@@ -13,8 +11,8 @@ from pylons import app_globals as ag
 from rdflib import ConjunctiveGraph
 from StringIO import StringIO
 from rdflib import StringInputSource
-#from rdflib.parser import StringInputSource
 from rdflib import Namespace, RDF, RDFS, URIRef, Literal, BNode
+
 
 from uuid import uuid4
 import re
@@ -78,7 +76,6 @@ def allowable_id2(strg):
 
 def is_embargoed(silo, id, refresh=False):
     # TODO evaluate ag.r.expire settings for these keys - popularity resets ttl or increases it?
-    #r = Redis()
     e = None
     e_d = None
     e = ag.r.get("%s:%s:embargoed" % (silo.state['storage_dir'], id))
@@ -190,6 +187,14 @@ def get_readme_text(item, filename="README"):
     with item.get_stream(filename) as fn:
         text = fn.read().decode("utf-8")
     return u"%s\n\n%s" % (filename, text)
+
+def get_rdf_template(item_uri, item_id):
+    g = ConjunctiveGraph(identifier=item_uri)
+    g.bind('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#')
+    g.bind('dcterms', 'http://purl.org/dc/terms/')
+    g.add((URIRef(item_uri), URIRef('http://purl.org/dc/terms/identifier'), Literal(item_id)))
+    data2 = g.serialize(format='xml', encoding="utf-8") + '\n'
+    return data2
 
 #def test_rdf(text):
 def test_rdf(mfile):

@@ -46,12 +46,20 @@ def make_app(global_conf, full_stack=True, static_files=True, **app_conf):
     app = PylonsApp()
 
     #app = httpexceptions.make_middleware(app, global_conf)
+    if asbool(config['debug']):
+        from repoze.profile.profiler import AccumulatingProfileMiddleware
+        app = AccumulatingProfileMiddleware(
+           app,
+           log_filename=app_conf['profile.log_filename'],
+           discard_first_request=True,
+           flush_at_shutdown=True,
+           path=app_conf['profile.path']
+           )
 
     # Routing/Session/Cache Middleware
     app = RoutesMiddleware(app, config['routes.map'])
     app = SessionMiddleware(app, config)
     app = CacheMiddleware(app, config)
-
 
     # CUSTOM MIDDLEWARE HERE (filtered by error handling middlewares)
     if asbool(full_stack):

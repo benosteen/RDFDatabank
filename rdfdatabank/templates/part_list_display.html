@@ -11,11 +11,14 @@
   else:
     ver = ""
   %>
+
   % for part in c.parts:
-    % if type(c.parts).__name__ == 'dict' and c.parts[part]:
-      <li><a href="/${c.silo_name}/datasets/${c.id}${subpath}/${part}${ver}">${part}</a> ${h.bytes_to_english(c.parts[part].st_size)} </li>
-    % else:
-      <li><a href="/${c.silo_name}/datasets/${c.id}${subpath}/${part}${ver}">${part}</a> </li>
+    % if not part.startswith('3=') and not part.startswith('4='):
+      % if type(c.parts).__name__ == 'dict' and c.parts[part]:
+        <li><a href="/${c.silo_name}/datasets/${c.id}${subpath}/${part}${ver}">${part}</a> ${h.bytes_to_english(c.parts[part].st_size)} </li>
+      % else:
+        <li><a href="/${c.silo_name}/datasets/${c.id}${subpath}/${part}${ver}">${part}</a> </li>
+      % endif
     % endif
   % endfor
   </ul>
