@@ -256,8 +256,15 @@
  </types>
 
  <fields>
-   <field name="silo" type="string" indexed="true" stored="true" />
+   <field name="silo" type="string" indexed="true" stored="true" required="true" />
    <field name="id" type="string" indexed="true" stored="true" required="true" />
+   <field name="uuid" type="string" indexed="true" stored="true" required="true" />
+   <field name="embargoStatus" type="string" indexed="true" stored="true" />
+   <field name="embargoedUntilDate" type="date" indexed="true" stored="true" />
+   <field name="currentVersion" type="int" indexed="true" stored="true" />
+   <field name="doi" type="text" multivalued="true" indexed="true" stored="true" />
+   <field name="aggregatedResource" type="text" multivalued="true" indexed="true" stored="true" />
+   <field name="publicationDate" type="text" indexed="true" stored="true" />
    <field name="abstract" type="text" multivalued="true" indexed="true" stored="true" />
    <field name="accessRights" type="text" multivalued="true" indexed="true" stored="true" />
    <field name="accrualMethod" type="text" multivalued="true" indexed="true" stored="true" />
@@ -316,9 +323,28 @@
    <!-- catchall text field that indexes tokens both normally and in reverse for efficient
         leading wildcard queries. -->
    <field name="text" type="text" indexed="true" stored="false" multiValued="true"/>
+   <!-- Faceting setup -->
+   <field name="f_creator" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="f_mediator" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="f_embargoedUntilDate" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="f_license" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="f_rights" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="f_type" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="f_publisher" type="string" indexed="true" stored="true"/>
+   <field name="f_isPartOf" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="f_hasVersion" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="f_publicationDate" type="string" indexed="true" stored="true"/>
+   <field name="f_contributor" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="f_language" type="string" indexed="true" stored="true"/>
+   <field name="f_rightsHolder" type="string" indexed="true" stored="true"/>
+   <field name="f_source" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="f_subject" type="string" indexed="true" stored="true" multiValued="true"/>
+   <!-- Here, default is used to create a "timestamp" field indicating
+        When each document was indexed. -->
+   <field name="timestamp" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>   
  </fields>
 
- <uniqueKey>id</uniqueKey>
+ <uniqueKey>uuid</uniqueKey>
 
  <defaultSearchField>text</defaultSearchField>
 
@@ -380,5 +406,30 @@
   <copyField source="title" dest="text" />
   <copyField source="type" dest="text" />
   <copyField source="valid" dest="text" />
+  <copyField source="silo" dest="text" />
+  <copyField source="id" dest="text" />
+  <copyField source="aggregatedResource" dest="text" />
+  <copyField source="doi" dest="text" />
+  <copyField source="uuid" dest="text" />
+  <copyField source="embargoedUntilDate" dest="text" />
+  <copyField source="publicationDate" dest="text" />
+
+  <!-- Facet field copies -->
+  <copyField source="creator" dest="f_creator" />
+  <copyField source="mediator" dest="f_mediator" />
+  <copyField source="embargoedUntilDate" dest="f_embargoedUntilDate" />
+  <copyField source="license" dest="f_license" />
+  <copyField source="rights" dest="f_rights" />
+  <copyField source="type" dest="f_type" />
+  <copyField source="publisher" dest="f_publisher" />
+  <copyField source="isPartOf" dest="f_isPartOf" />
+  <copyField source="hasVersion" dest="f_hasVersion" />
+  <copyField source="publicationDate" dest="f_publicationDate" />
+  <copyField source="contributor" dest="f_contributor" />
+  <copyField source="language" dest="f_language" />
+  <copyField source="rightsHolder" dest="f_rightsHolder" />
+  <copyField source="source" dest="f_source" />
+  <copyField source="subject" dest="f_subject" />
+  
 </schema>
 
