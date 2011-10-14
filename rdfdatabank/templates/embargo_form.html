@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 <form method="POST" enctype="multipart/form-data" action="/${c.silo_name}/datasets/${c.current}" accept-charset="UTF-8">
 <label for="embargoed">Embargoed?</label>
-% if c.embargos:
-  % if c.embargos[c.current][0] not in ['False', 'false', 0, False]:
+% if c.embargos and c.current in c.embargos and c.embargos[c.current]:
+  % if c.embargos[c.current][0] == True or (isinstance(c.embargos[c.current][0], basestring) and c.embargos[c.current][0].lower() in ['true', '1', 1]):
     <input type="checkbox" name="embargoed_chkbox" checked="true" onclick="document.getElementById('embargoed').value = this.checked;"/>
     <input type="hidden" name="embargoed" value="true" id="embargoed"/>
   % else:
@@ -11,7 +11,11 @@
   % endif
   <br />
   <label for="embargoed_until">Embargoed until (date)</label>
-  <input type="text" name="embargoed_until" value="${c.embargos[c.current][1]}" />
+  % if c.embargos[c.current][1]:
+      <input type="text" name="embargoed_until" value="${c.embargos[c.current][1]}" />
+  % else:
+      <input type="text" name="embargoed_until" value="" />
+  % endif
 % else:
   <input type="checkbox" name="embargoed_chkbox" onclick="document.getElementById('embargoed').value = this.checked;"/>
   <input type="hidden" name="embargoed" value="false" id="embargoed"/>
