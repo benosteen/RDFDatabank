@@ -52,7 +52,7 @@ II. Packages to be Installed
 
     Installing solr - tomcat    
     sudo apt-get install solr-tomcat
-        This will install Solr from Ubuntu�s repositories as well as install and configure Tomcat. 
+        This will install Solr from Ubuntu's repositories as well as install and configure Tomcat. 
         Tomcat is installed with CATALINA_HOME in /usr/share/tomcat6 and CATALINA_BASE in /var/lib/tomcat6, 
         following the rules from /usr/share/doc/tomcat6-common/RUNNING.txt.gz. 
         The Catalaina configuration files are in /etc/tomcat6/ 
@@ -117,7 +117,7 @@ Pulling Recordsilo and Databank from github
     sudo chmod 775 RDFDatabank/ 
     git clone git@github.com:anusharanganathan/RDFDatabank.git
     
-    /opt/RDFDatabank is the root directory running the databank instance. You can move this to any other place of you choice.
+    /opt/RDFDatabank is the root directory running the databank instance. You can move this to any other place of your choice.
 
 ------------------------------------------------------------------------------------------------------
 III. Customizing Databank to your environment
@@ -295,11 +295,11 @@ If you have problems with authorization, you can change the who.log_level to deb
 and restart apache so you can check the logs to see what's happening. The who.log_file is available at /var/log/databank/who.log
   
 -----------------------------------------------------------------------------------------------------  
-Running Pylons from the command line and dumpling logs to stdout
+Running Pylons from the command line and dumping logs to stdout
 -----------------------------------------------------------------------------------------------------
 If you would like to run Pylons from the command line and dump all of the log messages to stdout, stop apache and start paster from the command line.
 
-Open the file development.ini and make the changes as in section III (except may the who.log_file). 
+Open the file development.ini and make the changes as in section III (except may be who.log_file). 
     To set the who.log_file to stdout, the line would read as below
         who.log_file = stdout
     if you would like to run paster on port 80, make sure host and port are set as follows
@@ -314,9 +314,9 @@ If running Pylons on port 80,
     you are now most likely not running as user 'www-data' and so would have to revisit section VIII and 
     change permissions giving the user you are running paster as access to the different directories.
 If running on any other port,
-    You could just run pylons as user www-data
+    You could just run pylons as the demoSystemUser
     
-The commans to run pylons from the command line
+The commands to run pylons from the command line
     sudo /etc/init.d/apache2 stop
     sudo paster serve development.ini
     
