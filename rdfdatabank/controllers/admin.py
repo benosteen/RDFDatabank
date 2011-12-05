@@ -200,7 +200,7 @@ class AdminController(BaseController):
                         else:
                             silos_owned = ag.users[u]['owner']
                             if isinstance(ag.users[u]['owner'], basestring):
-                                silos_owned = [x.strip() for x in ag.users[o]['owner'].split(",") if x]
+                                silos_owned = [x.strip() for x in ag.users[u]['owner'].split(",") if x]
                             if not silo_name in silos_owned:
                                 silos_owned.append(silo_name)
                                 ag.users[u]['owner'] = silos_owned

@@ -592,9 +592,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             endpointpass=RDFDatabankConfig.endpointgeneralpass)
         (resp, data2) = self.doHTTP_GET(
             resource="states/", 
-            expect_status=302, expect_reason="Found", expect_type="text/plain")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found", expect_type="text/plain")
             #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
-            #expect_status=403, expect_reason="Forbidden", expect_type="text/plain")
 
         #Admin user of another silo
         self.setRequestUserPass(
@@ -780,9 +780,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="datasets/", 
-            expect_status=302, expect_reason="Found", expect_type="text/plain")
-        #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
-            #expect_status=403, expect_reason="Forbidden")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found", expect_type="text/plain")
+            #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
         # Access dataset, check response
         self.setRequestUserPass(
             endpointuser=RDFDatabankConfig.endpointsubmitteruser,
@@ -978,9 +978,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="datasets/TestSubmission4", 
-            expect_status=302, expect_reason="Found", expect_type="text/plain")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found", expect_type="text/plain")
             #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
-            #expect_status=403, expect_reason="Forbidden")
         # Access dataset, check response
         self.setRequestUserPass(
             endpointuser=RDFDatabankConfig.endpointsubmitteruser,
@@ -1177,9 +1177,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="datasets",
-            expect_status=302, expect_reason="Found", expect_type="text/plain")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found", expect_type="text/plain")
             #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
-            #expect_status=403, expect_reason="Forbidden")
         #Recreate the dataset, check response
         fields = []
         files =[]
@@ -1187,9 +1187,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="datasets/TestSubmission", 
-            expect_status=302, expect_reason="Found", expect_type="text/plain")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found", expect_type="text/plain")
             #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
-            #expect_status=403, expect_reason="Forbidden")
 
         #Admin user of another silo
         self.setRequestUserPass(
@@ -1497,9 +1497,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             endpointpass=RDFDatabankConfig.endpointgeneralpass)
         (resp, data2) = self.doHTTP_GET(
             resource="states/TestSubmission", 
-            expect_status=302, expect_reason="Found", expect_type="text/plain")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found", expect_type="text/plain")
             #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
-            #expect_status=403, expect_reason="Forbidden", expect_type="text/plain")
 
         # Access state info by submitter2
         self.setRequestUserPass(
@@ -1686,9 +1686,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="datasets/TestSubmission/", 
-            expect_status=302, expect_reason="Found", expect_type="text/plain")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found", expect_type="text/plain")
             #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
-            #expect_status=403, expect_reason="Forbidden")
         # Access and check zip file content
         self.setRequestUserPass(
             endpointuser=RDFDatabankConfig.endpointsubmitteruser,
@@ -2123,9 +2123,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="datasets/TestSubmission/", 
-            expect_status=302, expect_reason="Found", expect_type="text/plain")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found", expect_type="text/plain")
             #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
-            #expect_status=403, expect_reason="Forbidden")
         # Access and check zip file content
         self.setRequestUserPass(
             endpointuser=RDFDatabankConfig.endpointsubmitteruser,
@@ -2612,20 +2612,20 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         #Access dataset for version 3
         (resp, rdfdata) = self.doHTTP_GET(
             resource="datasets/TestSubmission/version3", 
-            expect_status=302, expect_reason="Found", expect_type="text/plain")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found", expect_type="text/plain")
             #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
-            #expect_status=200, expect_reason="OK", expect_type="application/rdf+xml")
         # Access and check zip file content - under embargo
         (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir2.zip/version3",
-            expect_status=302, expect_reason="Found", expect_type="text/plain")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found", expect_type="text/plain")
             #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
-            #expect_status=403, expect_reason="Forbidden", expect_type="application/zip")
         (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip/version3",
-            expect_status=302, expect_reason="Found", expect_type="text/plain")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found", expect_type="text/plain")
             #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
-            #expect_status=403, expect_reason="Forbidden")
 
         #Admin user of another silo
         self.setRequestUserPass(
@@ -3107,14 +3107,14 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Access and check zip file content - under embargo
         (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir2.zip?version=3",
-            expect_status=302, expect_reason="Found", expect_type="text/plain")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found", expect_type="text/plain")
             #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
-            #expect_status=403, expect_reason="Forbidden")
         (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip?version=3",
-            expect_status=302, expect_reason="Found", expect_type="text/plain")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found", expect_type="text/plain")
             #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
-            #expect_status=403, expect_reason="Forbidden")
 
         #Admin user of another silo
         self.setRequestUserPass(
@@ -3351,9 +3351,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="datasets/TestSubmission/", 
-            expect_status=302, expect_reason="Found", expect_type="text/plain")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found", expect_type="text/plain")
             #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
-            #expect_status=403, expect_reason="Forbidden")
         # Access and check list of contents
         self.setRequestUserPass(
             endpointuser=RDFDatabankConfig.endpointsubmitteruser,
@@ -3885,16 +3885,16 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             endpointuser=RDFDatabankConfig.endpointgeneraluser,
             endpointpass=RDFDatabankConfig.endpointgeneralpass)
         (resp, respdata) = self.doHTTP_PUT(zipdata, resource="datasets/TestSubmission/testrdf2.zip", 
-            expect_status=302, expect_reason="Found", expect_type="text/plain")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found", expect_type="text/plain")
             #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
-            #expect_status=403, expect_reason="Forbidden", expect_type="text/plain")
 
         # Access and check zip file content
         (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testrdf2.zip",
-            expect_status=302, expect_reason="Found", expect_type="application/zip")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found", expect_type="application/zip")
             #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
-            #expect_status=403, expect_reason="Forbidden", expect_type="application/zip")
         # Access and check list of contents
         self.setRequestUserPass(
             endpointuser=RDFDatabankConfig.endpointsubmitteruser,
@@ -4259,9 +4259,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             endpointuser=RDFDatabankConfig.endpointgeneraluser,
             endpointpass=RDFDatabankConfig.endpointgeneralpass)
         (resp, respdata) = self.doHTTP_PUT(zipdata3, resource="datasets/TestSubmission/testrdf3.zip", 
-            expect_status=302, expect_reason="Found", expect_type="text/plain")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found", expect_type="text/plain")
             #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
-            #expect_status=403, expect_reason="Forbidden", expect_type="text/plain")
         # Access and check list of contents
         self.setRequestUserPass(
             endpointuser=RDFDatabankConfig.endpointsubmitteruser,
@@ -4581,9 +4581,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             endpointpass=RDFDatabankConfig.endpointgeneralpass)
         metadatag = open("testdata/manifest-general.rdf").read()
         (resp, respdata) = self.doHTTP_PUT(metadatag, resource="datasets/TestSubmission/manifest.rdf", 
-            expect_status=302, expect_reason="Found", expect_type="text/plain")
-            #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
-            #expect_status=403, expect_reason="Forbidden", expect_type="text/plain")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found", expect_type="text/plain")
+	    #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
         # Access and check list of contents
         self.setRequestUserPass(
             endpointuser=RDFDatabankConfig.endpointsubmitteruser,
@@ -5024,9 +5024,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(rdfgraph),12,'Graph length %i' %len(rdfgraph))
         (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip",
-            expect_status=302, expect_reason="Found", expect_type="application/zip")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found", expect_type="application/zip")
             #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
-            #expect_status=403, expect_reason="Forbidden", expect_type="application/zip")
         # Access and check zip file content by admin user3
         self.setRequestUserPass(
             endpointuser=RDFDatabankConfig.endpointadminuser3,
@@ -5326,9 +5326,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(rdfgraph),12,'Graph length %i' %len(rdfgraph))
         (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip",
-            expect_status=302, expect_reason="Found", expect_type="application/zip")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found", expect_type="application/zip")
             #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 403
-            #expect_status=403, expect_reason="Forbidden", expect_type="application/zip")
         # Access and check content by admin user3
         self.setRequestUserPass(
             endpointuser=RDFDatabankConfig.endpointadminuser3,
@@ -5471,9 +5471,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(rdfgraph),12,'Graph length %i' %len(rdfgraph))
         (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip",
-            expect_status=302, expect_reason="Found", expect_type="application/zip")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found", expect_type="application/zip")
             #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 403
-            #expect_status=403, expect_reason="Forbidden", expect_type="application/zip")
         # Access and check content by admin user3
         self.setRequestUserPass(
             endpointuser=RDFDatabankConfig.endpointadminuser3,
@@ -5565,9 +5565,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="datasets/TestSubmission", 
-            expect_status=302, expect_reason="Found")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found")
             #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 403
-            #expect_status=403, expect_reason="Forbidden")
         #Access dataset and check content
         self.setRequestUserPass(
             endpointuser=RDFDatabankConfig.endpointsubmitteruser,
@@ -5966,9 +5966,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         self.assertEqual(len(rdfgraph),11,'Graph length %i' %len(rdfgraph))
         (resp, zipfile) = self.doHTTP_GET(
             resource="datasets/TestSubmission/testdir.zip",
-            expect_status=302, expect_reason="Found", expect_type="application/zip")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found", expect_type="application/zip")
             #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
-            #expect_status=403, expect_reason="Forbidden", expect_type="application/zip")
         # Access and check content by admin user3
         self.setRequestUserPass(
             endpointuser=RDFDatabankConfig.endpointadminuser3,
@@ -6433,9 +6433,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="items/TestSubmission", 
-            expect_status=302, expect_reason="Found")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found")
             #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
-            #expect_status=403, expect_reason="Forbidden")
         # Access and check list of contents in TestSubmission
         self.setRequestUserPass(
             endpointuser=RDFDatabankConfig.endpointsubmitteruser,
@@ -6923,9 +6923,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="datasets/TestSubmission-testdir/", 
-            expect_status=302, expect_reason="Found", expect_type="text/plain")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found", expect_type="text/plain")
             #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
-            #expect_status=403, expect_reason="Forbidden")
         # Access and check zip file content
         self.setRequestUserPass(
             endpointuser=RDFDatabankConfig.endpointsubmitteruser,
@@ -7395,9 +7395,9 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="items/TestSubmission", 
-            expect_status=302, expect_reason="Found")
+            expect_status=401, expect_reason="Unauthorized", expect_type="text/plain")
+            #expect_status=302, expect_reason="Found")
             #WHEN THERE IS NO USER, IT REDIRECTS TO LGOIN PAGE. SO 302 AND NOT 401
-            #expect_status=403, expect_reason="Forbidden")
         # Access and check list of contents in TestSubmission
         self.setRequestUserPass(
             endpointuser=RDFDatabankConfig.endpointsubmitteruser,

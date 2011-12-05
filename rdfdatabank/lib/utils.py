@@ -34,6 +34,8 @@ def authz(granary_list,ident):
     if 'role' in ident and ident['role'] == "admin":
         authd = []
         silos_owned = ident['owner']
+        if not type(silos_owned).__name__ == 'list':
+            silos_owned = [silos_owned]
         if '*' in silos_owned:
             #User has access to all silos
             return granary_list
@@ -51,6 +53,8 @@ def authz(granary_list,ident):
     elif 'owner' in ident:
         authd = []
         silos_owned = ident['owner']
+        if not type(silos_owned).__name__ == 'list':
+            silos_owned = [silos_owned]
         for item in granary_list:
             if item in silos_owned:
                 authd.append(item)

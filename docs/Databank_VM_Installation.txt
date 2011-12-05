@@ -50,6 +50,11 @@ II. Packages to be Installed
     sudo easy_install uuid
     sudo easy_install python-dateutil==1.5
 
+    Installing profilers in python and pylons to obtain run time performance and other stats
+    Note: This is only needed in development machines. See the note below about running Pylons in debug mode (section B)
+    sudo apt-get install python-profiler
+    sudo easy_install repoze.profile
+
     Installing solr - tomcat    
     sudo apt-get install solr-tomcat
         This will install Solr from Ubuntu's repositories as well as install and configure Tomcat. 
@@ -293,26 +298,104 @@ If you see an error message look at the logs at /var/log/apache2/databank-error.
   
 If you have problems with authorization, you can change the who.log_level to debug in the production.ini file 
 and restart apache so you can check the logs to see what's happening. The who.log_file is available at /var/log/databank/who.log
-  
+
+------------------------------------------------------------------------------------------------------
+X. Run the test code and make sure all the tests pass
+------------------------------------------------------------------------------------------------------
+The test code is located at /opt/RDFDatabank/rdfdatabank/tests
+
+There are two test files - TestSubmission.py and TestSubmission_submitter.py
+    TestSubmission.py test all of the different functionality
+    TestSubmission_submitter.py tests the different user roles and permissions
+
+Both of these tests use the configuration file RDFDatabankConfig.py, which you may need to mkodify
+    granary_uri_root="http://databank"
+        This needs to be the same value as granary.uri_root in the production.ini file (or development.ini file if usign that instead)
+    endpointhost="localhost"
+        This should point to the url where the databank instance is running. 
+        If it is running on http://localhost/, it should be localhost. If it is running on http://example.org it should be example.org.
+        if it is running on a non-standard port like port 5000 at http://localhost:5000, this would be localhost:5000
+    endpointpath="/test/" and endpointpath2="/test2/"
+        The silos that are going to be used for testing. Currently only the silo defined in endpointpath is used. 
+        The silos will be created by the test if they don't exist.
+    The rest of the file lists the credentials of the different users used for testing
+
+To run the tests
+    Make sure databank is running (see section IX)
+    cd /opt/RDFDatabank/rdfdatabank/tests
+    python TestSubmission.py              (to run the tests in TestSubmission.py)
+    python TestSubmission_submitter.py    (to run the tests in TestSubmission_submitter.py)
+
 -----------------------------------------------------------------------------------------------------  
-Running Pylons from the command line and dumping logs to stdout
+B. Running Pylons from the command line in debug mode and dumping logs to stdout
 -----------------------------------------------------------------------------------------------------
-If you would like to run Pylons from the command line and dump all of the log messages to stdout, stop apache and start paster from the command line.
+If you would like to run Pylons in debug mode from the command line and dump all of the log messages to stdout, stop apache and start paster from the command line.
 
 Open the file development.ini and make the changes as in section III (except may be who.log_file). 
+Note: development.ini is similar to and essentially a copy of production.ini, except in the configuration of logs and debug levels.
+
+    To run pylons in debug mode, modify set 'debug' to 'true' in the '[DEFAULT]' section
+        [DEFAULT]
+        debug = true
+    If you run pylons in debug mode, the error stack will be displayed on the browser with the state variables and their values. 
+    This is useful for debugging. It is not advisable to have this set to true in production machines. 
+    Also, the pylons profiler (repoze.profile) is configured to run in debug mode. Make sure the packages python-profiler, repoze.profile are installed.
+    The lines profile.log_filename has the log file for the profiler and the line profile.path has the end point. Point your browser to http://localhost/__profile__ to see the stats and control them
+        profile.log_filename = /var/log/databank/profile.log
+        profile.path = /__profile__
+
+
     To set the who.log_file to stdout, the line would read as below
         who.log_file = stdout
+    To set the who.log_level to debug, so you can get more information if you want to debug authorization / authentication
+        who.log_level = debug
+
     if you would like to run paster on port 80, make sure host and port are set as follows
         host = 0.0.0.0
         port = 80
     If you don't mind running on port 5000 (or any other port that does not require super user privilidges), the host and port settings will be as below
         host = 127.0.0.1
         port = 5000
+
+    The configuration of the logs can be modified so it's all printed to stdout and the log level is debug. 
+    For example the following configuration will write all logs to stdout
+        [loggers]
+        keys = root, routes, rdfdatabank
+
+        [handlers]
+        keys = console
+
+        [formatters]
+        keys = generic
+
+        [logger_root]
+        level = DEBUG
+        handlers = console
+
+        [logger_routes]
+        level = DEBUG
+        handlers = console
+        qualname = routes.middleware
+
+        [logger_rdfdatabank]
+        level = DEBUG
+        handlers = console
+        qualname = rdfdatabank
+
+        [handler_console]
+        class = StreamHandler
+        args = (sys.stderr,)
+        level = NOTSET
+        formatter = generic
+
+        [formatter_generic]
+        format = %(asctime)s,%(msecs)03d %(levelname)-5.5s [%(name)s] %(message)s
+        datefmt = %H:%M:%S
         
 Make sure the user running paster has access to all the directories. 
 If running Pylons on port 80, 
     you are now most likely not running as user 'www-data' and so would have to revisit section VIII and 
-    change permissions giving the user you are running paster as access to the different directories.
+    change permissions giving the super user running paster access to the different directories.
 If running on any other port,
     You could just run pylons as the demoSystemUser
     

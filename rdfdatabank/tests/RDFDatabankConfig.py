@@ -10,14 +10,10 @@ $Rev: $
 
 class RDFDatabankConfig:
 
-    #granary_uri_root="http://192.168.23.133"
-    #granary_uri_root="http://databank.ora.ox.ac.uk"
-    granary_uri_root="http://databank-vm1.oerc.ox.ac.uk"
+    granary_uri_root="http://databank"
     
     # Access via IP address
-    #endpointhost="192.168.23.133"  #Access to local dev VM
-    #endpointhost="databank.ora.ox.ac.uk"
-    endpointhost="databank-vm1.oerc.ox.ac.uk"
+    endpointhost="localhost"
     endpointpath="/test/"
     endpointpath2="/test2/"
 
