@@ -1,0 +1,10 @@
+User                role                silo   
+sandbox_user        submitter           sandbox
+sandbox_user2       submitter           sandbox
+sandbox_user3       submitter           sandbox2
+sandbox_manger      manager             sandbox
+sandbox_manger2     manager             sandbox
+sandbox_manger3     manager             sandbox2
+admin               administrator       sandbox
+admin2              administrator       sandbox
+admin3              administrator       sandbox2
