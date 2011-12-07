@@ -161,7 +161,7 @@ h1 {
         color: #002147;
         font-size: 12px;
         margin-bottom: 100px;
-        margin-left: 200px;
+        margin-left: 180px;
 
 }
 
@@ -257,8 +257,8 @@ div.response_doc {
 #facet_wrapper {
         position: absolute;
         width: 160px;
-        left: 50%;
-        margin-left: -480px;
+        left: 10px;
+        margin-left: 10px;
         top: 250px;
         font-size: 11px;
 }
