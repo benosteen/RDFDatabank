@@ -153,3 +153,271 @@ h1 {
     display: inline;
     margin-right: 5px;
 }
+
+/* Results Page Specific CSS */
+
+#results {
+        margin-top: 15px;
+        color: #002147;
+        font-size: 12px;
+        margin-bottom: 100px;
+        margin-left: 200px;
+
+}
+
+#results a {
+        text-decoration: none;
+}
+
+#results .stitle a:visited {
+        color: #7F007F;
+}
+
+span.highlighted_page a {
+        font-size: 12px !important;
+}
+
+.paginated_results {
+        float: left;
+        font-size: 12px !important;
+}
+
+.paginated_results .pagination_label a {
+        padding: 4px 6px;
+        margin: 0 3px 0 0;
+        text-decoration: none;
+        color: #002147;
+        font-size: 12px;
+        background-color: #999;
+}
+
+.paginated_results .highlighted_page a {
+        color: white !important;
+        background-color: #002147;
+}
+
+.paginated_results .numbers {
+        margin-right: 50px;
+}
+
+#sorting {
+        float: right;
+        font-size: 11px;
+        padding-top: 1px;
+}
+
+#sorting span {
+        margin: 0 0 0 8px;
+}
+
+#sorting span a {
+        color: #999;
+}
+
+#sorting span.active a {
+        color: black;
+}
+
+#response_wrapper {
+        margin-top: 10px;
+}
+
+div.response_doc {
+        margin-top: 10px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #999;
+}
+.response_doc span.stitle a {
+        font-weight: bold;
+        color: #002147;
+        font-size: 14px;
+}
+.row {
+        width: 100%;
+        clear: both;
+}
+
+.label {
+        font-weight: bold;
+        color: #002147;
+        vertical-align: top;
+        width: 150px;
+        float:left;
+        display: inline;
+}
+
+.rt {
+        color: #002147;
+        vertical-align: top;
+        float:left;
+        padding-left: 5px;
+        display: inline;
+}
+
+#facet_wrapper {
+        position: absolute;
+        width: 160px;
+        left: 50%;
+        margin-left: -480px;
+        top: 250px;
+        font-size: 11px;
+}
+
+#facet_container {
+        width: 150px;
+        word-wrap: break-word;
+}
+
+.facet_results .subheading {
+        background: #BBB;
+        padding: 4px 5px;
+        border-bottom: 1px solid #002147 !important;
+}
+
+.facet_results .facetlist {
+        background: #EEE;
+}
+.facet_results .facetlist ul, .facet_results .facetlist p {
+        margin: 0; padding: 0;
+}
+
+.facet_results .subheading a {
+        text-decoration: none;
+        color: black;
+        font-weight: normal;
+        background: url('fplus.png') no-repeat 0% 60%;
+        padding-left: 18px;
+}
+
+.facet_results .facetlist li {
+        list-style: none;
+}
+
+.facet_results .facetlist a {
+        text-decoration: none;
+}
+
+.facet_chosen {
+        margin-bottom: 10px;
+        background: #002147;
+        color: white;
+}
+
+.facet_chosen #remove {
+        float: left;
+        background: white;
+        color: #002147;
+        border: 0;
+        padding: 0px 2px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: bold;
+}
+#current_search {
+        font-weight: bold;
+        background: #002147;
+        color: white;
+        font-size: 1.2em;
+        border-bottom: 1px solid white;
+        padding: 4px 5px;
+}
+
+div#link_to_this_search {
+        margin-top: 20px;
+        margin-bottom: -15px;
+        clear: both;
+        color: #000000;
+}
+
+div#link_to_this_search a {
+        color: #002147;
+}
+
+.nomatches {
+    background-color: rgba(255, 255, 255, 0.7);
+    color: #000000;
+    font-size: 1.2em;
+    margin: 30px 10px 10px 10px;
+    padding: 15px;
+    width: 100%;
+}
+
+.searchbottom {
+        margin-bottom: 5px;
+        margin-top: 10px;
+        float: left;
+        font-size: 13px;
+        color: #002147;
+        background: white;
+        width: 100%;
+}
+.searchtop {
+        margin-top: 5px;
+        margin-bottom: 10px;
+        float: left;
+        font-size: 13px;
+        color: #002147;
+        background: white;
+        width: 100%;
+}
+
+.searchleft {
+    float: left;
+    width: 150px;
+}
+
+.searchright {
+    float: right;
+    width: 250px;
+}
+
+.searchmid {
+    float: left;
+    text-align: center;
+    width: 250px;
+}
+
+span#searchordering {
+        float: right;
+        font-size: 13px;
+}
+
+span#searchordering a {
+        color: #002147;
+}
+
+span#searchordering a.active {
+        color: black;
+        font-weight: bold;
+}
+span#itemsppt, span#itemsppb {
+        color: #002147;
+        float: right;
+}
+
+span#itemsppt a, span#itemsppb a {
+        color: #002147;
+        padding: 2px 3px;
+        margin: 0px 2px;
+        text-decoration: none;
+        border: 1px solid #aaa;
+}
+
+span#itemsppt a:hover, span#itemsppb a:hover {
+        color: black;
+        border: 1px solid #333;
+}
+
+span#itemsppt a.active, span#itemsppb a.active {
+        color: black;
+        border: 1px solid #666;
+        background: #FFFF99;
+}
+
+span#itemsppt a.active:hover, span#itemsppb a.active:hover {
+        color: black;
+        border: 1px solid #333;
+        background: #FFFF99;
+}
+
+

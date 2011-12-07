@@ -29,7 +29,6 @@ def custom_request_classifier(environ):
             logout_url = config_who.get("plugin:friendlyform", "post_logout_url")
 
         path_info = environ['PATH_INFO']
-        print "\nPATH INFO =", path_info, "\n"
         #request = Request(environ)
         #if not request.accept.best_match(['application/xhtml+xml', 'text/html']):
         #    # In our view, any client who doesn't support HTML/XHTML is an "app",

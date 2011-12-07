@@ -28,6 +28,9 @@ class Globals(object):
         
         self.authz = authz
         self.users = _USERS
+
+        if config.has_key("granary.uri_root"):
+            self.root = config['granary.uri_root']
        
         if config.has_key("granary.store"):
             self.granary = Granary(config['granary.store'])

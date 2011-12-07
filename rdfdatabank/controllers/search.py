@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
+from urllib import urlencode, unquote, quote
+import json
 
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort
@@ -130,6 +132,10 @@ class SearchController(BaseController):
             c.q = query
         else:        
             c.q = request.params.get('q', None)
+        try:
+            c.q = unquote(c.q)
+        except:
+            pass
         if not c.q or c.q == '*':
             c.q = "*:*"
  
@@ -229,12 +235,12 @@ class SearchController(BaseController):
         c.search['truncate'] = c.truncate
         #c.search['start'] = c.start
         #c.search['sort'] = c.sort
-        if c.q:
-            c.search['q'] = c.q.encode('utf-8')
+        #if c.q:
+        #    c.search['q'] = c.q.encode('utf-8')
         solr_params = {}
         
         if c.q:
-            solr_params['q'] = c.q.encode('utf-8')+query_filter+query_fulltext 
+            solr_params['q'] = c.q.encode('utf-8')+query_filter 
 
             if format in ['json', 'xml', 'python', 'php']:
                 solr_params['wt'] = format
@@ -256,9 +262,9 @@ class SearchController(BaseController):
                 for facet in c.fields_to_facet:
                     solr_params['facet.field'].append(facet)
         
-            solr_response = ag.solr.search(**solr_params)
+            solr_response = ag.solr.raw_query(**solr_params)
         
-            c.add_facet =  u"%ssearch/detailed?" % (g.root)
+            c.add_facet =  u"%ssearch/detailed?q=%s&" % (ag.root, c.q.encode('utf-8'))
             c.add_facet = c.add_facet + urlencode(c.search) + filter_url
  
             if not solr_response:
@@ -266,18 +272,11 @@ class SearchController(BaseController):
                 c.message = 'Sorry, either that search "%s" resulted in no matches, or the search service is not functional.' % c.q
                 h.redirect_to(controller='/search', action='index')
         
-            if format == 'atom':
-                atom_gen = Solrjson(response=solr_response)
-                atom_gen.create_atom(title="ORA Search: <em>%s</em>" % c.q, link="http://oradev.bodleian.ox.ac.uk", author="Oxford University Research Archive", url_prefix="http://oradev.bodleian.ox.ac.uk/objects/")
-                response.headers['Content-Type'] = 'application/atom+xml'
-                response.charset = 'utf8'
-                c.atom = atom_gen.get_atom()
-                return render('atom_results')
-            elif format == 'xml':
+            if format == 'xml':
                 response.headers['Content-Type'] = 'application/xml'
                 response.charset = 'utf8'
                 c.atom = solr_response
-                return render('atom_results')
+                return render('/atom_results.html')
             elif format == 'json':
                 response.headers['Content-Type'] = 'application/json'
                 response.charset = 'utf8'
@@ -287,7 +286,7 @@ class SearchController(BaseController):
                 response.charset = 'utf8'
                 return solr_response
                 
-            search = simplejson.loads(solr_response)
+            search = json.loads(solr_response)
                 
             numFound = search['response'].get('numFound',None)
             
@@ -336,4 +335,4 @@ class SearchController(BaseController):
                     for index in range(len(keys)):
                         c.returned_facets[facet].append((keys[index],values[index]))
 
-        return render('search_form')
+        return render('/search.html')

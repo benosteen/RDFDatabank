@@ -1,0 +1,306 @@
+##=============================================================================
+<%def name="pagination()">
+    % if len(c.permissible_offsets) > 0:
+<div class="paginated_results">
+        <%
+            jump = c.rows*10
+            lowerJump = c.start-jump
+            if lowerJump < 0:
+                lowerJump = 0;
+            higherJump = c.start+jump
+            if higherJump > c.lastPage:
+                higherJump = c.lastPage
+        %>
+
+<span class="numbers">
+        ## Goto to first page
+        % if c.start == 0:
+<span class="pagination_label highlighted_page">
+        % else:
+<span class="pagination_label">
+        % endif
+<a href="${c.add_facet}&start=0&rows=${c.rows}&sort=${c.sort}">&#171;</a>
+</span>
+        % if c.start != 0:
+<span class="ellipse">&#133;</span>
+        % endif
+		<%! import math %>
+		<% pagcount = 0.0 %>
+        % for offset in c.permissible_offsets:
+            % if c.start == offset:
+<span class="pagination_label highlighted_page">
+            % else:
+<span class="pagination_label">
+            % endif
+            <%
+                offset_start = offset+1
+                offset_end = offset+c.rows
+                if offset_end > c.numFound:
+                    offset_end = c.numFound
+            %>
+			<% pagcount = float(offset_end) / float(c.rows) %>
+			<% pagcount= math.ceil(pagcount) %>
+			<% pagcount= int(pagcount) %>
+${h.link_to(pagcount, "%s&start=%d&rows=%d&sort=%s"%(c.add_facet, offset, c.rows, c.sort))}
+</span>
+        % endfor
+        % if c.start != c.lastPage:
+<span class="ellipse">&#133;</span>
+        % endif
+        ## Goto to last page
+        % if c.start == c.lastPage:
+<span class="pagination_label highlighted_page">
+        % else:
+<span class="pagination_label">
+        % endif
+<a href="${c.add_facet}&start=${c.lastPage}&rows=${c.rows}&sort=${c.sort}">&#187;</a>
+</span>
+</span><!--class=numbers-->
+
+</div><!--class=paginated_results-->
+    %endif
+## end pagination()
+</%def>
+##=============================================================================
+<%def name="sortoptions()">
+% if c.docs and c.add_facet:
+<div class="searchright">
+<span id="searchordering">Sort by: 
+	
+%	if (c.sort == "score desc"):
+<%
+	relstring = c.add_facet + "&start=%d&sort=score+desc&rows=%d"%(c.start, c.rows)
+	datestring = c.add_facet + "&sort=publicationDate+desc&rows=%d&start=%d"%(c.rows, c.start)
+        titlestring = c.add_facet + "&sort=silo+desc&rows=%d&start=%d"%(c.rows, c.start)
+%>
+<a class="active" href="${relstring}">Relevance</a> | 
+<a href="${datestring}" title="Date descending">Date </a><img src="/static/up_arrow_blue.png" height=10px alt="Descending"/> |
+<a href="${titlestring}" title="Silo descending">Silo </a><img src="/static/up_arrow_blue.png" height=10px alt="Descending"/>
+
+%	elif (c.sort == "publicationDate desc"):
+<%
+	relstring = c.add_facet + "&sort=score+desc&rows=%d&start=%d"%(c.rows, c.start)
+	datestring = c.add_facet + "&sort=publicationDate+asc&rows=%d&start=%d"%(c.rows, c.start)
+	titlestring = c.add_facet + "&sort=silo+desc&rows=%d&start=%d"%(c.rows, c.start)
+%>
+<a href="${relstring}">Relevance</a> |
+<a class="active" href="${datestring}" title="Date ascending">Date </a><img src="/static/down_arrow_black.png" height=10px alt="Ascending"/> | 
+<a href="${titlestring}" title="Silo descending">Silo </a><img src="/static/up_arrow_blue.png" height=10px alt="Descending"/>
+
+%	elif (c.sort == "publicationDate asc"):
+<%
+	relstring = c.add_facet + "&sort=score+desc&rows=%d&start=%d"%(c.rows, c.start)
+	datestring = c.add_facet + "&sort=publicationDate+desc&rows=%d&start=%d"%(c.rows, c.start)
+	titlestring = c.add_facet + "&sort=silo+desc&rows=%d&start=%d"%(c.rows, c.start)
+%>
+<a href="${relstring}">Relevance</a> |
+<a class="active" href="${datestring}" title="Date descending">Date </a><img src="/static/up_arrow_black.png" height=10px alt="Descending"/> |
+<a href="${titlestring}" title="Silo descending">Silo </a><img src="/static/up_arrow_blue.png" height=10px alt="Descending"/>
+
+%	elif (c.sort == "silo desc"):
+<%
+	relstring = c.add_facet + "&sort=score+desc&rows=%d&start=%d"%(c.rows, c.start)
+	datestring = c.add_facet + "&sort=publicationDate+desc&rows=%d&start=%d"%(c.rows, c.start)
+	titlestring = c.add_facet + "&sort=silo+asc&rows=%d&start=%d"%(c.rows, c.start)
+%>
+<a href="${relstring}">Relevance</a> | 
+<a href="${datestring}" title="Date descending">Date </a><img src="/static/up_arrow_blue.png" height=10px alt="Descending"/> |
+<a class="active" href="${titlestring}" title="Silo ascending">Silo </a><img src="/static/down_arrow_black.png" height=10px alt="Ascending"/>
+
+%	elif (c.sort == "silo asc"):
+<%
+	relstring = c.add_facet + "&sort=score+desc&rows=%d&start=%d"%(c.rows, c.start)
+	datestring = c.add_facet + "&sort=publicationDate+desc&rows=%d&start=%d"%(c.rows, c.start)
+	titlestring = c.add_facet + "&sort=silo+desc&rows=%d&start=%d"%(c.rows, c.start)
+%>
+<a href="${relstring}">Relevance</a> |
+<a href="${datestring}" title="Date descending">Date </a><img src="/static/up_arrow_blue.png" height=10px alt="Descending"/> |
+<a class="active" href="${titlestring}" title="Silo descending">Silo </a><img src="/static/up_arrow_black.png" height=10px alt="Descending"/>
+
+%	else:
+<%
+	relstring = c.add_facet + "&sort=score+desc&rows=%d&start=%d"%(c.rows,c.start)
+	datestring = c.add_facet + "&sort=publicationDate+desc&rows=%d&start=%d"%(c.rows, c.start)
+	titlestring = c.add_facet + "&sort=silo+desc&rows=%d&start=%d"%(c.rows ,c.start)
+%>
+<a href="${relstring}">Relevance</a> |
+<a href="${datestring}" title="Date descending">Date </a><img src="/static/up_arrow_blue.png" height=10px alt="Descecding"/> |
+<a href="${titlestring}" title="Silo descending">Silo </a><img src="/static/up_arrow_blue.png" height=10px alt="Descecding"/>
+
+%	endif
+</span>
+</div>
+% endif
+## end sortoptions()
+</%def>
+##=============================================================================
+<%def name="numresultspp(idname)">
+% if c.docs and c.add_facet:
+<div class="searchright">
+<span id="${idname}">
+<span>Items per page: </span>
+<%
+	fivestring = c.add_facet + "&rows=5&sort=%s"%c.sort
+	twentyfstring = c.add_facet + "&rows=25&sort=%s"%c.sort
+	fiftystring = c.add_facet + "&rows=50&sort=%s"%c.sort
+%>
+%	if (c.rows == 5):
+<a class="active" href="${fivestring}">5</a>
+<a href="${twentyfstring}">25</a>
+<a href="${fiftystring}">50</a>
+
+%	elif (c.rows == 25):
+<a href="${fivestring}">5</a>
+<a class="active" href="${twentyfstring}">25</a>
+<a href="${fiftystring}">50</a>
+
+%	elif (c.rows == 50):
+<a href="${fivestring}">5</a>
+<a href="${twentyfstring}">25</a>
+<a class="active" href="${fiftystring}">50</a>
+
+%	else:
+<a href="${fivestring}">5</a>
+<a href="${twentyfstring}">25</a>
+<a href="${fiftystring}">50</a>
+%	endif
+</span>
+</div>
+% endif
+</%def>
+##=============================================================================
+% if not c.numFound:
+<div class="nomatches">
+% if c.q and c.chosen_facets:
+The following query resulted in no macthes. <div><i>query = ${c.q} <br/>
+%   for facet in c.chosen_facets:
+<%
+currentfacet = []
+if isinstance(c.chosen_facets[facet], list):
+    currentfacet = c.chosen_facets[facet]
+else:
+    currentfacet = [c.chosen_facets[facet]]
+%>
+%     for item in currentfacet:
+ AND ${c.field_names[facet]} = ${item} <br/>
+%     endfor
+%   endfor
+</i></div>
+% elif c.q:
+Your query <b>${c.q}</b> resulted in no matches.
+% else:
+Your query resulted in no matches.
+% endif
+</div>
+% else:
+<div class="searchtop">
+${self.pagination()}
+${self.sortoptions()}
+</div>
+##-----------------------------------------------------------------------------
+<div class="searchtop">
+
+% if c.numFound:
+<div class="searchleft">${ c.numFound} records found.</div>
+% elif c.q:
+ Sorry, but your query <em>${c.q}</em> resulted in no matches.</span>
+% else:
+ Sorry, but your query <em>${c.q}</em> resulted in no matches.</span>
+% endif
+
+% if c.docs:
+<div class='searchmid'>Showing results ${c.start+1} to 
+%   if (c.start+c.rows) > c.numFound:
+${c.numFound}</div>
+%   else:
+${c.start+c.rows}</div>
+%   endif
+% endif
+
+${self.numresultspp("itemsppt")}
+
+</div>
+##-----------------------------------------------------------------------------
+% if c.docs and c.add_facet:
+<div id="link_to_this_search">Link to these search results | 
+<a href="${c.add_facet}&format=html&sort=${c.sort}&rows=${c.rows}&start=${c.start}"><img src="/static/link.png" border="0" alt="HTML" /> This page'</a>
+<a href="${c.add_facet}&format=csv&sort=${c.sort}&rows=${c.rows}&start=${c.start}"><img src="/static/csv.png" border="0" alt="CSV Logo" /> CSV</a>
+<a href="${c.add_facet}&format=json&sort=${c.sort}&rows=${c.rows}&start=${c.start}"><img src="/static/json.png" border="0" alt="JSON Logo" />JSON</a>
+</div>
+% endif
+##-----------------------------------------------------------------------------
+% if c.docs:
+<div class="clear">&nbsp;</div>
+
+%   for doc_index in xrange(len(c.docs)):
+<div class="response_doc">
+<span class="stitle"><a href="/${c.docs[doc_index]['silo']}/datasets/${c.docs[doc_index]['id']}">${c.docs[doc_index]['id']}</a></span>
+<div class="row"><div class="label">Silo </div><div class="rt">${c.docs[doc_index]['silo']}</div></div>
+%     for field in c.chosen_fields:
+%        if field in c.docs[doc_index] and field not in ['silo', 'id']:
+<% 
+lbl = field
+if field in c.field_names:
+    lbl = c.field_names[field]
+%>
+<div class="row"><div class="label">${lbl}</div><div class="rt">
+%           if isinstance(c.docs[doc_index][field], list):
+%             for txt in c.docs[doc_index][field]:
+%               if isinstance(txt, basestring) and c.truncate and len(txt) > c.truncate:
+${ txt[:c.truncate] |n} ... [truncated at ${c.truncate} characters in length]
+%               elif isinstance(txt, int) or isinstance(txt, bool):
+${str(txt)}
+%               elif isinstance(txt, dict):
+"It is a dict"
+%               else:
+${txt |n}
+%               endif
+%             endfor
+%           elif isinstance(c.docs[doc_index][field], dict):
+"It is a dict"
+%           elif isinstance(c.docs[doc_index][field], basestring) and c.truncate and len(c.docs[doc_index][field]) > c.truncate:
+${ c.docs[doc_index][field][:c.truncate] |n} ... [truncated at ${c.truncate} characters in length]
+%           elif isinstance(c.docs[doc_index][field], int) or isinstance(c.docs[doc_index][field], bool):
+${str(c.docs[doc_index][field])}
+%           else:
+${c.docs[doc_index][field]|n}
+%           endif
+</div></div>
+%        endif
+%     endfor
+## -----
+</div>
+<div class="clear"></div>
+%   endfor
+% endif 
+##-----------------------------------------------------------------------------
+<div class="searchbottom">
+${self.pagination()}
+${self.sortoptions()}
+</div>
+##-----------------------------------------------------------------------------
+<div class="searchbottom">
+
+% if c.numFound:
+<div class="searchleft">
+${ c.numFound} records found.
+</div>
+% endif
+
+% if c.docs:
+<div class='searchmid'>Showing results ${c.start+1} to 
+%   if (c.start+c.rows) > c.numFound:
+${c.numFound}</div>
+%   else:
+${c.start+c.rows}</div>
+%   endif
+% endif
+
+${self.numresultspp("itemsppb")}
+
+</div>
+##-----------------------------------------------------------------------------
+<div class="clear"></div>
+% endif
+
+
