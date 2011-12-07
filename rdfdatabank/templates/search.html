@@ -5,7 +5,7 @@
   <title> Advanced Search</title>
 
 % if c.search and c.q:
-  <link rel="alternate" type="application/atom+xml" href="${c.add_facet}&format=atom&rows=c.rows&sort=score+desc" title="ORA Search results for \"${c.q}\""/>
+  <link rel="alternate" type="application/atom+xml" href="${c.add_facet}&format=atom&rows=c.rows&sort=score+desc" title="Search results for \"${c.q}\""/>
 % endif
 
 </%def>
@@ -21,12 +21,53 @@
 
 <div id="facet_wrapper">
 <% count = 0 %>
-% if c.returned_facets:
 <div id="facet_container">
-% if c.chosen_facets:
 <div class="facet_chosen">
 <div id="current_search"><span>Current Search</span></div>
 
+% if c.q:
+<div class="current_facet">
+<table>
+<tr>
+<td class="pagination_label">
+%   if c.q != "*:*":
+<form action="/search/detailed" method="GET">
+<input type="hidden" name="q" value="*:*">
+<input type="hidden" name="rows" value="${c.rows}">
+<input type="hidden" name="truncate" value="${c.truncate}">
+%    if c.chosen_facets:
+%      for chosen_facet in c.chosen_facets:
+          <%
+              current_items = []
+              if isinstance(c.chosen_facets[chosen_facet], list):
+                  current_items = c.chosen_facets[chosen_facet]
+              else:
+                  current_items = [c.chosen_facets[chosen_facet]]
+          %>
+%         for chosen_item in current_items:
+              <%
+              from urllib import quote
+              try:
+                  res = '"%s"'%quote(chosen_item.strip())
+              except:
+                  res = '"%s"'%chosen_item.strip()
+              %>
+<input type="hidden" name="filter${chosen_facet}" value="${res}"/>
+%         endfor
+%     endfor 
+%    endif
+<input type="submit" value="x">
+</form>
+%   endif
+</td>
+<td>Text : ${c.q |n}</td>
+</tr> 
+</table>
+<div class="clear"></div>
+</div>
+% endif
+
+% if c.chosen_facets:
 % for facet in c.chosen_facets:
 <% 
 currentfacet = []
@@ -65,7 +106,7 @@ else:
 %           endif
 %         endfor
 %     endfor
-<input type="submit" name="remove" value="x">
+<input type="submit" value="x">
 </form>
 </td>
 <td>${c.field_names[facet]|n} : ${ item |n}</td>
@@ -75,12 +116,10 @@ else:
 </div>
 % endfor
 % endfor
-
+% endif
 </div>
 
-% endif
-
-
+% if c.returned_facets:
 % for facet in c.returned_facets:
 <% count = count + 1 %>
 % if c.returned_facets[facet] and len(c.returned_facets[facet]) > 1:

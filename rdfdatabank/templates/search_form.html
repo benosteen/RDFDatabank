@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 <div id="search">
-<form method="GET" enctype="multipart/form-data" action="/search/raw" accept-charset="UTF-8">
+<form method="GET" enctype="multipart/form-data" action="/search/detailed" accept-charset="UTF-8">
 <label for="q">Search</label>
+% if c.q:
+<input type="text" name="q" value="${c.q}"/>
+% else:
 <input type="text" name="q" value="*:*"/>
+% endif
 <input type="hidden" name="fl" value="*,score"/>
 <input type="hidden" name="wt" value="xml"/>
 <input type="submit" value="Search"/>
