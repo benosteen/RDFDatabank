@@ -40,14 +40,13 @@ try:
    res = quote(result)
 except:
    res = result
-
-if len(result) > 150:
-    res_label = result[:150] + '...'
+if len(result) > 40:
+    res_label = result[:40] + '...'
 else:
     res_label = result
 %>
-<a href="${c.add_facet + u'&filter%s="%s"&rows=%d&sort=%s' % (facet, res, c.rows, c.sort)}" title="${result}">${res_label}</a>
-</span> <span class="value">(${value})</span></li>
+<a href="${c.add_facet + u'&filter%s="%s"&rows=%d&sort=%s' % (facet, res, c.rows, c.sort)}" title="${result}">${res_label}
+<span class="value">(${value})</span> <a/></span></li>
 %     endfor
 </ul>
 </div>

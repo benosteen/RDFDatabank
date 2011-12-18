@@ -7,11 +7,35 @@
 % else:
 <input type="text" name="q" value="*:*"/>
 % endif
-<input type="checkbox" name="search_level" value="silo" /> Silo
-<input type="checkbox" name="search_level" value="dataset" /> Data packages
-<input type="checkbox" name="search_level" value="item" /> File names 
+<input type="submit" value="Search"/><br/>
+% if c.typ:
+%   if 'silo' in c.typ:
+<input type="radio" name="type" value="silo" checked="checked"/> Silo
+%   else:
+<input type="radio" name="type" value="silo"/> Silo
+%   endif
+%   if 'dataset' in c.typ:
+<input type="radio" name="type" value="dataset" checked="checked"/> Data packages
+%   else:
+<input type="radio" name="type" value="dataset" /> Data packages
+%   endif
+%   if 'item' in c.typ:
+<input type="radio" name="type" value="item" checked="checked"/> File names 
+%   else:
+<input type="radio" name="type" value="item" /> File names 
+%   endif
+%   if 'all' in c.typ:
+<input type="radio" name="type" value="all" checked="checked"/>Any
+%   else:
+<input type="radio" name="type" value="all"/> Any
+%   endif
+% else:
+<input type="radio" name="type" value="silo" /> Silo
+<input type="radio" name="type" value="dataset" /> Data packages
+<input type="radio" name="type" value="item" /> File names 
+<input type="radio" name="type" value="all" checked="checked"/>Any
+% endif
 <input type="hidden" name="fl" value="*,score"/>
 <input type="hidden" name="wt" value="xml"/>
-<input type="submit" value="Search"/>
 </form>
 </div>

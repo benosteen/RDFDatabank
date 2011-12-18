@@ -20,6 +20,7 @@ class SearchController(BaseController):
         c.all_fields = term_list().get_all_search_fields()
         c.field_names = term_list().get_search_field_dictionary()
         c.facetable_fields = term_list().get_all_facet_fields()
+        c.types = term_list().get_type_field_dictionary()
         c.search_fields = ['silo', 'id', 'uuid', 'embargoStatus', 'embargoedUntilDate', 'currentVersion', 'doi', 'publicationDate', 'abstract', 'description', 'creator', 'isVersionOf', 'isPartOf', 'subject']
         c.sort_options = {'score desc':'Relevance',  'publicationDate desc':'Date (Latest to oldest)','publicationDate asc':'Date (Oldest to Latest)','silo asc':'Silo A to Z','silo desc':'Silo Z to A'}
 
@@ -136,6 +137,11 @@ class SearchController(BaseController):
             c.q = unquote(c.q)
         except:
             pass
+
+        c.typ = 'all'
+        if request.params.get("type", None):
+            c.typ = request.params.get("type")
+
         if not c.q or c.q == '*':
             c.q = "*:*"
  
@@ -202,37 +208,40 @@ class SearchController(BaseController):
 
         c.truncate = 450
         c.start = 0
-        c.rows = 5
+        c.rows = 25
         
         # Parse/Validate search controls
         if truncate:
             try:
                 c.truncate = int(truncate)
-                if c.truncate < 10:
-                    c.truncate = 10
-                if c.truncate > 1000:
-                    c.truncate = 1000
             except ValueError:
                 pass
-                
+            if c.truncate < 10:
+                c.truncate = 10
+            if c.truncate > 1000:
+                c.truncate = 1000
+             
         if start:
             try:
                 c.start = int(start)
-                if c.start < 0:
-                    c.start = 0
             except ValueError:
                 pass
+            if c.start < 0:
+                c.start = 0
 
         if rows:
             try:
                 c.rows = int(rows)
-                if c.rows < 5:
-                    c.rows = 5
             except ValueError:
                 pass
+        if c.rows < 5:
+            c.rows = 5
+        elif c.rows > 5000:
+            c.rows=5000
             
         #c.search['rows'] = c.rows
         c.search['truncate'] = c.truncate
+        c.search['type'] = c.typ
         #c.search['start'] = c.start
         #c.search['sort'] = c.sort
         #if c.q:
@@ -240,7 +249,14 @@ class SearchController(BaseController):
         solr_params = {}
         
         if c.q:
-            solr_params['q'] = c.q.encode('utf-8')+query_filter 
+            if c.typ and 'silo' in c.typ:
+                solr_params['q'] = c.q.encode('utf-8')+query_filter+" AND type:silo"
+            elif c.typ and 'dataset' in c.typ:
+                solr_params['q'] = c.q.encode('utf-8')+query_filter+" AND type:dataset"
+            elif c.typ and 'item' in c.typ and c.q != "*:*":
+                solr_params['q'] = """aggregatedResource:"%s" %s"""%(c.q.encode('utf-8'),query_filter)
+            else:
+                solr_params['q'] = c.q.encode('utf-8')+query_filter  
 
             if format in ['json', 'xml', 'python', 'php']:
                 solr_params['wt'] = format

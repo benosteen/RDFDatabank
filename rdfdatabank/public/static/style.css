@@ -157,12 +157,10 @@ h1 {
 /* Results Page Specific CSS */
 
 #results {
-        margin-top: 15px;
         color: #002147;
         font-size: 12px;
         margin-bottom: 100px;
         margin-left: 180px;
-
 }
 
 #results a {
@@ -244,6 +242,15 @@ div.response_doc {
         width: 150px;
         float:left;
         display: inline;
+}
+
+.value, .value a, .value a:hover, .value a:active, .value a:visited {
+     display:inline;
+     padding-left:2px;
+     text-align:right;
+     color: #000000;
+     text-decoration: none;
+     font-weight: normal;
 }
 
 .rt {
@@ -420,4 +427,21 @@ span#itemsppt a.active:hover, span#itemsppb a.active:hover {
         background: #FFFF99;
 }
 
+.itemsppform {
+    margin: 0px;
+    display:inline;
+    padding: 0px;
+}
 
+.itemsppformtext {
+    margin: 0px;
+    display:inline;
+    padding: 0px;
+    width: 40px;
+}
+
+.itemsppformchosen {
+    color: black;
+    border: 1px solid #666;
+    background: #FFFF99;
+}

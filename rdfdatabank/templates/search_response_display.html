@@ -143,35 +143,126 @@ ${h.link_to(pagcount, "%s&start=%d&rows=%d&sort=%s"%(c.add_facet, offset, c.rows
 	twentyfstring = c.add_facet + "&rows=25&sort=%s"%c.sort
 	fiftystring = c.add_facet + "&rows=50&sort=%s"%c.sort
 	hundredstring = c.add_facet + "&rows=100&sort=%s"%c.sort
-	formstring = c.add_facet + "&sort=%s"%c.sort
 %>
 %	if (c.rows == 25):
 <a class="active" href="${twentyfstring}">25</a>
 <a href="${fiftystring}">50</a>
 <a href="${hundredstring}">100</a>
-<form class="itemsppform" action=${formstring} method="GET">
-<input type="text" name="rows" value=${c.rows}/>
+<form class="itemsppform" action="/search/detailed" method="GET">
+<input type="hidden" name="q" value="*:*">
+<input type="hidden" name="truncate" value="${c.truncate}">
+%    if c.chosen_facets:
+%      for chosen_facet in c.chosen_facets:
+          <%
+              current_items = []
+              if isinstance(c.chosen_facets[chosen_facet], list):
+                  current_items = c.chosen_facets[chosen_facet]
+              else:
+                  current_items = [c.chosen_facets[chosen_facet]]
+          %>
+%         for chosen_item in current_items:
+              <%
+              from urllib import quote
+              try:
+                  res = '"%s"'%quote(chosen_item.strip())
+              except:
+                  res = '"%s"'%chosen_item.strip()
+              %>
+<input type="hidden" name="filter${chosen_facet}" value="${res}"/>
+%         endfor
+%     endfor
+%    endif
+<input class="itemsppformtext" type="text" name="rows" placeholder="#" onUnfocus="this.form.submit()"/>
 </form>
 %	elif (c.rows == 50):
 <a href="${twentyfstring}">25</a>
 <a class="active" href="${fiftystring}">50</a>
 <a href="${hundredstring}">100</a>
-<form class="itemsppform" action=${formstring} method="GET">
-<input type="text" name="rows" value=${c.rows}/>
+<form class="itemsppform" action="/search/detailed" method="GET">
+<input type="hidden" name="q" value="*:*">
+<input type="hidden" name="truncate" value="${c.truncate}">
+%    if c.chosen_facets:
+%      for chosen_facet in c.chosen_facets:
+          <%
+              current_items = []
+              if isinstance(c.chosen_facets[chosen_facet], list):
+                  current_items = c.chosen_facets[chosen_facet]
+              else:
+                  current_items = [c.chosen_facets[chosen_facet]]
+          %>
+%         for chosen_item in current_items:
+              <%
+              from urllib import quote
+              try:
+                  res = '"%s"'%quote(chosen_item.strip())
+              except:
+                  res = '"%s"'%chosen_item.strip()
+              %>
+<input type="hidden" name="filter${chosen_facet}" value="${res}"/>
+%         endfor
+%     endfor
+%    endif
+<input class="itemsppformtext" type="text" name="rows" placeholder="#" onUnfocus="this.form.submit()"/>
 </form>
 %	elif (c.rows == 100):
 <a href="${twentyfstring}">25</a>
 <a href="${fiftystring}">50</a>
 <a class="active" href="${hundredstring}">100</a>
-<form class="itemsppform" action=${formstring} method="GET">
-<input type="text" name="rows" value=${c.rows}/>
+<form class="itemsppform" action="/search/detailed" method="GET">
+<input type="hidden" name="q" value="*:*">
+<input type="hidden" name="truncate" value="${c.truncate}">
+%    if c.chosen_facets:
+%      for chosen_facet in c.chosen_facets:
+          <%
+              current_items = []
+              if isinstance(c.chosen_facets[chosen_facet], list):
+                  current_items = c.chosen_facets[chosen_facet]
+              else:
+                  current_items = [c.chosen_facets[chosen_facet]]
+          %>
+%         for chosen_item in current_items:
+              <%
+              from urllib import quote
+              try:
+                  res = '"%s"'%quote(chosen_item.strip())
+              except:
+                  res = '"%s"'%chosen_item.strip()
+              %>
+<input type="hidden" name="filter${chosen_facet}" value="${res}"/>
+%         endfor
+%     endfor
+%    endif
+<input class="itemsppformtext" type="text" name="rows" placeholder="#" onUnfocus="this.form.submit()"/>
 </form>
 %	else:
 <a href="${twentyfstring}">25</a>
 <a href="${fiftystring}">50</a>
 <a href="${hundredstring}">100</a>
-<form class="itemsppform" action=${formstring} method="GET">
-<input type="text" name="rows" value=${c.rows}/>
+<form class="itemsppform" action="/search/detailed" method="GET">
+<input type="hidden" name="q" value="*:*">
+<input type="hidden" name="truncate" value="${c.truncate}">
+%    if c.chosen_facets:
+%      for chosen_facet in c.chosen_facets:
+          <%
+              current_items = []
+              if isinstance(c.chosen_facets[chosen_facet], list):
+                  current_items = c.chosen_facets[chosen_facet]
+              else:
+                  current_items = [c.chosen_facets[chosen_facet]]
+          %>
+%         for chosen_item in current_items:
+              <%
+              from urllib import quote
+              try:
+                  res = '"%s"'%quote(chosen_item.strip())
+              except:
+                  res = '"%s"'%chosen_item.strip()
+              %>
+<input type="hidden" name="filter${chosen_facet}" value="${res}"/>
+%         endfor
+%     endfor
+%    endif
+<input class="itemsppformtext itemsppformchosen" type="text" name="rows" value="${c.rows}" onUnfocus="this.form.submit()"/>
 </form>
 %	endif
 </span>
@@ -208,12 +299,13 @@ Your query resulted in no matches.
 ## Current search
 <div class="facet_chosen">
 <div id="current_search"><span>Current Search</span></div>
-% if c.q:
+
+##----c.q----
 <div class="current_facet">
 <table>
 <tr>
 <td class="pagination_label">
-%   if c.q != "*:*":
+% if c.q and c.q != "*:*":
 <form action="/search/detailed" method="GET">
 <input type="hidden" name="q" value="*:*">
 <input type="hidden" name="rows" value="${c.rows}">
@@ -239,6 +331,9 @@ Your query resulted in no matches.
 %         endfor
 %     endfor 
 %    endif
+%    if c.typ:
+<input type="hidden" name="type" value="${c.typ}">
+%    endif
 <input type="submit" value="x">
 </form>
 %   endif
@@ -248,8 +343,50 @@ Your query resulted in no matches.
 </table>
 <div class="clear"></div>
 </div>
+
+##----c.typ filters (to be displayed only if search is not *:*)----
+% if c.typ and c.typ != 'all' and c.q != "*:*":
+<div class="current_facet">
+<table>
+<tr>
+<td class="pagination_label">
+<form action="/search/detailed" method="GET">
+<input type="hidden" name="q" value="${c.q}">
+<input type="hidden" name="rows" value="${c.rows}">
+<input type="hidden" name="truncate" value="${c.truncate}">
+%    if c.chosen_facets:
+%      for chosen_facet in c.chosen_facets:
+          <%
+            current_items = []
+            if isinstance(c.chosen_facets[chosen_facet], list):
+                current_items = c.chosen_facets[chosen_facet]
+            else:
+                current_items = [c.chosen_facets[chosen_facet]]
+          %>
+%         for chosen_item in current_items:
+             <%
+             from urllib import quote
+             try:
+                 res = '"%s"'%quote(chosen_item.strip())
+             except:
+                 res = '"%s"'%chosen_item.strip()
+             %>
+<input type="hidden" name="filter${chosen_facet}" value="${res}"/>
+%         endfor
+%      endfor
+%    endif
+<input type="hidden" name="type" value="all">
+<input type="submit" value="x">
+</form>
+</td>
+<td>Search within : ${c.types[c.typ] |n}</td>
+</tr>
+</table>
+<div class="clear"></div>
+</div>
 % endif
 
+##----c.chosen_facets----
 % if c.chosen_facets:
 % for facet in c.chosen_facets:
 <% 
@@ -268,6 +405,9 @@ else:
 <input type="hidden" name="q" value="${c.q}">
 <input type="hidden" name="rows" value="${c.rows}">
 <input type="hidden" name="truncate" value="${c.truncate}">
+%     if c.typ:
+<input type="hidden" name="type" value="${c.typ}">
+%     endif
 %     for chosen_facet in c.chosen_facets:
           <%
               current_items = []
@@ -307,6 +447,11 @@ ${self.sortoptions()}
 </div>
 ##-----------------------------------------------------------------------------
 <div class="searchtop">
+% if c.numFound:
+<div class="searchleft">
+${ c.numFound} records found.
+</div>
+% endif
 
 % if c.docs:
 <div class='searchmid'>Showing results ${c.start+1} to 

@@ -168,6 +168,15 @@ class term_list():
         }
         return field_names
         
+    def get_type_field_dictionary(self):
+        type_names = {
+        "silo":'Silos',
+        "dataset":"Data packages",
+        "item":"File names",
+        "all":"Any level"
+        }
+        return type_names
+
     def get_all_facet_fields(self):
         return [
         "silo",
