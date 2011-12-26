@@ -197,3 +197,9 @@ class term_list():
         "f_source",
         "f_subject"
         ]
+
+    def get_range_facet_fields(self):
+        return [
+        "f_embargoedUntilDate",
+        "f_publicationDate"
+        ]

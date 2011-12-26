@@ -352,3 +352,85 @@ class SearchController(BaseController):
                         c.returned_facets[facet].append((keys[index],values[index]))
 
         return render('/search.html')
+
+
+    def advanced(self):
+
+        c.q = "*:*"
+        c.typ = 'all'
+
+        # Search controls
+        format = 'html'
+        c.sort = 'score desc'
+        c.sort_text = c.sort_options[c.sort]
+        
+        c.chosen_fields = []
+        c.chosen_fields.extend(c.search_fields)
+
+        c.fields_to_facet = []
+        c.fields_to_facet.extend(c.facetable_fields)
+
+        c.facet_limit = 10
+
+        c.chosen_facets = {}
+        
+        query_filter = ""
+        
+        #Setup to capture all the url parameters needed to regenerate this search
+        c.search = {}
+        filter_url = ""
+        
+        c.truncate = 450
+        c.start = 0
+        c.rows = 25
+        c.search['truncate'] = c.truncate
+        c.search['type'] = c.typ
+
+        solr_params = {}
+        
+        if c.q:
+            solr_params['q'] = c.q.encode('utf-8')+query_filter  
+            solr_params['wt'] = 'json'
+            solr_params['fl'] = ','.join(c.chosen_fields)
+            solr_params['rows'] = c.rows
+            solr_params['start'] = c.start
+            if c.sort:
+                solr_params['sort'] = c.sort                
+            if c.fields_to_facet:
+                solr_params['facet'] = 'true'
+                solr_params['facet.limit'] = c.facet_limit
+                solr_params['facet.mincount'] = 1
+                solr_params['facet.field'] = []
+                for facet in c.fields_to_facet:
+                    solr_params['facet.field'].append(facet)
+        
+            solr_response = ag.solr.raw_query(**solr_params)
+        
+            c.add_facet =  u"%ssearch/detailed?q=%s&" % (ag.root, c.q.encode('utf-8'))
+            c.add_facet = c.add_facet + urlencode(c.search) + filter_url
+ 
+            if not solr_response:
+                # FAIL - do something here:
+                c.message = 'Sorry, either that search "%s" resulted in no matches, or the search service is not functional.' % c.q
+                h.redirect_to(controller='/search', action='index')
+        
+            search = json.loads(solr_response)
+                
+            numFound = search['response'].get('numFound',None)
+            try:
+                c.numFound = int(numFound)
+            except:
+                c.numFound = 0
+            c.docs = search['response'].get('docs',None)
+        
+            if c.fields_to_facet:
+                c.returned_facets = {}
+                for facet in search['facet_counts']['facet_fields']:       
+                    facet_list = search['facet_counts']['facet_fields'][facet]
+                    keys = facet_list[::2]
+                    values = facet_list[1::2]
+                    c.returned_facets[facet] = []
+                    for index in range(len(keys)):
+                        c.returned_facets[facet].append((keys[index],values[index]))
+
+        return render('/search_advanced.html')
