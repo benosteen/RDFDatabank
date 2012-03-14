@@ -154,6 +154,16 @@ h1 {
     margin-right: 5px;
 }
 
+h1, h2, h3, h4, h5, h6
+{
+	clear: both;
+	color: #045275;
+	font-style: normal;
+	font-weight: normal;
+	letter-spacing: 0.1em;
+	margin: 1.3em 0px 0.3em 0px;
+	border-bottom: 1px solid #b5d2df;
+}
 /* Results Page Specific CSS */
 
 #results {

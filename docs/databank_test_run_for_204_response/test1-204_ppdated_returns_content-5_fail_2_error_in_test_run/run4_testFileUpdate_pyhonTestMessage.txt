@@ -1,0 +1,37 @@
+databankadmin@databank:/opt/RDFDatabank/rdfdatabank/tests/RDFDatabank$ python TestSubmission.py testFileUpdate
+/opt/RDFDatabank/rdfdatabank/tests/RDFDatabank/rdflib/plugin.py:94: UserWarning: Module rdflib was already imported from /opt/RDFDatabank/rdfdatabank/tests/RDFDatabank/rdflib/__init__.pyc, but /usr/local/lib/python2.6/dist-packages/rdflib-2.4.2-py2.6-linux-i686.egg is being added to sys.path
+  from pkg_resources import iter_entry_points
+Update file in dataset - POST file to /silo_name/datasets/dataset_name (x 2) ... DEBUG:SparqlQueryTestCase:setRequestEndPoint: endpointhost databank.ora.ox.ac.uk:
+DEBUG:SparqlQueryTestCase:setRequestEndPoint: endpointpath /sandbox/:
+DEBUG:SparqlQueryTestCase:setRequestEndPoint: endpointuser admin:
+DEBUG:SparqlQueryTestCase:setRequestEndPoint: endpointpass test:
+DEBUG:SparqlQueryTestCase:DELETE http://databank.ora.ox.ac.uk/sandbox/datasets/TestSubmission
+DEBUG:SparqlQueryTestCase:Status: 200 OK
+DEBUG:SparqlQueryTestCase:POST http://databank.ora.ox.ac.uk/sandbox/datasets/
+DEBUG:SparqlQueryTestCase:Status: 201 Created
+DEBUG:SparqlQueryTestCase:POST http://databank.ora.ox.ac.uk/sandbox/datasets/TestSubmission/
+DEBUG:SparqlQueryTestCase:Status: 201 Created
+DEBUG:SparqlQueryTestCase:GET http://databank.ora.ox.ac.uk/sandbox/datasets/TestSubmission
+DEBUG:SparqlQueryTestCase:Status: 200 OK
+DEBUG:SparqlQueryTestCase:GET http://databank.ora.ox.ac.uk/sandbox/datasets/TestSubmission/testdir.zip
+DEBUG:SparqlQueryTestCase:Status: 200 OK
+DEBUG:SparqlQueryTestCase:POST http://databank.ora.ox.ac.uk/sandbox/datasets/TestSubmission/
+DEBUG:SparqlQueryTestCase:Status: 204 No Content
+DEBUG:SparqlQueryTestCase:GET http://databank.ora.ox.ac.uk/sandbox/datasets/TestSubmission
+DEBUG:SparqlQueryTestCase:Status: 200 OK
+DEBUG:SparqlQueryTestCase:GET http://databank.ora.ox.ac.uk/sandbox/datasets/TestSubmission/testdir.zip
+DEBUG:SparqlQueryTestCase:Status: 200 OK
+FAIL
+
+======================================================================
+FAIL: Update file in dataset - POST file to /silo_name/datasets/dataset_name (x 2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "TestSubmission.py", line 592, in testFileUpdate
+    self.assertEqual(zipdata, zipfile, "Difference between local and remote zipfile!")
+AssertionError: Difference between local and remote zipfile!
+
+----------------------------------------------------------------------
+Ran 1 test in 22.510s
+
+FAILED (failures=1)

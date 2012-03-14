@@ -1,0 +1,91 @@
+
+databankadmin@databank:/opt/RDFDatabank/rdfdatabank/tests/RDFDatabank$ python TestSubmission.py
+/opt/RDFDatabank/rdfdatabank/tests/RDFDatabank/rdflib/plugin.py:94: UserWarning: Module rdflib was already impo                                              rted from /opt/RDFDatabank/rdfdatabank/tests/RDFDatabank/rdflib/__init__.py, but /usr/local/lib/python2.6/dist-                                              packages/rdflib-2.4.2-py2.6-linux-i686.egg is being added to sys.path
+  from pkg_resources import iter_entry_points
+.............FFF..FFEE........
+======================================================================
+ERROR: Delete embargo information - POST embargo_change to /silo_name/datasets/dataset_name
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "TestSubmission.py", line 1394, in testDeleteEmbargo
+    expect_status=200, expect_reason="OK", expect_type="application/json")
+  File "../TestLib/SparqlQueryTestCase.py", line 182, in doHTTP_GET
+    if (expect_type.lower() == "application/json"): responsedata = simplejson.loads(responsedata)
+  File "/usr/lib/pymodules/python2.6/simplejson/__init__.py", line 307, in loads
+    return _default_decoder.decode(s)
+  File "/usr/lib/pymodules/python2.6/simplejson/decoder.py", line 338, in decode
+    raise ValueError(errmsg("Extra data", s, end, len(s)))
+ValueError: Extra data: line 1 column 4 - line 11 column 1372 (char 4 - 1664)
+
+======================================================================
+ERROR: Modify embargo information - POST embargo_change, embargo, embargo_until to /silo_name/datasets/dataset_name
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "TestSubmission.py", line 1457, in testChangeEmbargo
+    expect_status=200, expect_reason="OK", expect_type="application/json")
+  File "../TestLib/SparqlQueryTestCase.py", line 182, in doHTTP_GET
+    if (expect_type.lower() == "application/json"): responsedata = simplejson.loads(responsedata)
+  File "/usr/lib/pymodules/python2.6/simplejson/__init__.py", line 307, in loads
+    return _default_decoder.decode(s)
+  File "/usr/lib/pymodules/python2.6/simplejson/decoder.py", line 338, in decode
+    raise ValueError(errmsg("Extra data", s, end, len(s)))
+ValueError: Extra data: line 1 column 4 - line 11 column 1394 (char 4 - 1686)
+
+======================================================================
+FAIL: Update file in dataset - POST file to /silo_name/datasets/dataset_name (x 2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "TestSubmission.py", line 592, in testFileUpdate
+    self.assertEqual(zipdata, zipfile, "Difference between local and remote zipfile!")
+AssertionError: Difference between local and remote zipfile!
+
+======================================================================
+FAIL: Upload files to a dataset - POST file to /silo_name/datasets/dataset_name. Access each of the versions and the files in that version
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "TestSubmission.py", line 755, in testGetDatasetByVersion
+    expect_status=404, expect_reason="Not Found")
+  File "../TestLib/SparqlQueryTestCase.py", line 180, in doHTTP_GET
+    expect_status=expect_status, expect_reason=expect_reason)
+  File "../TestLib/SparqlQueryTestCase.py", line 164, in doRequest
+    if expect_status != "*": self.assertEqual(response.status, expect_status)
+AssertionError: 200 != 404
+
+======================================================================
+FAIL: POST manifest to dataset - POST manifest.rdf to /silo_name/datasets/dataset_name
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "TestSubmission.py", line 1006, in testMetadataFileUpdate
+    zipdata = self.updateTestSubmissionZipfile(file_to_upload="manifest2.rdf", filename="manifest.rdf")
+  File "TestSubmission.py", line 111, in updateTestSubmissionZipfile
+    expect_status=204, expect_reason="No Content")
+  File "../TestLib/SparqlQueryTestCase.py", line 207, in doHTTP_POST
+    expect_status=expect_status, expect_reason=expect_reason)
+  File "../TestLib/SparqlQueryTestCase.py", line 164, in doRequest
+    if expect_status != "*": self.assertEqual(response.status, expect_status)
+AssertionError: 200 != 204
+
+======================================================================
+FAIL: PUT file contents to existing filename - PUT file contents to /silo_name/datasets/dataset_name/file_name
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "TestSubmission.py", line 1212, in testPutUpdateFile
+    self.assertEqual(zipdata3, zipfile, "Difference between local and remote zipfile!")
+AssertionError: Difference between local and remote zipfile!
+
+======================================================================
+FAIL: Add metadata to manifest - PUT metadata to /silo_name/datasets/dataset_name/manifest.rdf
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "TestSubmission.py", line 1294, in testPutMetadataFile
+    expect_status=204, expect_reason="No Content", expect_type="text/plain")
+  File "../TestLib/SparqlQueryTestCase.py", line 237, in doHTTP_PUT
+    expect_status=expect_status, expect_reason=expect_reason)
+  File "../TestLib/SparqlQueryTestCase.py", line 164, in doRequest
+    if expect_status != "*": self.assertEqual(response.status, expect_status)
+AssertionError: 200 != 204
+
+----------------------------------------------------------------------
+Ran 30 tests in 91.021s
+
+FAILED (failures=5, errors=2)

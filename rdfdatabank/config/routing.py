@@ -47,7 +47,10 @@ def make_map():
     map.redirect('/*(url)/', '/{url}',
              _redirect_code='301 Moved Permanently')
 
-    #Special controller to redirect datasets from databank.ouls to databank.ora    map.connect('/objects/{id}', controller='redirect', action='index')    map.connect("/login", controller='account', action='login')
+    #Special controller to redirect datasets from databank.ouls to databank.ora
+    map.connect('/objects/{id}', controller='redirect', action='index')
+
+    map.connect("/login", controller='account', action='login')
     map.connect("/logout", controller='account', action='logout')
     map.connect("/welcome", controller='account', action='welcome')
 
