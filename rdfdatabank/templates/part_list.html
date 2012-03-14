@@ -1,19 +1,23 @@
 % if c.parts:
-<dt><b>List of items</b></dt>
 <ul>
 <% 
 if c.path:
   subpath = "/%s" % c.path
 else:
   subpath = ""
+
+if c.version and c.versions and c.version == c.versions[-1]:
+    c.latest = True
+else:
+    c.latest= False
 %>
-% if c.version:
+% if c.version and not c.latest:
 % for part in c.parts:
 %   if not part.startswith('3=') and not part.startswith('4='):
 %     if type(c.parts).__name__ == 'dict' and c.parts[part]:
-<li id="${"_".join(c.silo_name.split("."))}_${"_".join(c.id.split(":"))}_${"_".join( "_".join(part.split(".")).split(" ") )}"><a href="/${c.silo_name}/datasets/${c.id}${subpath}/${part}/version${c.version}">${part}</a> ${h.bytes_to_english(c.parts[part].st_size)} </li>
+<li id="${"_".join(c.silo_name.split("."))}_${"_".join(c.id.split(":"))}_${"_".join( "_".join(part.split(".")).split(" ") )}"><a href="/${c.silo_name}/datasets/${c.id}${subpath}/${part}?version=${c.version}">${part}</a> ${h.bytes_to_english(c.parts[part].st_size)} </li>
 %     else:
-<li id="${"_".join(c.silo_name.split("."))}_${"_".join(c.id.split(":"))}_${"_".join( "_".join(part.split(".")).split(" ") )}"><a href="/${c.silo_name}/datasets/${c.id}${subpath}/${part}/version${c.version}">${part}</a> </li>
+<li id="${"_".join(c.silo_name.split("."))}_${"_".join(c.id.split(":"))}_${"_".join( "_".join(part.split(".")).split(" ") )}"><a href="/${c.silo_name}/datasets/${c.id}${subpath}/${part}?version=${c.version}">${part}</a> </li>
 %     endif
 %   endif
 % endfor

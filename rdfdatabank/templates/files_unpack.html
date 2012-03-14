@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
 % if c.zipfile:
-<form method="POST" action="/${c.silo_name}/items/${c.id}" accept-charset="UTF-8">
-<input type="submit" name="Unpack" value="Unpack"/>
-% if len(c.zipfile) > 50:
-<% c.disp = "...%s"%c.zipfile[-50:] %>
-<b><a href="/${c.silo_name}/datasets/${c.id}/${c.zipfile}">${c.disp}</a></b>
-% else:
-<b><a href="/${c.silo_name}/datasets/${c.id}/${c.zipfile}">${c.zipfile}</a></b>
-% endif
+<form style="margin:0px;" method="POST" action="/${c.silo_name}/items/${c.id}" accept-charset="UTF-8">
+<table style="margin:0px 0px 5px 0px; padding: 0px 5px 0px 0px;"><tr>
+<% 
+c.disp = c.zipfile.strip().strip('/').split('/')[-1]
+if len(c.disp) > 50:
+    c.disp = "...%s"%c.disp[-50:]
+%>
+<td align="left" width="150px"><b><a href="/${c.silo_name}/datasets/${c.id}/${c.zipfile}">${c.disp}</a></b></td>
 % if c.newid:
-<label for="id">Id (optional) : </label><input type="text" name="id" value="${c.newid}"/>&nbsp;&nbsp;
+<td align="left" width="500px">Id (optional) :<input type="text" name="id" value="${c.newid}" style="width:400px"/></td>
 % else:
-<label for="id">Id (optional): </label><input type="text" name="id"/>&nbsp;&nbsp;
+<td align="left" width="500px">Id (optional) :<input type="text" name="id" style="width:400px"/></td>
 %endif
-<input type="hidden" name="filename" value="${c.zipfile}"/>
+<td align="left" width="80px"><input type="submit" name="Unpack" value="Unpack"/>
+<input type="hidden" name="filename" value="${c.zipfile}"/></td>
+</tr></table>
 </form>
 %endif

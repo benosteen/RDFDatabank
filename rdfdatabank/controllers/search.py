@@ -1,4 +1,27 @@
 # -*- coding: utf-8 -*-
+"""
+Copyright (c) 2012 University of Oxford
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, --INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+
 import logging
 from urllib import urlencode, unquote, quote
 import json
@@ -100,8 +123,10 @@ class SearchController(BaseController):
             params['start'] = '0'
         if not 'rows' in params or not params['rows']:
             params['rows'] = '100'
-                    
-        result = ag.solr.raw_query(**params)
+        try:            
+            result = ag.solr.raw_query(**params)
+        except:
+            result = {}
         
         mimetype = accept_list.pop(0)
         while(mimetype):
@@ -142,7 +167,7 @@ class SearchController(BaseController):
         if request.params.get("type", None):
             c.typ = request.params.get("type")
 
-        if not c.q or c.q == '*':
+        if not c.q or c.q == '*' or c.q == "":
             c.q = "*:*"
  
         # Search controls
@@ -152,8 +177,34 @@ class SearchController(BaseController):
         sort = request.params.get('sort', None)
         format = request.params.get('format', None)
         if not format:
-            format = 'html'
-        
+            accept_list = None
+            if 'HTTP_ACCEPT' in request.environ:
+                try:
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                except:
+                    accept_list= [MT("text", "html")]
+            if not accept_list:
+                accept_list= [MT("text", "html")]
+            mimetype = accept_list.pop(0)
+            while(mimetype):
+                if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                    format = 'html'
+                    break
+                elif str(mimetype).lower() in ["text/plain", "application/json"]:
+                    format = 'json'
+                    break
+                elif str(mimetype).lower() in ["text/xml"]:
+                    format = 'xml'
+                    break
+                elif str(mimetype).lower() in ["text/csv"]:
+                    format = 'csv'
+                    break
+                try:
+                    mimetype = accept_list.pop(0)
+                except IndexError:
+                    mimetype = None
+            # Whoops - nothing satisfies - return text/plain
+            format = 'json'    
 
         c.sort = 'score desc'
         # Lock down the sort parameter.
@@ -277,17 +328,40 @@ class SearchController(BaseController):
                 solr_params['facet.field'] = []
                 for facet in c.fields_to_facet:
                     solr_params['facet.field'].append(facet)
-        
-            solr_response = ag.solr.raw_query(**solr_params)
-        
+
+            solr_response = None 
+            try:
+                solr_response = ag.solr.raw_query(**solr_params)
+            except:
+                pass
+
             c.add_facet =  u"%ssearch/detailed?q=%s&" % (ag.root, c.q.encode('utf-8'))
             c.add_facet = c.add_facet + urlencode(c.search) + filter_url
  
             if not solr_response:
-                # FAIL - do something here:
-                c.message = 'Sorry, either that search "%s" resulted in no matches, or the search service is not functional.' % c.q
-                h.redirect_to(controller='/search', action='index')
+                # conneg return
+                response.status_int = 200
+                response.status = "200 OK"
+                if format == "html":
+                    c.numFound = 0
+                    c.message = 'Sorry, either that search "%s" resulted in no matches, or the search service is not functional.' % c.q
+                    return render('/search.html')
+                elif format == 'xml':
+                    response.headers['Content-Type'] = 'application/xml'
+                    response.charset = 'utf8'
+                    c.atom = {}
+                    return render('/atom_results.html')
+                elif format == 'json':
+                    response.headers['Content-Type'] = 'application/json'
+                    response.charset = 'utf8'
+                    return {}
+                else:
+                    response.headers['Content-Type'] = 'application/text'
+                    response.charset = 'utf8'
+                    return solr_response
         
+            response.status_int = 200
+            response.status = "200 OK"
             if format == 'xml':
                 response.headers['Content-Type'] = 'application/xml'
                 response.charset = 'utf8'
@@ -403,8 +477,10 @@ class SearchController(BaseController):
                 solr_params['facet.field'] = []
                 for facet in c.fields_to_facet:
                     solr_params['facet.field'].append(facet)
-        
-            solr_response = ag.solr.raw_query(**solr_params)
+            try:
+                solr_response = ag.solr.raw_query(**solr_params)
+            except:
+                solr_response = None
         
             c.add_facet =  u"%ssearch/detailed?q=%s&" % (ag.root, c.q.encode('utf-8'))
             c.add_facet = c.add_facet + urlencode(c.search) + filter_url

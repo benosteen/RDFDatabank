@@ -1,5 +1,5 @@
 <VirtualHost *:80>
-    ServerName databank.bodleian.ox.ac.uk
+    #ServerName databank.com
 
     # Logfiles
     ErrorLog  /var/log/apache2/databank-error.log
@@ -10,9 +10,9 @@
     WSGIApplicationGroup %{GLOBAL}
     WSGIPassAuthorization On
     # Setup mod_wsgi
-    WSGIScriptAlias / /opt/RDFDatabank/mod_wsgi/dispatch_development.wsgi
+    WSGIScriptAlias / /var/lib/databank/mod_wsgi/dispatch_development.wsgi
 
-    <Directory /opt/RDFDatabank/mod_wsgi>
+    <Directory /var/lib/databank/mod_wsgi>
     Order deny,allow
     Allow from all
     </Directory>

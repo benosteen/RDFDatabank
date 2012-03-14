@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-<p><b> Create new user </b></p>
 <p>
 <form method="POST" enctype="multipart/form-data" action="/${c.silo_name}/register" accept-charset="UTF-8">
 <ul>
 <li><label for="first_name">Firstname:</label><input type="text" name="first_name" /></li>
 <li><label for="last_name">Lastname:</label><input type="text" name="last_name" /></li>
 <li><label for="name">Name:</label><input type="textbox" name="name" /></li>
-<li><label for="owner">Silos user has access to (comma separated silo ids):</label>
-  <input type="textbox" name="owner" value="${c.silo_name}"/></li>
+<li><label for="owner">Silos:</label>
+  <input type="textbox" name="owner" value="${c.silo_name}"/>
+<div class="form_helper"p>List all of the silos the user can access. Separate silo names with a comma</div></li>
 <li><label for="username">Username:</label><input type="textbox" name="username" /></li>
 <li><label for="password">Password:</label><input type="password" name="password" /></li>
 <li><label for="role">Role:</label>

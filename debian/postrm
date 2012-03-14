@@ -1,0 +1,8 @@
+#!/bin/bash
+set -e
+
+# Source debconf library.
+. /usr/share/debconf/confmodule
+
+# Remove my changes to the db.
+db_purge

@@ -1,4 +1,27 @@
 # -*- coding: utf-8 -*-
+"""
+Copyright (c) 2012 University of Oxford
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, --INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+
 from datetime import datetime, timedelta
 from dateutil.relativedelta import *
 from dateutil.parser import parse
@@ -13,9 +36,9 @@ from StringIO import StringIO
 from rdflib import StringInputSource
 from rdflib import Namespace, RDF, RDFS, URIRef, Literal, BNode
 
-
 from uuid import uuid4
 import re
+from collections import defaultdict
 
 ID_PATTERN = re.compile(r"^[0-9A-z\-\:]+$")
 
@@ -82,8 +105,11 @@ def is_embargoed(silo, id, refresh=False):
     # TODO evaluate ag.r.expire settings for these keys - popularity resets ttl or increases it?
     e = None
     e_d = None
-    e = ag.r.get("%s:%s:embargoed" % (silo.state['storage_dir'], id))
-    e_d = ag.r.get("%s:%s:embargoed_until" % (silo.state['storage_dir'], id))
+    try:
+        e = ag.r.get("%s:%s:embargoed" % (silo.state['storage_dir'], id))
+        e_d = ag.r.get("%s:%s:embargoed_until" % (silo.state['storage_dir'], id))
+    except:
+        pass
 
     if refresh or (not e or not e_d):
         if silo.exists(id):
@@ -94,11 +120,20 @@ def is_embargoed(silo, id, refresh=False):
                 e = True
             else:
                 e = False
-            ag.r.set("%s:%s:embargoed" % (silo.state['storage_dir'], id), e)
-            ag.r.set("%s:%s:embargoed_until" % (silo.state['storage_dir'], id), e_d)
+            try:
+                ag.r.set("%s:%s:embargoed" % (silo.state['storage_dir'], id), e)
+                ag.r.set("%s:%s:embargoed_until" % (silo.state['storage_dir'], id), e_d)
+            except:
+                pass
     return (e, e_d)
 
 def get_embargo_values(embargoed=None, embargoed_until=None, embargo_days_from_now=None):
+    if isinstance(embargoed, basestring):
+        embargoed = embargoed.strip()
+    if isinstance(embargoed_until, basestring):
+        embargoed_until = embargoed_until.strip()
+    if isinstance(embargo_days_from_now, basestring):
+        embargo_days_from_now = embargo_days_from_now.strip()
     e_status=None
     e_date=None
     if embargoed == None:
@@ -137,20 +172,32 @@ def create_new(silo, id, creator, title=None, embargoed=None, embargoed_until=No
     item.metadata['embargoed_until'] = ''
     item.del_triple(item.uri, u"oxds:isEmbargoed")
     item.del_triple(item.uri, u"oxds:embargoedUntil")
-    ag.r.set("%s:%s:embargoed_until" % (silo.state['storage_dir'], id), ' ')
+    try:
+        ag.r.set("%s:%s:embargoed_until" % (silo.state['storage_dir'], id), ' ')
+    except:
+        pass
     e, e_d = get_embargo_values(embargoed=embargoed, embargoed_until=embargoed_until, embargo_days_from_now=embargo_days_from_now)
     if e:
         item.metadata['embargoed'] = True
         item.add_triple(item.uri, u"oxds:isEmbargoed", 'True')
-        ag.r.set("%s:%s:embargoed" % (silo.state['storage_dir'], id), True)
+        try:
+            ag.r.set("%s:%s:embargoed" % (silo.state['storage_dir'], id), True)
+        except:
+            pass
         if e_d:
             item.metadata['embargoed_until'] = e_d
-            item.add_triple(item.uri, u"oxds:embargoedUntil", e_d)        
-            ag.r.set("%s:%s:embargoed_until" % (silo.state['storage_dir'], id), e_d)
+            item.add_triple(item.uri, u"oxds:embargoedUntil", e_d)
+            try:
+                ag.r.set("%s:%s:embargoed_until" % (silo.state['storage_dir'], id), e_d)
+            except:
+                pass
     else:
         item.metadata['embargoed'] = False
         item.add_triple(item.uri, u"oxds:isEmbargoed", 'False')
-        ag.r.set("%s:%s:embargoed" % (silo.state['storage_dir'], id), False)
+        try:
+            ag.r.set("%s:%s:embargoed" % (silo.state['storage_dir'], id), False)
+        except:
+            pass
 
     item.add_triple(item.uri, u"dcterms:identifier", id)
     item.add_triple(item.uri, u"dcterms:mediator", creator)
@@ -329,4 +376,61 @@ def serialisable_stat(stat):
             pass
     return stat_values
 
+def natural_sort(l): 
+    convert = lambda text: int(text) if text.isdigit() else text.lower() 
+    alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
+    return sorted(l, key = alphanum_key)
 
+def extract_metadata(item):
+    g = item.get_graph()
+    m = defaultdict(list)
+    #for s,p,o in g.triples((URIRef(item.uri), ag.NAMESPACES[dc]['identifier'], None)):
+    for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dc']['title']):
+        m['title'].append(o)
+    for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dc']['identifier']):
+        m['identifier'].append(o)
+    for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dc']['description']):
+        m['description'].append(o)
+    for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dc']['creator']):
+        m['creator'].append(o)
+    for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dc']['subject']):
+        m['subject'].append(o)
+
+    for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dcterms']['abstract']):
+        m['abstract'].append(o)
+    for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dcterms']['created']):
+        m['created'].append(o)
+    for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dcterms']['description']):
+        m['description'].append(o)
+    for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dcterms']['hasVersion']):
+        m['hasVersion'].append(o)
+    for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dcterms']['identifier']):
+        m['identifier'].append(o)
+    for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dcterms']['isVersionOf']):
+        m['isVersionOf'].append(o)
+    for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dcterms']['license']):
+        m['license'].append(o)
+    for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dcterms']['mediator']):
+        m['mediator'].append(o)
+    for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dcterms']['modified']):
+        m['modified'].append(o)
+    for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dcterms']['publisher']):
+        m['publisher'].append(o)
+    for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dcterms']['rights']):
+        m['rights'].append(o)
+    for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dcterms']['subject']):
+        m['subject'].append(o)
+    for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dcterms']['title']):
+        m['title'].append(o)
+
+    for o in g.objects(URIRef(item.uri), ag.NAMESPACES['oxds']['isEmbargoed']):
+        m['isEmbargoed'].append(o)
+    for o in g.objects(URIRef(item.uri), ag.NAMESPACES['oxds']['embargoedUntil']):
+        m['embargoedUntil'].append(o)
+    for o in g.objects(URIRef(item.uri), ag.NAMESPACES['oxds']['currentVersion']):
+        m['currentVersion'].append(o)
+    for o in g.objects(URIRef(item.uri), ag.NAMESPACES['bibo']['doi']):
+        m['doi'].append(o)
+    for o in g.objects(URIRef(item.uri), ag.NAMESPACES['ore']['aggregates']):
+        m['aggregates'].append(o)
+    return dict(m)

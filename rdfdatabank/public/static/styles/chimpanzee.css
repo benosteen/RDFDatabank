@@ -1,0 +1,52 @@
+
+
+
+/*
+###  this is  styles/chimpanzee.css  ### 
+
+
+
+This stylesheet is part of a set of stylesheets intended to provide progressive enhancement of css styles based on device capabilities.
+
+Here is an outline of each stylesheet:
+
+### basic.css ### This stylesheet establishes some basic style rules that work on all devices.
+
+### smartphone.css ###  styles for more advanced handheld devices.
+
+### full.css ### styles for 'full screen' devices (desktops, laptops, etc.).
+
+### ie.css ### IE specific styles (ie.css also  imports full.css)
+
+### mainnav.css ### styles for the main nav in full mode (mainnav.css is imported by full.css)
+
+### homepage.css ### styles for the homepage in full mode (homepage.css is imported by full.css)
+
+### print.css ### styles for printing
+
+All stylesheets files are in the /styles directory.
+
+
+
+
+*/
+div {
+}
+
+
+
+/* for tesing media queries */
+ul.mqtest li.bonobo
+{
+color: #333;
+}
+
+
+
+
+#page {
+
+  width: 1000px;
+  
+}
+

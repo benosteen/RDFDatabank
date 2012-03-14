@@ -6,17 +6,30 @@
 n = len(c.items)
 %>
 <p>Number of Datasets: ${n}</p>
+% if n > 0:
+<table class="dataset_list">
 % for item in sorted(c.items):
-<li id="${"_".join(c.silo_name.split("."))}_${"_".join(item.split(":"))}"> 
-<a href="/${c.silo_name}/datasets/${item}"> ${item}</a>
-<ul><li><a class="delete" href="/${c.silo_name}/datasets/${item}" data-remove="${"_".join(c.silo_name.split("."))}_${"_".join(item.split(":"))}">Delete dataset</a></li>
-<%
-c.current = item
-%>
-<li><%include file="/embargo_form.html"/></li>
-</ul>
-</li>
+<tr>
+<td><ul><li><a href="/${c.silo_name}/datasets/${item}"> ${item}</a></li></ul></td>
+<td>
+% if c.embargos and item in c.embargos and c.embargos[item]:
+  <% c.emb = c.embargos[item] %>
+  % if c.emb[0] == True or c.emb[0] == 1 or (isinstance(c.emb[0], basestring) and c.emb[0].strip().lower() in ['true', '1']):
+     % if (isinstance(c.emb[1], basestring) and c.emb[1].strip()):
+        Data package is embargoed until ${c.emb[1]}
+     % else:
+        Data package is embargoed indefinitely
+     % endif
+  % else:
+    Data package is openly accessible
+  % endif
+% else:
+    Data package is openly accessible
+% endif
+</td>
+</tr>
 % endfor
-</ul>
+</table>
+% endif
 % endif
                                                                                       

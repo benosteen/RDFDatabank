@@ -5,16 +5,18 @@
 </%def>
 <h1>Admin Interface - ${c.silo_name}</h1>
 % if c.silo_name:
-<h3> Admin ${c.silo_name}</h3>
+<h2> Admin ${c.silo_name}</h2>
 % if c.message:
-<p><span style="color:red;">${c.message}</span></p>
+<p class="message">${c.message}</p>
 % endif
 <hr/>
-<h4 id="delete_${c.silo_name}"> <a class="delete" href="/${c.silo_name}/admin" data-remove="delete_${c.silo_name}">Delete this silo - NO UNDO!</a></h4>
+<p id="delete_${c.silo_name}"> <a class="delete" href="/${c.silo_name}/admin" data-remove="delete_${c.silo_name}">Delete this silo - NO UNDO!</a></p>
 <hr/>
 % endif
+<h3><b>Silo metadata</b></h3>
 <%include file="/silo_metadata.html"/>
 <hr/>
+<h3><b>Update silo metadata</b></h3>
 <%include file="/alter_silo.html"/>
 <hr/>
-<!-- <%include file="/register_new_user.html"/>-->
+<!-- <%include file="/register_new_user.html"/> -->

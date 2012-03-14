@@ -1,0 +1,13 @@
+databank (0.2) unstable; urgency=low
+
+  * Added message workers
+  * Databank root set to /var/lib/databank
+
+ -- Anusha Ranganathan <anusha.ranganathan@ieee.org>  Fri, 09 Mar 2012 17:08:50 +0000
+
+
+databank (0.1) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Anusha Ranganathan <anusha.ranganathan@ieee.org>  Tue, 21 Feb 2012 17:08:50 +0000

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
 #Downloaded from http://code.activestate.com/recipes/576918/
 #Created by Michael Fogleman 
 #Short URL Generator
+"""
 
 #DEFAULT_ALPHABET = 'JedR8LNFY2j6MrhkBSADUyfP5amuH9xQCX4VqbgpsGtnW7vc3TwKE'
 #DEFAULT_BLOCK_SIZE = 22

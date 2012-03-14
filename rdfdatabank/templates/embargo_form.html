@@ -1,27 +1,37 @@
 # -*- coding: utf-8 -*-
 <form method="POST" enctype="multipart/form-data" action="/${c.silo_name}/datasets/${c.current}" accept-charset="UTF-8">
-<label for="embargoed">Embargoed?</label>
 % if c.embargos and c.current in c.embargos and c.embargos[c.current]:
   % if c.embargos[c.current][0] == True or (isinstance(c.embargos[c.current][0], basestring) and c.embargos[c.current][0].lower() in ['true', '1', 1]):
-    <input type="checkbox" name="embargoed_chkbox" checked="true" onclick="document.getElementById('embargoed').value = this.checked;"/>
-    <input type="hidden" name="embargoed" value="true" id="embargoed"/>
+    <label for="embargoed">Access status</label>
+    <input type="radio" name="embargoed" value="true" checked="true" /> Embargoed
+    <input type="radio" name="embargoed" value="false" /> Open access
+    <br/><br/>
   % else:
-    <input type="checkbox" name="embargoed_chkbox" onclick="document.getElementById('embargoed').value = this.checked;"/>
-    <input type="hidden" name="embargoed" value="false" id="embargoed"/>
+    <label for="embargoed">Access status</label>
+    <input type="radio" name="embargoed" value="true" /> Embargoed
+    <input type="radio" name="embargoed" value="false" checked="true" /> Open access
+    <br/><br/>
   % endif
-  <br />
-  <label for="embargoed_until">Embargoed until (date)</label>
   % if c.embargos[c.current][1]:
-      <input type="text" name="embargoed_until" value="${c.embargos[c.current][1]}" />
+    <label for="embargoed_until">Embargoed until (date)</label>
+    <input type="text" name="embargoed_until" value="${c.embargos[c.current][1]}" />
+    <br/><br/>
   % else:
-      <input type="text" name="embargoed_until" value="" />
+    <label for="embargoed_until">Embargoed until (date)</label>
+    <input type="text" name="embargoed_until" value="" />
+    <br/><br/>
   % endif
 % else:
-  <input type="checkbox" name="embargoed_chkbox" onclick="document.getElementById('embargoed').value = this.checked;"/>
-  <input type="hidden" name="embargoed" value="false" id="embargoed"/>
-  <br />
+  <label for="embargoed">Access status</label>
+  <input type="radio" name="embargoed" value="true" /> Embargoed
+  <input type="radio" name="embargoed" value="false" checked="true" /> Open access
+  <br/><br/>
   <label for="embargoed_until">Embargoed until (date)</label>
-  <input type="text" name="embargoed_until" />
+  <input type="text" name="embargoed_until" /></p>
+  <br/><br/>
 % endif
+<div class="form_helper"><b><i>Embargoed:</i></b> only authorized users of the silo can access the data package <br />
+<b><i>Open access:</i></b> all users can access the data package.</div>
+<div class="form_helper"><b><i>Embargo date:</i></b> Date until which a data package should be emargoed. By default, this is set to 70 years from now</div>
 <input type="submit" value="Change embargo"/>
 </form>

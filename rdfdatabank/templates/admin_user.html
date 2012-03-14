@@ -4,7 +4,7 @@
   <title>User Info - ${c.silo_name} </title>
 </%def>
 <h1>Silo ${c.silo_name}</h1>
-<h3> User info for ${c.username}</h3>
+<h3><b> User info for ${c.username}</b></h3>
 % if c.message:
 <p><span style="color:red;">${c.message}</span></p>
 % endif
@@ -34,4 +34,5 @@
   </ul>
 % endif
 <hr/>
+<h3><b> Update user information</b></h3>
 <%include file="/update_user.html"/>

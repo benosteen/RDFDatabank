@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-<p>
+<div class="manifest-form">
 <form method="POST" enctype="multipart/form-data" action="/${c.silo_name}/datasets/${c.id}" accept-charset="UTF-8">
 <textarea name="text" cols="60" rows="10">
 ${c.manifest}
 </textarea>
 <input type="hidden" name="filename" value="manifest.rdf" /><br />
+<div class="form_info">At the moment, it is only possible to add metadata, but not replace or delete the metadata.</div>
 <input type="submit" value="Add to RDF Manifest"/>
 </form>
-</p>
+</div>

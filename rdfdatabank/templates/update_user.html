@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-<p><b> Update user information</b></p>
 <p>
 <!-- Silo: ${c.silo_name} -->
 <form method="POST" enctype="multipart/form-data" action="/${c.silo_name}/users/${c.username}" accept-charset="UTF-8">
@@ -34,11 +33,13 @@
     else:
         owner = c.user['owner']
   %>
-  <li><label for="owner">Silos user has access to (comma separated silo ids):</label>
-    <input type="textbox" name="owner" value="${owner}"/></li>
+  <li><label for="owner">Silos:</label>
+    <input type="textbox" name="owner" value="${owner}"/>
+    <div class="form_helper">List all of the silos the user can access. Separate silo names with a comma</div></li>
 % else:
-  <li><label for="owner">Silos user has access to (comma separated silo ids):</label>
-    <input type="textbox" name="owner" value="${c.silo_name}"/></li>
+  <li><label for="owner">Silos:</label>
+    <input type="textbox" name="owner" value="${c.silo_name}"/>
+    <p>List all of the silos the user can access. Separate silo names with a comma</p></li>
 % endif
 
 <li><label for="role">Role:</label>
@@ -62,7 +63,7 @@
   <input type="radio" name="role" value="user" /> User &nbsp;&nbsp;
 % endif
 </li>
-
+<br/>
 <li><label for="password">Password:</label><input type="password" name="password" /></li>
 
 <li><input type="submit" value="Update user information"/></li>

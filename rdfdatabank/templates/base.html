@@ -1,10 +1,18 @@
 # -*- coding: utf-8 -*-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-  <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-  ${ h.stylesheet_link( '/static/style.css' ) }
+<!DOCTYPE html>
+
+<!--[if lt IE 7 ]> <html lang="en" class="ie ie6"> <![endif]-->
+<!--[if IE 7 ]>    <html lang="en" class="ie ie7"> <![endif]-->
+<!--[if IE 8 ]>    <html lang="en" class="ie ie8"> <![endif]-->
+<!--[if IE 9 ]>    <html lang="en" class="ie ie9"> <![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--> 
+<html lang="en"> 
+<!--<![endif]-->
+<head>
+
+<meta charset="utf-8" /> 
+
+  
   ${ h.javascript_link( '/static/jquery.js' ) }
   ${self.head_tags()}
   <script type="text/javascript">
@@ -20,6 +28,7 @@
         success: function() {
             var toRemove = $(theAnchor).attr('data-remove');
             $("#" + toRemove).remove();
+            window.location.replace("/${c.silo_name}");
         },
         error: function (XMLHttpRequest, textStatus, errorThrown) {
           alert("Ooooops!, request failed with status: " + XMLHttpRequest.status + ' ' + XMLHttpRequest.responseText);
@@ -29,71 +38,160 @@
   });
 });
   </script>
+  
+  
+  <!--[if lt IE 9]>
+  ${ h.javascript_link( '/static/js/html5.js' ) }
+  <![endif]-->
+  
+  <!-- print stylesheet for print stlying -->
+  <link media="print"  href="/static/styles/print.css" rel="stylesheet" type="text/css"/>
+  
+  
+  <!-- general reset styles for getting rid of annoying browser defaults -->
+  <link media="all"  href="/static/styles/reset.css" rel="stylesheet" type="text/css"/>
+
+  <!-- basic styles suitable for all devices *DO NOT put layout stuff here * -->
+<link media="all"  href="/static/styles/basic.css" rel="stylesheet" type="text/css"/>
+
+  <!-- styles for mobile devices-->
+  <link href="/static/styles/marmoset.css" rel="stylesheet" type="text/css" media="screen and (max-width: 639px)"/> 
+
+  <!-- styles for smallscreen devices-->
+  <link href="/static/styles/squirrelMonkey.css" rel="stylesheet" type="text/css" media="(min-width: 640px)"/> 
+
+
+  <!-- styles for small-to-medium screen desktop  devices-->
+  <link rel="stylesheet" type="text/css" href="/static/styles/chimpanzee.css"
+media="(min-width: 1100px) and (max-width: 1600px)"/> 
+
+
+  <!-- styles for large screen desktop devices-->
+  <link  rel="stylesheet" type="text/css" href="/static/styles/silverback.css" media="screen and (min-width: 1601px)"/> 
+
+
+  <!-- styles for Internet explorer - imports the small/medium desktop stylesheet and contains  any ie-specific styles -->
+  <!--[if (gt IE 4)&(lt IE 9)]>
+    <link media="screen" href="/static/styles/ie.css" rel="stylesheet" type="text/css"/>
+  <![endif]-->
+
+<!-- encourage mobile devices to initially load the site without zooming out -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<meta name="keywords" content="" />
+
+<meta name="description" content="" />
+ 
   </head>
-  <body>
-    <div id="wrapper">
-      <div id="header">
-        <%include file="/header.html"/>
-      </div>
-      <div id="widecontent">      
-    <%
+<body>
+  <div id="page" >
+    <header class="pageHeader">
+      <%include file="/header.html"/>
+     
+      <%
         user_logged_in = request.environ.get("repoze.who.identity")
         if user_logged_in:
             c.user_logged_in_name = user_logged_in['repoze.who.userid']
         current_url = request.environ.get('PATH_INFO')
-    %>
-        <div id="nav">
-          % if c.user_logged_in_name:
-            <div class="lt">Welcome ${c.user_logged_in_name}</div>
-          % endif
-          <div class="rt">
-          % if c.user_logged_in_name:
-            <a href="/logout_handler?came_from=${current_url}">Logout</a>
-          % else:
-            <a href="/login?came_from=${current_url}">Login</a>
-          % endif
-          </div>
-          <br/>
-          <div class="lt">
-          <ul>
-            <li> <a href="/silos">Silos</a></li>
-            % if c.silo_name:
-              <li><a href="/${c.silo_name}/datasets">${c.silo_name}</a></li>
-            % endif 
-          </ul>
-          </div>
-          <br/>
-          <div class="rt">
-          % if c.ident and 'role' in c.ident and c.ident['role'] in ["admin", "manager", "user"]:
-            % if c.ident and c.ident['role'] in ["admin", "manager"] and c.silo_name:
-              % if c.ident and c.ident['role'] == "admin":
-                <ul><li><a href="/admin">Admin pages</a></li>
-                % if c.silo_name:
-                  <ul><li><a href="/${c.silo_name}/admin">Admin ${c.silo_name}</a></li></ul>
-                  <ul><li><a href="/${c.silo_name}/users">Manage users</a></li></ul>
-                % endif
-                </ul>
-              % elif c.silo_name:
-                <ul><li><a href="/${c.silo_name}/users">Manage users</a></li></ul>
-              % endif
-            % endif 
-          % endif
-          </div>
-        </div>
-        <br style="clear:both"/>
-        % if c.id:
-          % if c.path:
-            <h2> Subdirectory <a href="/${c.silo_name}/datasets/${c.id}/${c.path}">${c.id}/${c.path}</a></h2>
-            <h3> Root directory: <a href="/${c.silo_name}/datasets/${c.id}">${c.id}</a> </h3>
-          % else:
-            <h2> Root directory of <a href="/${c.silo_name}/datasets/${c.id}">${c.id}</a> </h2>
-          % endif
-        % endif
-        ${self.body()}
-      </div>
-      <div id="footer">
-        <%include file="/footer.html"/>
-      </div>
-    </div>
+      %> 
+      
+      <nav>
+
+     <!--  mainnav div starts -->
+<label class="nonVis"  >main navigation</label>
+
+	<ul id="mainnav">
+	<li> <a href="/" id="nav-index" >home</a></li>
+	
+	<li><a href="/silos" >browse</a></li>
+	
+	<li><a href="/searching" >search</a></li>
+	
+	<li><a href="/keywords" >keywords</a></li>
+	
+	<li><a href="/about" >about</a></li>
+
+
+% if c.ident and 'role' in c.ident and c.ident['role'] == "admin":
+<li><a href="/admin">admin</a></li>
+% endif
+
+</ul>
+
+
+
+
+<label class="nonVis" >breadcrumb trail</label>
+<ul class="breadcrumb" >
+% if c.silo_name:
+<li class="silo"><label>silo: </label><a href="/${c.silo_name}">${c.silo_name}</a><span class="apart">|</span>
+% if c.ident and 'role' in c.ident and c.ident['role'] in ["admin", "manager"]:
+  <a href="/${c.silo_name}/admin/">manage ${c.silo_name}</a>
+% endif
+</li>
+% endif
+
+% if c.id:
+<li class="dataPackage"><label>data package: </label><a href="/${c.silo_name}/datasets/${c.id}">${c.id}</a></li>
+% endif
+
+% if c.path:
+<%
+paths = c.path.split('/')
+path_url = "/%s/datasets/%s"%(c.silo_name,c.id)
+%>
+% for path in paths:
+<% path_url = path_url + "/%s"%path %>
+<li><a href="${path_url}">${path}</a></li>
+% endfor
+% endif
+
+</ul>
+
+<div class="nav_rt">
+  % if c.user_logged_in_name:
+    <p>Welcome ${c.user_logged_in_name}</p>
+  % endif
+  <p>
+  % if c.user_logged_in_name:
+    <a href="/logout_handler?came_from=${current_url}">Logout</a>
+  ## % else:
+  ##  <a href="/login?came_from=${current_url}">Login</a>
+  % endif
+  </p>
+</div>
+
+
+	
+</nav>
+      
+
+</header>
+
+
+
+<div class="main">
+
+
+    <article class="content" >
+
+	<div class="wrapper">
+	
+	
+	
+	
+	
+	
+    ${self.body()}
+      	</div>
+	</article> 
+ 	<div class="clear" ></div>
+ 
+ 
+ </div><!-- close .main -->
+      <footer class="site">
+      <%include file="/footer.html"/>
+      </footer>
+    </div><!-- /end #page -->
   </body>
 </html>

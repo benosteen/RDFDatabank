@@ -1,4 +1,27 @@
 # -*- coding: utf-8 -*-
+"""
+Copyright (c) 2012 University of Oxford
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, --INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+
 import logging
 import simplejson
 import codecs
@@ -85,6 +108,7 @@ class UsersController(BaseController):
             if params['username'] in ag.users:
                 abort(403, "User exists")
             code = 201
+            ag.users[params['username']] = {'role':'', 'first_name':'', 'last_name':'', 'name':'', 'owner':''}
             owner_of_silos = []
             if 'owner' in params and params['owner'] and (('first_name' in params and 'last_name' in params) or 'name' in params) and \
                'username' in params and params['username'] and 'password' in params and params['password']:
@@ -230,6 +254,7 @@ class UsersController(BaseController):
                 code = 204
             else:
                 code = 201
+                ag.users[params['username']] = {'role':'', 'first_name':'', 'last_name':'', 'name':'', 'owner':''}
             owner_of_silos = []
             if code == 201:            
                 if 'owner' in params and params['owner'] and 'password' in params and params['password'] and \

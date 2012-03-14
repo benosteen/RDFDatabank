@@ -3,9 +3,9 @@
 <form method="GET" enctype="multipart/form-data" action="/search/detailed" accept-charset="UTF-8">
 <label for="q">Search</label>
 % if c.q:
-<input type="text" name="q" value="${c.q}"/>
+<input id="q" type="text" name="q" value="${c.q}"/>
 % else:
-<input type="text" name="q" value="*:*"/>
+<input id="q" type="text" name="q" placeholder="search datasets"/>
 % endif
 <input type="submit" value="Search"/><br/>
 % if c.typ:
@@ -36,6 +36,6 @@
 <input type="radio" name="type" value="all" checked="checked"/>Any
 % endif
 <input type="hidden" name="fl" value="*,score"/>
-<input type="hidden" name="wt" value="xml"/>
+<input type="hidden" name="format" value="html"/>
 </form>
 </div>

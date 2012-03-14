@@ -1,4 +1,27 @@
 #-*- coding: utf-8 -*-
+"""
+Copyright (c) 2012 University of Oxford
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, --INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+
 import logging
 import simplejson
 from pylons import request, response, session, config, tmpl_context as c, url
@@ -138,12 +161,12 @@ class AdminController(BaseController):
         #c.granary_list = ag.granary.silos
         c.silo_name = silo_name
         # Admin only
-        if not ident.get('role') == "admin":
+        if not ident.get('role') in ["admin", "manager"]:
             abort(403, "Do not have admin credentials")
         if ident.get('role') == "admin":
             c.roles = ["admin", "manager", "user"]
         else:
-            c.roles = ["admin", "manager"]
+            c.roles = ["manager", "user"]
         granary_list = ag.granary.silos
         silos = ag.authz(granary_list, ident)
         if not silo_name in silos:
@@ -317,11 +340,17 @@ class AdminController(BaseController):
             # and then remove the silo
             todelete_silo = ag.granary.get_rdf_silo(silo_name)
             for item in todelete_silo.list_items():
-                ag.b.deletion(silo_name, item, ident=ident['repoze.who.userid'])
+                try:
+                    ag.b.deletion(silo_name, item, ident=ident['repoze.who.userid'])
+                except:
+                    pass
 
             ag.granary.delete_silo(silo_name)
+            try:
+                ag.b.silo_deletion(silo_name, ident=ident['repoze.who.userid'])
+            except:
+                pass
 
-            ag.b.silo_deletion(silo_name, ident=ident['repoze.who.userid'])
             try:
                 del ag.granary.state[silo_name]
             except:
