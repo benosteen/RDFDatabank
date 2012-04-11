@@ -2,13 +2,32 @@
 <%inherit file="/base.html" />
 <%def name="head_tags()">
   <title>Item View</title>
+<script type="text/javascript">
+<!--
+    function showhide(id) {
+       var e = document.getElementById(id);
+       if(e.style.display == 'block')
+          e.style.display = 'none';
+       else
+          e.style.display = 'block';
+    }
+//-->
+</script>
+
 </%def>
 
 <h1>Dataset ${c.id}</h1>
+% if c.version:
+<h3>Version ${c.version}</h3>
+% elif c.versions:
+<h3>Version ${c.versions[-1]}</h3>
+% endif
 
 <!-- View Information -->
 % if c.editor:
   <div id="editor_view">
+  <p class="title">Editorial functions</p>
+  <!-- 
   % if c.view == 'editor':
     Editor view 
   % else:
@@ -23,17 +42,51 @@
     <a href="/${c.silo_name}/datasets/${c.id}/${c.path}?view=editor">Editor</a> | 
     <a href="/${c.silo_name}/datasets/${c.id}/${c.path}?view=user">User</a></p>
   % endif
+  -->
+  <p><b><a href="#upload_file" onclick="showhide('upload_file');">
+    <img src="/static/styles/images/file-new-icon-24.png"/>Upload file</a></b></p>
   </div>
 % endif
 
-<div class="datapackage">
-<!-- Readme file -->
-% if c.readme_text:
-<%include file="/readme_section.html"/>
+<!-- Version of Datapackage -->
+<div class="dataset_info">
+% if c.version and c.versions and c.version == c.versions[-1]:
+<p>You are currently viewing the <b>latest version (${c.versions[-1]})</b> of the data package</p>
+% elif c.version:
+<p>You are currently viewing <b> version ${c.version}</b> of the data package</p>
+% elif c.versions:
+<p>You are currently viewing the <b>latest version (${c.versions[-1]})</b> of the data package</p>
+% else:
+<p>You are currently viewing the <b>latest version</b> of th data package</p>
 % endif
 
+% if c.versions:
+  <p><b>View other versions:</b>
+  % for i in range(1, len(c.versions)-1):
+    % if c.version and c.versions[i] == c.version:
+      <a class="current" href="/${c.silo_name}/datasets/${c.id}/${c.path}?version=${c.versions[i]}">${c.versions[i]}</a> |
+    % else:
+      <a href="/${c.silo_name}/datasets/${c.id}/${c.path}?version=${c.versions[i]}">${c.versions[i]}</a> |
+    % endif
+  % endfor
+  % if c.version:
+    % if c.version == c.versions[-1]:
+      <a class="current" href="/${c.silo_name}/datasets/${c.id}/${c.path}?version=${c.versions[-1]}">${c.versions[-1]}</a>
+    % else:
+      <a href="/${c.silo_name}/datasets/${c.id}/${c.path}?version=${c.versions[-1]}">${c.versions[-1]}</a>
+    % endif
+  % else:
+    <a class="current" href="/${c.silo_name}/datasets/${c.id}/${c.path}?version=${c.versions[-1]}">${c.versions[-1]}</a>
+  % endif
+  </p>
+% endif
+</div>
+
+<div class="datapackage">
 <!-- List of Files -->
 % if c.parts:
+  <h3><b>Data package contents within ${c.path}</b></h3>
+  <div class="dataset_info">
   % if c.show_files:
     % if c.editor:
       <%include file="/part_list.html"/>
@@ -43,16 +96,28 @@
   % else:
     <p>You do not have permission to view these files</p>
   % endif
+  </div>
 % else:
   <p>There are no files or folders in this path</p>
 % endif
 </div>
 
+<!-- Read Me Information -->
+% if c.readme_text:
+<h3><b>README text</b></h3>
+<div class="dataset_info">
+<%include file="/readme_section.html"/>
+</div>
+% endif
+
 <!-- DISPLAYED FOR EDITOR ONLY -->
 % if c.editor and c.view == 'editor':
-  <div class="editor">
   <!-- Upload File -->
+  <div id="upload_file" class="edit_section" style="display: none;">
+  <a name="upload_file"></a>
+  <h3><b>Upload file to ${c.id}/${c.path}:</b></h3>
   <%include file="/item_file_upload.html"/>
+  <div class="top"><a href="#top" onclick="showhide('upload_file');" title="Back to top"><img src="/static/styles/images/go-up-icon-24.png"/></a></div>
   </div>
 % endif
 

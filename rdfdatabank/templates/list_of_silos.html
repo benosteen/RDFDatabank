@@ -9,11 +9,11 @@ n = len(c.silos)
 <h1> List of Silos </h1>
 % if c.silos:
   <p>Number of silos: ${n}</p>
+  <div class="silo_list">
   <ul>
   % for silo in c.silos:
-    <li><a href="/${silo}"><big><big>${silo}</big></big></a><br /><ul>
-    <li><a href="/${silo}/datasets">Datasets </a></li>
-    </ul>
+    <li><a href="/${silo}">${silo}</a></li>
   % endfor
   </ul>
+  </div>
 % endif

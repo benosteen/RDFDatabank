@@ -1,4 +1,27 @@
 #-*- coding: utf-8 -*-
+"""
+Copyright (c) 2012 University of Oxford
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, --INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+
 import logging
 import simplejson
 from pylons import request, response, session, config, tmpl_context as c, url
@@ -176,13 +199,15 @@ class AdminController(BaseController):
         if not silo in silos:
             abort(403, "Do not have administrator or manager credentials for silo %s"%silo)
         user_groups = list_user_groups(ident['user'].user_name)
-        if (silo, 'administrator') in user_groups:
+        if ('*', 'administrator') in user_groups:
+            #User is super user
+            c.roles = ["admin", "manager", "user"]
+        elif (silo, 'administrator') in user_groups:
             c.roles = ["admin", "manager", "user"]
         elif (silo, 'manager') in user_groups:
             c.roles = ["manager", "user"]
         else:
-            #User is super user
-            c.roles = ["admin", "manager", "user"]
+            abort(403, "Do not have administrator or manager credentials for silo %s"%silo)
         http_method = request.environ['REQUEST_METHOD']
 
         c.kw = ag.granary.describe_silo(silo)
@@ -357,11 +382,25 @@ class AdminController(BaseController):
             # and then remove the silo
             todelete_silo = ag.granary.get_rdf_silo(silo)
             for item in todelete_silo.list_items():
+<<<<<<< HEAD
                 ag.b.deletion(silo, item, ident=ident['repoze.who.userid'])
 
             ag.granary.delete_silo(silo)
 
             ag.b.silo_deletion(silo, ident=ident['repoze.who.userid'])
+=======
+                try:
+                    ag.b.deletion(silo_name, item, ident=ident['repoze.who.userid'])
+                except:
+                    pass
+
+            ag.granary.delete_silo(silo_name)
+            try:
+                ag.b.silo_deletion(silo_name, ident=ident['repoze.who.userid'])
+            except:
+                pass
+
+>>>>>>> 01f8f90b4121355bfcab059dcda276272fa6475b
             try:
                 del ag.granary.state[silo]
             except:

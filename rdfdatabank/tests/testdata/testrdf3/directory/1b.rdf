@@ -5,7 +5,7 @@
   xmlns:dc='http://purl.org/dc/elements/1.1/'
 >
   <oxds:Grouping rdf:about="">
-    <dc:description>file1.b is another file</dc:description>
+    <dc:description>file1.b is a text file</dc:description>
   </oxds:Grouping>
 </rdf:RDF>
 

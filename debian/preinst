@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+
+# stop apache server
+# stop django server
+if [ -f /etc/init.d/apache2 ]
+then
+  invoke-rc.d apache2 stop
+fi
+

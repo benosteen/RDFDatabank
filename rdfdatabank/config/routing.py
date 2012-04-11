@@ -1,4 +1,27 @@
 #-*- coding: utf-8 -*-
+"""
+Copyright (c) 2012 University of Oxford
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, --INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+
 """Routes configuration
 
 The more specific and detailed routes should be defined first so they
@@ -21,7 +44,6 @@ def make_map():
 
     # CUSTOM ROUTES HERE
 
-    #map.redirect("/", "/silos")
     map.redirect('/*(url)/', '/{url}',
              _redirect_code='301 Moved Permanently')
 
@@ -36,6 +58,10 @@ def make_map():
     map.connect('/api', controller='api', action='index')
     map.connect('/api/{api_name}', controller='api', action='apiview')
    
+    map.connect('/keywords', controller='keywords', action='index')
+    map.connect('/about', controller='about', action='index')
+    map.connect('/searching', controller='searching', action='index')
+
     map.connect('/admin', controller='admin', action='index')
     map.connect('/users', controller='users', action='index')
     map.connect('/users/{username}', controller='users', action='userview')

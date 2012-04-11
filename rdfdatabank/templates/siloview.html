@@ -4,12 +4,12 @@
   <title> List of Datasets </title>
 </%def>
 % if c.silo_name:
-<h1>List of Datasets in Silo ${c.silo_name}</h1>
+<h1>List of Datasets in Silo <span class="name" >${c.silo_name}</span></h1>
 % else:
 <h1>List of Datasets in Silo</h1>
 % endif
 <%include file="list_of_datasets.html"/>
 % if c.editor:
-  <h3> Create new empty dataset: </h3>
+  <h2> Create new empty dataset: </h2>
   <%include file="create_new_item.html"/>
 % endif

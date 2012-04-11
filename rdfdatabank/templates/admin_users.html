@@ -3,8 +3,7 @@
 <%def name="head_tags()">
   <title>Users - ${c.silo_name} </title>
 </%def>
-<h1>Users - ${c.silo_name}</h1>
-<h3> Users in ${c.silo_name}</h3>
+<h1>Users of ${c.silo_name}</h1>
 % if c.message:
 <p><span style="color:red;">${c.message}</span></p>
 % endif
@@ -17,4 +16,5 @@
   </ul>
 % endif
 <hr/>
+<h3><b>Create new user</b></h3>
 <%include file="/register_new_user.html"/>

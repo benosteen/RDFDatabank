@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-<p><b> Add File to ${c.id}/${c.path}</b></p>
-<p>
 <form method="POST" enctype="multipart/form-data" action="/${c.silo_name}/datasets/${c.id}/${c.path}" accept-charset="UTF-8">
+<label for="file">File:</label>
 <input type="file" name="file" /> 
-<label for="filename">Filename: (optional)</label><input type="text" name="filename"/>
+<br/><br/>
+<label for="filename">Filename:</label>
+<input type="text" name="filename" placeholder="optional"/>
+<br/><br/>
 <input type="submit" value="Add File"/>
 </form>
-</p>

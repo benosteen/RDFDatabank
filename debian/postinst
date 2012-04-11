@@ -1,0 +1,135 @@
+#!/bin/sh
+# postinst script for databank
+#
+# see: dh_installdeb(1)
+
+set -e
+
+# Source debconf library.
+. /usr/share/debconf/confmodule
+
+# Ask questions
+db_get databank/email
+local dbemail="$RET"
+#echo "Email id is:" $dbemail
+
+db_get databank/smtpserver
+local dbsmtp="$RET"
+
+db_get databank/store
+local dbstore="$RET"
+
+db_get databank/uri
+local dburi="$RET"
+
+#db_get databank/password
+#local dbpasswd="$RET"
+
+#Modify the ini files
+CONFIG_FILE1=/etc/default/databank/production.ini
+CONFIG_FILE2=/etc/default/databank/development.ini
+#replace email
+TARGET_KEY=email_to
+echo "Setting email Id: " $dbemail
+#Sed syntax: sed s/a/b/ or sed s,a,b,
+sed -i "s/\($TARGET_KEY *= *\).*/\1$dbemail/" $CONFIG_FILE1
+sed -i "s/\($TARGET_KEY *= *\).*/\1$dbemail/" $CONFIG_FILE2
+#replace smtp server
+echo "Setting SMTP Server: " $dbsmtp
+TARGET_KEY=smtp_server
+sed -i "s,\($TARGET_KEY *= *\).*,\1$dbsmtp," $CONFIG_FILE1
+sed -i "s,\($TARGET_KEY *= *\).*,\1$dbsmtp," $CONFIG_FILE2
+#replace granary store
+echo "Setting Data store: " $dbstore
+TARGET_KEY=granary.store
+sed -i "s,\($TARGET_KEY *= *\).*,\1$dbstore," $CONFIG_FILE1
+sed -i "s,\($TARGET_KEY *= *\).*,\1$dbstore," $CONFIG_FILE2
+#replace granary uri root
+echo "Setting Base URI: " $dburi
+TARGET_KEY=granary.uri_root
+[ $TARGET_KEY != "*/" ] && TARGET_KEY="$TARGET_KEY""/"
+sed -i "s,\($TARGET_KEY *= *\).*,\1$dburi," $CONFIG_FILE1
+sed -i "s,\($TARGET_KEY *= *\).*,\1$dburi," $CONFIG_FILE2
+
+#Copy htpasswd file
+#htpasswd -b -c /var/lib/databank/passwd admin $dbpasswd
+cp /var/lib/databank/passwd-default /var/lib/databank/passwd
+
+#Link config files
+ln -sf /etc/default/databank/production.ini /var/lib/databank/production.ini
+ln -sf /etc/default/databank/development.ini /var/lib/databank/development.ini
+ln -sf /etc/default/databank/databank_wsgi /etc/apache2/sites-available/databank_wsgi
+
+#Create dirs and change ownership and permissions
+# ownership and permissions for /var/lib/databank
+chgrp -R www-data /var/lib/databank/
+chmod -R 770 /var/lib/databank/
+# ownership and permissions for /var/log/databank
+mkdir -p /var/log/databank
+chgrp -R www-data /var/log/databank/
+chmod -R 770 /var/log/databank/
+# ownership and permissions for /var/cache/databank
+mkdir -p /var/cache/databank
+chgrp -R www-data /var/cache/databank/
+chmod -R 770 /var/cache/databank/
+# ownership and permissions /etc/default/databank
+chgrp -R www-data /etc/default/databank/
+chmod -R 770 /var/cache/databank/
+# ownership and permissions granary.store
+mkdir -p $dbstore
+chgrp -R www-data $dbstore
+chmod -R 770 $dbstore
+
+#Configure SOLR and message workers in supervisor
+db_get databank/confsolr
+local dbconf="$RET"
+installstatus=`dpkg-query -W -f='${Status}' solr-tomcat`
+if [ "$installstatus" = "install ok installed" ]
+then
+    if [ "$dbconf" = "true" ]
+    then
+        if [ -f /etc/init.d/tomcat6 ]
+        then
+            invoke-rc.d tomcat6 stop
+        fi
+        if [ -f /etc/init.d/supervisor ]
+        then
+            invoke-rc.d supervisor stop
+        fi
+        cp /etc/solr/conf/schema.xml /etc/solr/conf/schema.xml.bak
+        ln -sf /etc/default/databank/schema.xml /etc/solr/conf/schema.xml
+        ln -sf /var/lib/databank/message_workers/workers_available/worker_broker.conf /etc/supervisor/conf.d/worker_broker.conf
+        ln -sf /var/lib/databank/message_workers/workers_available/worker_solr.conf /etc/supervisor/conf.d/worker_solr.conf
+        if [ -f /etc/init.d/tomcat6 ]
+        then
+            invoke-rc.d tomcat6 start
+        fi
+        if [ -f /etc/init.d/supervisor ]
+        then
+            invoke-rc.d supervisor start
+        fi
+    else
+        echo "***********************************************************"
+        echo "SOLR has not been configured for Databank."
+        echo "The instructions for doing so are available at"
+        echo "/usr/share/doc/databank/ConfiguringSOLR.txt"
+        echo "***********************************************************"
+    fi
+else
+    echo "***********************************************************"
+    echo "SOLR has not been configured for Databank."
+    echo "The instructions for doing so are available at"
+    echo "/usr/share/doc/databank/ConfiguringSOLR.txt"
+    echo "***********************************************************"
+fi
+
+#Enable site in apache
+a2dissite default
+a2dissite default-ssl
+a2ensite databank_wsgi
+
+#Start Apache
+invoke-rc.d apache2 reload
+invoke-rc.d apache2 start
+
+db_stop

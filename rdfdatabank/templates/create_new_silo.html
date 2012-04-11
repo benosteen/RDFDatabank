@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 <form class="create_silo" method="POST" enctype="multipart/form-data" action="/admin" accept-charset="UTF-8">
-<div><label for="silo">Silo label (eg 'a' -> /a/datasets/...)</label><input type="text" name="silo" /></div>
+<div><label for="silo">Silo name (eg 'a' -> /a/datasets/...)</label><input type="text" name="silo" /></div>
+<div class="form_helper">The machine readable name of the silo, used by the system and in the urls. <br/><br/>For example the name <i>siloa</i> will appear in the url as <i>http://databank/siloa/...</i></div></li>
 <div><label for="title">Title:</label><input type="text" name="title" /></div>
 <div><label for="description">Description:</label><input type="textbox" name="description" /></div>
 <div><label for="notes">Notes:</label><input type="textbox" name="notes" /></div>
-<div><label for="administrators">Administrators (comma separated userids):</label><input type="textbox" name="administrators" /></div>
-<div><label for="managers">Managers (comma separated userids):</label><input type="textbox" name="managers" /></div>
-<div><label for="users">Submitters (comma separated userids):</label><input type="textbox" name="users" /></div>
+<div><label for="administrators">Administrators:</label><input type="textbox" name="administrators" /></div>
+<div class="form_helper">Separate multiple usernames with a comma</div>
+<div><label for="managers">Managers:</label><input type="textbox" name="managers" /></div>
+<div class="form_helper">Separate multiple usernames with a comma</div>
+<div><label for="users">Submitters:</label><input type="textbox" name="users" /></div>
+<div class="form_helper">Separate multiple usernames with a comma</div>
 <div><label for="disk_allocation">Disk Allocation (in Kb):</label><input type="textbox" name="disk_allocation" /></div>
 <div><input type="submit" value="Create new silo"/></div>
 </form>
-</p>

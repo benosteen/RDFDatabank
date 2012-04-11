@@ -1,4 +1,27 @@
 #-*- coding: utf-8 -*-
+"""
+Copyright (c) 2012 University of Oxford
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, --INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+
 import logging
 import re, os, shutil, codecs
 import simplejson
@@ -12,7 +35,8 @@ from pylons.controllers.util import abort, redirect
 from pylons.decorators import rest
 from paste.fileapp import FileApp
 from rdfdatabank.lib.base import BaseController, render
-from rdfdatabank.lib.utils import create_new, is_embargoed, get_readme_text, test_rdf, munge_manifest, serialisable_stat, allowable_id2, get_embargo_values, get_rdf_template
+from rdfdatabank.lib.utils import create_new, get_readme_text, serialisable_stat, allowable_id2, natural_sort
+from rdfdatabank.lib.utils import is_embargoed, test_rdf, munge_manifest, get_embargo_values, get_rdf_template, extract_metadata
 from rdfdatabank.lib.file_unpack import get_zipfiles_in_dataset
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 
@@ -27,9 +51,6 @@ class DatasetsController(BaseController):
             abort(404)
         c.silo_name = silo
         granary_list = ag.granary.silos
-        #f = open('/tmp/ds.log', 'a')
-        #f.write(str(granary_list))
-        #f.close()
         ident = request.environ.get('repoze.who.identity')
         c.ident = ident
 
@@ -118,7 +139,10 @@ class DatasetsController(BaseController):
             item = create_new(c_silo, id, ident['repoze.who.userid'], **params)
                    
             # Broadcast change as message
-            ag.b.creation(silo, id, ident=ident['repoze.who.userid'])
+            try:
+                ag.b.creation(silo, id, ident=ident['repoze.who.userid'])
+            except:
+                pass
                  
             # conneg return
             accept_list = None
@@ -253,6 +277,10 @@ class DatasetsController(BaseController):
             c.embargos[id] = is_embargoed(c_silo, id)
             c.parts = item.list_parts(detailed=True)
             c.manifest_pretty = item.rdf_to_string(format="pretty-xml")
+            c.metadata = None
+            c.metadata = extract_metadata(item)
+            c.versions = item.manifest['versions']
+            c.versions = natural_sort(c.versions)
             #c.manifest = item.rdf_to_string()
             c.manifest = get_rdf_template(item.uri, id)
             c.zipfiles = get_zipfiles_in_dataset(item)
@@ -338,7 +366,10 @@ class DatasetsController(BaseController):
                 item = create_new(c_silo, id, ident['repoze.who.userid'], **params)
                 
                 # Broadcast change as message
-                ag.b.creation(silo, id, ident=ident['repoze.who.userid'])
+                try:
+                    ag.b.creation(silo, id, ident=ident['repoze.who.userid'])
+                except:
+                    pass
                 
                 # conneg return
                 accept_list = None
@@ -389,24 +420,35 @@ class DatasetsController(BaseController):
                     e, e_d = get_embargo_values(embargoed=params['embargoed'], embargo_days_from_now=params['embargo_days_from_now'])
                 else:
                     e, e_d = get_embargo_values(embargoed=params['embargoed'])
-                
                 item.metadata['embargoed_until'] = ''
                 item.del_triple(item.uri, u"oxds:isEmbargoed")
                 item.del_triple(item.uri, u"oxds:embargoedUntil")
-                ag.r.set("%s:%s:embargoed_until" % (c_silo.state['storage_dir'], id), ' ')
+                try:   
+                    ag.r.set("%s:%s:embargoed_until" % (c_silo.state['storage_dir'], id), ' ')
+                except:
+                    pass
 
                 if e:
                     item.metadata['embargoed'] = True
                     item.add_triple(item.uri, u"oxds:isEmbargoed", 'True')
-                    ag.r.set("%s:%s:embargoed" % (c_silo.state['storage_dir'], id), True)
+                    try:
+                        ag.r.set("%s:%s:embargoed" % (c_silo.state['storage_dir'], id), True)
+                    except:
+                        pass
                     if e_d:
                         item.metadata['embargoed_until'] = e_d
                         item.add_triple(item.uri, u"oxds:embargoedUntil", e_d)
-                        ag.r.set("%s:%s:embargoed_until" % (c_silo.state['storage_dir'], id), e_d)
+                        try:
+                            ag.r.set("%s:%s:embargoed_until" % (c_silo.state['storage_dir'], id), e_d)
+                        except:
+                            pass
                 else:
                     item.metadata['embargoed'] = False
                     item.add_triple(item.uri, u"oxds:isEmbargoed", 'False')
-                    ag.r.set("%s:%s:embargoed" % (c_silo.state['storage_dir'], id), False)
+                    try:
+                        ag.r.set("%s:%s:embargoed" % (c_silo.state['storage_dir'], id), False)
+                    except:
+                        pass
 
                 item.del_triple(item.uri, u"dcterms:modified")
                 item.add_triple(item.uri, u"dcterms:modified", datetime.now())
@@ -507,13 +549,19 @@ class DatasetsController(BaseController):
                 item.sync()
                 
                 if code == 201:
-                    ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
+                    try:
+                        ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
+                    except:
+                        pass
                     response.status = "201 Created"
                     response.status_int = 201
                     response.headers["Content-Location"] = url(controller="datasets", action="itemview", id=id, silo=silo, path=filename)
                     response_message = "201 Created. Added file %s to item %s" % (filename, id)
                 else:
-                    ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
+                    try:
+                        ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
+                    except:
+                        pass
                     response.status = "204 Updated"
                     response.status_int = 204
                     response_message = None
@@ -601,13 +649,19 @@ class DatasetsController(BaseController):
                 item.sync()
                 
                 if code == 201:
-                    ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
+                    try:
+                        ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
+                    except:
+                        pass
                     response.status = "201 Created"
                     response.status_int = 201
                     response.headers["Content-Location"] = url(controller="datasets", action="datasetview", id=id, silo=silo)
                     response_message = "201 Created. Added file %s to item %s" % (filename, id)
                 else:
-                    ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
+                    try:
+                        ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
+                    except:
+                        pass
                     response.status = "204 Updated"
                     response.status_int = 204
                     response_message = None
@@ -655,7 +709,10 @@ class DatasetsController(BaseController):
             c_silo.del_item(id)
             
             # Broadcast deletion
-            ag.b.deletion(silo, id, ident=ident['repoze.who.userid'])
+            try:
+                ag.b.deletion(silo, id, ident=ident['repoze.who.userid'])
+            except:
+                pass
             
             response.content_type = "text/plain"
             response.status_int = 200
@@ -878,6 +935,8 @@ class DatasetsController(BaseController):
                 return fileserve_app(request.environ, self.start_response)
             elif item.isdir(path):
                 #c.parts = item.list_parts(detailed=True)
+                c.versions = item.manifest['versions']
+                c.versions = natural_sort(c.versions)
                 c.parts = item.list_parts(path, detailed=True)
                 c.readme_text = None
                 if "README" in c.parts.keys():
@@ -965,13 +1024,19 @@ class DatasetsController(BaseController):
             item.sync()
                 
             if code == 201:
-                ag.b.creation(silo, id, path, ident=ident['repoze.who.userid'])
+                try:
+                    ag.b.creation(silo, id, path, ident=ident['repoze.who.userid'])
+                except:
+                    pass
                 response.status = "201 Created"
                 response.status_int = 201
                 response.headers["Content-Location"] = url(controller="datasets", action="itemview", id=id, silo=silo, path=path)
                 response_message = "201 Created"
             else:
-                ag.b.change(silo, id, path, ident=ident['repoze.who.userid'])
+                try:
+                    ag.b.change(silo, id, path, ident=ident['repoze.who.userid'])
+                except:
+                    pass
                 response.status = "204 Updated"
                 response.status_int = 204
                 response_message = None
@@ -1061,13 +1126,19 @@ class DatasetsController(BaseController):
             item.sync()
                 
             if code == 201:
-                ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
+                try:
+                    ag.b.creation(silo, id, target_path, ident=ident['repoze.who.userid'])
+                except:
+                    pass
                 response.status = "201 Created"
                 response.status_int = 201
                 response.headers["Content-Location"] = url(controller="datasets", action="itemview", id=id, silo=silo, path=path)
                 response_message = "201 Created"
             else:
-                ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
+                try:
+                    ag.b.change(silo, id, target_path, ident=ident['repoze.who.userid'])
+                except:
+                    pass
                 response.status = "204 Updated"
                 response.status_int = 204
                 response_message = None
@@ -1114,7 +1185,10 @@ class DatasetsController(BaseController):
                 item.del_triple(item.uri, u"oxds:currentVersion")
                 item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
                 item.sync()
-                ag.b.deletion(silo, id, path, ident=ident['repoze.who.userid'])
+                try:
+                    ag.b.deletion(silo, id, path, ident=ident['repoze.who.userid'])
+                except:
+                    pass
                 response.content_type = "text/plain"
                 response.status_int = 200
                 response.status = "200 OK"
@@ -1127,7 +1201,10 @@ class DatasetsController(BaseController):
                 item.del_triple(item.uri, u"dcterms:modified")
                 item.add_triple(item.uri, u"dcterms:modified", datetime.now())
                 item.sync()
-                ag.b.deletion(silo, id, path, ident=ident['repoze.who.userid'])
+                try:
+                    ag.b.deletion(silo, id, path, ident=ident['repoze.who.userid'])
+                except:
+                    pass
                 response.content_type = "text/plain"
                 response.status_int = 200
                 response.status = "200 OK"

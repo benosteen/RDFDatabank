@@ -1,4 +1,27 @@
 # -*- coding: utf-8 -*-
+"""
+Copyright (c) 2012 University of Oxford
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, --INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+
 import logging
 import os, time
 from datetime import datetime, timedelta
@@ -8,7 +31,7 @@ from pylons.controllers.util import abort, redirect
 from pylons.decorators import rest
 
 from rdfdatabank.lib.base import BaseController, render
-from rdfdatabank.lib.utils import create_new
+from rdfdatabank.lib.utils import create_new, allowable_id2
 from rdfdatabank.lib.file_unpack import check_file_mimetype, BadZipfile, get_zipfiles_in_dataset, unpack_zip_item, read_zipfile
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 
@@ -120,12 +143,18 @@ class ItemsController(BaseController):
             if params.has_key("id") and params['id']:
                 target_dataset_name = params['id']
             else:
-                (head, fn) = os.path.split(params['filename'])
-                (fn, ext) = os.path.splitext(fn)
-                target_dataset_name = "%s-%s"%(id,fn)
+                #(head, fn) = os.path.split(params['filename'])
+                #(fn, ext) = os.path.splitext(fn)
+                #target_dataset_name = "%s-%s"%(id,fn)
+                target_dataset_name = id
 
             #step 1: Create / initialize target dataset 
             if not rdfsilo.exists(target_dataset_name):
+                if not allowable_id2(target_dataset_name):
+                    response.content_type = "text/plain"
+                    response.status_int = 400
+                    response.status = "400 Bad request. Dataset name not valid"
+                    return "Dataset name can contain only the following characters - %s and has to be more than 1 character"%ag.naming_rule
                 target_dataset = create_new(rdfsilo, target_dataset_name, ident['repoze.who.userid'])
                 response.status_int = 201
                 response.status = "201 Created"
@@ -267,12 +296,18 @@ class ItemsController(BaseController):
             if params.has_key("id") and params['id']:
                 target_dataset_name = params['id']
             else:
-                (head, fn) = os.path.split(path)
-                (fn, ext) = os.path.splitext(fn)
-                target_dataset_name = "%s-%s"%(id,fn)
+                #(head, fn) = os.path.split(path)
+                #(fn, ext) = os.path.splitext(fn)
+                #target_dataset_name = "%s-%s"%(id,fn)
+                target_dataset_name = id
 
             #step 1: Create / initialize target dataset 
             if not rdfsilo.exists(target_dataset_name):
+                if not allowable_id2(target_dataset_name):
+                    response.content_type = "text/plain"
+                    response.status_int = 400
+                    response.status = "400 Bad request. Dataset name not valid"
+                    return "Dataset name can contain only the following characters - %s and has to be more than 1 character"%ag.naming_rule
                 target_dataset = create_new(rdfsilo, target_dataset_name, ident['repoze.who.userid'])
                 response.status_int = 201
                 response.status = "201 Created"

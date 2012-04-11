@@ -4,111 +4,214 @@
   <link rel="meta" type="application/rdf+xml" title="RDF Manifest"
                href="/${c.silo_name}/datasets/${c.id}/manifest.rdf"/>
   <title> Dataset ${c.id} </title>
+<script type="text/javascript">
+<!--
+    function showhide(id) {
+       var e = document.getElementById(id);
+       if(e.style.display == 'block')
+          e.style.display = 'none';
+       else
+          e.style.display = 'block';
+    }
+//-->
+</script>
+
 </%def>
 
 <%
 c.current = c.id
 %>
-
 <h1>Dataset ${c.id}</h1>
-
-<!-- Embargo Information -->
-% if c.embargos:
-<h3><b>Embargo Information</b></h3>
-%   if c.embargos[c.current][0] not in ['False', 'false', 0, False]:
-<p>Embargoed: True</p>
-<p>Embargoed until: ${c.embargos[c.current][1]}</p>
-%   else:
-<p>Embargoed: False</p>
-%   endif
+% if c.version:
+<h3>Version ${c.version}</h3>
+% elif c.versions:
+<h3>Version ${c.versions[-1]}</h3>
 % endif
 
-<!-- View Information -->
 % if c.editor:
   <div id="editor_view">
-  % if c.view == 'editor':
-    Editor view 
-  % else:
-    User view 
-  % endif
+  <p class="title">Editorial functions</p>
+  <!-- View Information -->
+  <!--
+  Change view : 
   % if c.version: 
-    <br /> Change view : 
-    <a href="/${c.silo_name}/datasets/${c.id}?version=${c.version}&view=editor">Editor</a> | 
-    <a href="/${c.silo_name}/datasets/${c.id}?version=${c.version}&view=user">User</a></p>
+    % if c.view == 'editor':
+        <a class="current" href="/${c.silo_name}/datasets/${c.id}?version=${c.version}&view=editor">Editor</a>
+        <a href="/${c.silo_name}/datasets/${c.id}?version=${c.version}&view=user">User</a></p>
+    % else:
+        <a href="/${c.silo_name}/datasets/${c.id}?version=${c.version}&view=editor">Editor</a>
+        <a class="current" href="/${c.silo_name}/datasets/${c.id}?version=${c.version}&view=user">User</a></p>
+    % endif
   % else:
-    <br />Change view : 
-    <a href="/${c.silo_name}/datasets/${c.id}?view=editor">Editor</a> | 
-    <a href="/${c.silo_name}/datasets/${c.id}?view=user">User</a></p>
+    % if c.view == 'editor':
+        <a class="current" href="/${c.silo_name}/datasets/${c.id}?view=editor">Editor</a>
+        <a href="/${c.silo_name}/datasets/${c.id}?view=user">User</a></p>
+    % else:
+        <a href="/${c.silo_name}/datasets/${c.id}?view=editor">Editor</a> 
+        <a class="current" href="/${c.silo_name}/datasets/${c.id}?view=user">User</a></p>
+    % endif
+  % endif
+  -->
+  <!-- State Information -->
+  <p><b><a href="/${c.silo_name}/states/${c.id}">
+    <img src="/static/styles/images/state-icon-24.png"/>View state information</a></b></p>
+  <p><b><a href="#update_access" onclick="showhide('update_access');">
+    <img src="/static/styles/images/page-edit-icon-24.png"/>Update access policy</a></b></p>
+  <p><b><a href="#add_metadata" onclick="showhide('add_metadata');">
+    <img src="/static/styles/images/file-add-icon-24.png"/>Add metadata</a></b></p>
+  <p><b><a href="#upload_file" onclick="showhide('upload_file');">
+    <img src="/static/styles/images/file-new-icon-24.png"/>Upload file</a></b></p>
+  <!-- <p><b><a href="#delete_dataset" onclick="showhide('delete_dataset');">
+    <img src="/static/styles/images/delete-icon-24.png"/>Delete dataset</a></b></p> -->
+  <p><b><a class="delete" href="/${c.silo_name}/datasets/${c.id}" data-remove="${"_".join(c.silo_name.split("."))}_${"_".join(c.id.split(":"))}">
+    <img src="/static/styles/images/delete-icon-24.png"/>Delete dataset</a></b></p>
+  % if c.zipfiles:
+  <p><b><a href="#unpack_endpoints" onclick="showhide('unpack_endpoints');">
+    <img src="/static/styles/images/unzip-icon-32.png"/>Unpack zip files</a></b></p>
   % endif
   </div>
 % endif
 
-<div class="datapackage">
-% if c.version:
-  <h3>Information for version ${c.version} of the dataset</h3>
+<!-- Version of Datapackage -->
+<div class="dataset_info">
+% if c.version and c.versions and c.version == c.versions[-1]: 
+<p>You are currently viewing the <b>latest version (${c.version})</b> of the data package</p>
+% elif c.version: 
+<p>You are currently viewing <b> version ${c.version}</b> of the data package</p>
+% elif c.versions:
+<p>You are currently viewing the <b>latest version (${c.versions[-1]})</b> of the data package</p>
+% else:
+<p>You are currently viewing the <b>latest version</b> of th data package</p>
 % endif
-<!--
-<dl>
- <dt>Item's JSON state (Accept: application/json):</dt>
-<dd>${repr(c.item)}</dd> 
--->
 
+% if c.versions:
+  <p><b>View other versions:</b>
+  % for i in range(1, len(c.versions)-1):
+    % if c.version and c.versions[i] == c.version:
+      <a class="current" href="/${c.silo_name}/datasets/${c.id}?version=${c.versions[i]}">${c.versions[i]}</a> |
+    % else:
+      <a href="/${c.silo_name}/datasets/${c.id}?version=${c.versions[i]}">${c.versions[i]}</a> | 
+    % endif
+  % endfor
+  % if c.version:
+    % if c.version == c.versions[-1]:
+      <a class="current" href="/${c.silo_name}/datasets/${c.id}?version=${c.versions[-1]}">${c.versions[-1]}</a>
+    % else:
+      <a href="/${c.silo_name}/datasets/${c.id}?version=${c.versions[-1]}">${c.versions[-1]}</a>
+    % endif
+  % else:
+    <a class="current" href="/${c.silo_name}/datasets/${c.id}?version=${c.versions[-1]}">${c.versions[-1]}</a>
+  % endif
+  </p>
+% endif
+</div>
+ 
+<div id="editor_metadata_view">
+
+<!-- Embargo Information -->
+% if c.embargos:
+<h3><b>Access Information</b></h3>
+<div class="dataset_info">
+% if c.embargos and c.current in c.embargos and c.embargos[c.current]:
+ <% c.emb = c.embargos[c.current] %>
+  % if c.emb[0] == True or c.emb[0] == 1 or (isinstance(c.emb[0], basestring) and c.emb[0].strip().lower() in ['true', '1']):
+     % if (isinstance(c.emb[1], basestring) and c.emb[1].strip()):
+        Data package is embargoed until ${c.emb[1]}. Only the metadata is openly accessible.
+     % else:
+        Data package is embargoed indefinitely. Only the metadata is openly accessible.
+     % endif
+  % else:
+    Data package is openly accessible
+  % endif
+% else:
+    Data package is openly accessible
+% endif
+% endif
+</div>
+
+<div class="datapackage">
 <!-- List of Files -->
 % if c.show_files:
+  <h3><b>Data package contents</b></h3>
+  <div class="dataset_info">
   % if c.editor:
     <%include file="/part_list.html"/>
   % else:
     <%include file="/part_list_display.html"/>
   % endif
+  </div>
 % endif
 
 <!-- Read Me Information -->
 % if c.readme_text:
+<h3><b>README text</b></h3>
+<div class="dataset_info">
 <%include file="/readme_section.html"/>
+</div>
 % endif
 
 <!-- RDF Manifest -->
-<dl>
-<dt><b>Item's RDF Manifest (Accept: most RDF mimetypes):</b></dt>
-<dd><pre>${c.manifest_pretty}</pre></dd>
-</dl>
+<h3><b>Metadata</b></h3>
+<div class="dataset_info">
+<!-- <pre>${c.manifest_pretty}</pre> -->
+<%include file="/rdf_manifest.html"/>
+</div>
 
 </div>
 
 <!-- DISPLAYED FOR EDITOR ONLY -->
-<!-- State Information -->
 % if c.editor:
-  <div class="editor">
-  <p><b><a href="/${c.silo_name}/states/${c.id}">View state information</a></b></p>
+  <div class="editors_section">
   % if c.view == 'editor':
     <dl>
     <!-- Change Embargo Information -->
-    <dt><b>Change Embargo</b></dt>
-    <dd>
+    <div id="update_access" class="edit_section" style="display: none;">
+    <a name="update_access"></a>
+    <h3><b>Update access policy</b></h3>
     <%include file="/embargo_form.html"/>
-    <p><small>Embargo state: True - only those logged in and with edit rights can see item. False - Anyone can GET the item and it's files.</small></p>
-    <p><small>Embargo date: Aim is for ISO8601 dates to provide embargo trigger events. Currently unused, unvalidated and unparsed.</small></p>
-    </dd>
+    <div class="top"><a href="#top" onclick="showhide('update_access');" title="Back to top"><img src="/static/styles/images/go-up-icon-24.png"/></a></div>
+    </div>
     <!-- Change RDF Manifest -->
-    <dt><b>Add metadata to the RDF Manifest:</b></dt>
-    <dd><%include file="/rdf_manifest_form.html"/></dd>
-    </dl>
+    <div id="add_metadata" class="edit_section" style="display: none;">
+    <a name="add_metadata"></a>
+    <h3><b>Add metadata to the RDF Manifest:</b></h3>
+    <%include file="/rdf_manifest_form.html"/>
+    <div class="top"><a href="#top" onclick="showhide('add_metadata');" title="Back to top"><img src="/static/styles/images/go-up-icon-24.png"/></a></div>
+    </div>
     <!-- Upload File -->
+    <div id="upload_file" class="edit_section" style="display: none;">
+    <a name="upload_file"></a>
+    <h3><b>Upload file to ${c.id}:</b></h3>
     <%include file="/file_upload.html"/>
+    <div class="top"><a href="#top" onclick="showhide('upload_file');" title="Back to top"><img src="/static/styles/images/go-up-icon-24.png"/></a></div>
+    </div>
+    <!-- Link to delete the dataset -->
+    <!--
+    <div id="delete_dataset" class="edit_section" style="display: none;">
+    <a name="delete_dataset"></a>
+    <h3><b><a class="delete" href="/${c.silo_name}/datasets/${c.id}" data-remove="${"_".join(c.silo_name.split("."))}_${"_".join(c.id.split(":"))}">Delete dataset</a></b></h3>
+    <div class="top"><a href="#top" onclick="showhide('delete_dataset');" title="Back to top"><img src="/static/styles/images/go-up-icon-24.png"/></a>
+    </div>
+    -->
     <!-- Unpack zipfiles -->
     % if c.zipfiles:
-      <h3> List of item unpack endpoints:</h3>
+      <div id="unpack_endpoints" class="edit_section" style="display: none;">
+      <a name="unpack_endpoints"></a>
+      <h3><b>Unpack zipfiles in the data package:</b></h3>
       <ul class="unpack_endpoints">
       % for zf in c.zipfiles:
         <%
         c.zipfile = zf
-        c.newid = c.zipfiles[zf]
+        c.newid = c.zipfiles[zf].replace('/', '-')
         %>
        <li><%include file="/files_unpack.html"/></li>
       % endfor
       </ul>
+      <div class="top"><a href="#top" onclick="showhide('unpack_endpoints');" title="Back to top"><img src="/static/styles/images/go-up-icon-24.png"/></a></div>
+      </div>
     % endif
   % endif
   </div>
 % endif
 
+</div>

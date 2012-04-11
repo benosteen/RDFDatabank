@@ -1,5 +1,4 @@
 % if c.parts:
-  <dt><b>List of items</b></dt>
   <ul>
   <% 
   if c.path:
@@ -7,7 +6,7 @@
   else:
     subpath = ""
   if c.version:
-    ver = "/version%s" % c.version
+    ver = "?version=%s" % c.version
   else:
     ver = ""
   %>

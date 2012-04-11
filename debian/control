@@ -1,0 +1,37 @@
+Source: databank
+Section: web
+Priority: extra
+Maintainer: Anusha Ranganathan <anusha.ranganathan@ieee.org>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.9.2
+Vcs-Git: git://github.com/dataflow/RDFDatabank.git
+Homepage: https://github.com/dataflow/RDFDatabank
+Uploaders: Anusha Ranganathan <anusha.ranganathan@ieee.org>
+XS-Python-Version: >= 2.6
+
+Package: databank
+Architecture: all
+Depends: python,
+         python-pylons,
+         python-repoze.who,
+         python-repoze.who-friendlyform,
+         python-rdflib,
+         python-dateutil,
+         python-libxml2,
+         python-libxslt1,
+         python-pairtree,
+         python-recordsilo,
+         python-solrpy,
+         python-redis,
+         unzip,
+         apache2,
+         apache2-utils,
+         libapache2-mod-wsgi,
+         redis-server,
+         supervisor,
+         debconf,
+         openjdk-6-jre
+Recommends: solr-tomcat
+Description: RDF-enhanced, pairtree-backed storage API
+ Databank is a simple, RDF-enhanced storage API which is backed by pairtree,
+ for the safe storage of and access to data. 

@@ -1,0 +1,10 @@
+username			password		role						silo   
+sandbox_user		sandbox			Submitter (user)			sandbox
+sandbox_user2		sandbox2		Submitter (user)			sandbox
+sandbox_user3		sandbox3		Submitter (user)			sandbox2
+sandbox_manger		managertest		Manager	(manager)			sandbox
+sandbox_manger2		managertest2	Manager	(manager)			sandbox
+sandbox_manger3		managertest3	Manager	(manager)			sandbox2
+admin				test			Administrator (admin)		sandbox
+admin2				test2			Administrator (admin)		sandbox
+admin3				test3			Administrator (admin)		sandbox2
