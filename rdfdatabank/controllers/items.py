@@ -52,12 +52,18 @@ class ItemsController(BaseController):
                 silos = ag.authz(granary_list, ident)
                 if silo not in silos:
                     abort(403, "Forbidden")
-                if ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]:
+                silos_admin = ag.authz(granary_list, ident, permission='administrator')
+                silos_manager = ag.authz(granary_list, ident, permission='manager')
+                #if ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]:
+                if ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager:
                     c.editor = True
             elif ident:
                 silos = ag.authz(granary_list, ident)
                 if silo in silos:
-                    if ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]:
+                    silos_admin = ag.authz(granary_list, ident, permission='administrator')
+                    silos_manager = ag.authz(granary_list, ident, permission='manager')
+                    #if ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]:
+                    if ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager:
                         c.editor = True
         else:
             #identity management of item 
@@ -66,7 +72,10 @@ class ItemsController(BaseController):
             silos = ag.authz(granary_list, ident)      
             if silo not in silos:
                 abort(403, "Forbidden")
-            if not (ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]):
+            silos_admin = ag.authz(granary_list, ident, permission='administrator')
+            silos_manager = ag.authz(granary_list, ident, permission='manager')
+            #if not (ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]):
+            if not (ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager):
                 abort(403, "Forbidden")
 
         if http_method == "GET":
@@ -204,8 +213,11 @@ class ItemsController(BaseController):
                 abort(401, "Not Authorised")
             silos = ag.authz(granary_list, ident)
             if silo not in silos:
-                abort(403, "Forbidden")     
-            if not (ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]):
+                abort(403, "Forbidden") 
+            silos_admin = ag.authz(granary_list, ident, permission='administrator')
+            silos_manager = ag.authz(granary_list, ident, permission='manager')
+            #if not (ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]):
+            if not (ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager):
                 abort(403, "Forbidden")
 
         item_real_filepath = dataset.to_dirpath()

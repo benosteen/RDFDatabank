@@ -1,0 +1,22 @@
+Using Pylons with SQLAlchemy
+
+sudo easy_install sqlalchemy
+    SQLAlchemy-0.7.6
+sudo apt-get install mysql-server
+sudo apt-get install libmysql++-dev
+sudo easy_install MySQL-python
+    MySQL-python 1.2.3
+sudo easy_install repoze.what-pylons
+    repoze.what 1.0.9
+sudo easy_install repoze.what-quickstart
+
+#Repoze.who version 1.0.19 gets installed. Remove thisand re-install repoze,who 2.0a4
+#Note: I need to check which of the above packages does this and not install it. Also is repoze.what-quickstart really needed?
+sudo rm -r /usr/local/lib/python2.6/dist-packages/repoze.who-1.0.19-py2.6.egg/
+sudo easy_install repoze.who==2.0a4
+
+# Create a database and a user for that database. See usingDatabase-databankauth.txt for instruction on doing so.
+# Modify the mysql connection string in development.ini to match the database and user created
+
+paster setup-app development.ini
+

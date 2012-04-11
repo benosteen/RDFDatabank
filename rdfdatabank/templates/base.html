@@ -36,12 +36,12 @@
         <%include file="/header.html"/>
       </div>
       <div id="widecontent">      
-    <%
+      <%
         user_logged_in = request.environ.get("repoze.who.identity")
         if user_logged_in:
             c.user_logged_in_name = user_logged_in['repoze.who.userid']
         current_url = request.environ.get('PATH_INFO')
-    %>
+      %>
         <div id="nav">
           % if c.user_logged_in_name:
             <div class="lt">Welcome ${c.user_logged_in_name}</div>
@@ -64,19 +64,18 @@
           </div>
           <br/>
           <div class="rt">
-          % if c.ident and 'role' in c.ident and c.ident['role'] in ["admin", "manager", "user"]:
-            % if c.ident and c.ident['role'] in ["admin", "manager"] and c.silo_name:
-              % if c.ident and c.ident['role'] == "admin":
-                <ul><li><a href="/admin">Admin pages</a></li>
-                % if c.silo_name:
-                  <ul><li><a href="/${c.silo_name}/admin">Admin ${c.silo_name}</a></li></ul>
-                  <ul><li><a href="/${c.silo_name}/users">Manage users</a></li></ul>
-                % endif
-                </ul>
-              % elif c.silo_name:
+          % if c.ident and 'permissions' in c.ident and ('administrator' in c.ident['permissions'] or 'manager' in c.ident['permissions']) :
+            % if 'administrator' in c.ident['permissions']:
+              <ul><li><a href="/admin">Admin pages</a></li>
+              % if c.silo_name:
+                <ul><li><a href="/${c.silo_name}/admin">Admin ${c.silo_name}</a></li></ul>
                 <ul><li><a href="/${c.silo_name}/users">Manage users</a></li></ul>
               % endif
-            % endif 
+              </ul>
+            % elif 'manager' in c.ident['permissions'] and c.silo_name:
+              <ul><li><a href="/${c.silo_name}/admin">Admin ${c.silo_name}</a></li></ul>
+              <ul><li><a href="/${c.silo_name}/users">Manage users</a></li></ul>
+            % endif
           % endif
           </div>
         </div>

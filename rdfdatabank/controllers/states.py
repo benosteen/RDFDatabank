@@ -27,21 +27,24 @@ The state information for a silo contains the following:
     List of datasets in the silo (ans["datasets"]) 
         with embargo information for each of the datasets (ans["datasets"]["dataset_name"]["embargo_info"])"""
     
-        #Only authorized users can view state information.
-        #Should this be restricted to admins and managers only, or shoud users too be able to see this information?
-        #Going with restricting this information to admins and managers 
+        # Only authorized users can view state information.
+        # Should this be restricted to admins and managers only, or shoud users too be able to see this information?
+        # Going with restricting this information to admins and managers 
         if not ag.granary.issilo(silo):
             abort(404)
 
         ident = request.environ.get('repoze.who.identity')
         if not ident:
             abort(401, "Not Authorised")
-        if not ident.get('role') in ["admin", "manager"]:
-            abort(403, "Forbidden. You should be an administrator or manager to view this information")
         granary_list = ag.granary.silos
         silos = ag.authz(granary_list, ident)
         if silo not in silos:
             abort(403, "Forbidden")
+        silos_admin = ag.authz(granary_list, ident, permission='administrator')
+        silos_manager = ag.authz(granary_list, ident, permission='manager')
+        #if not ident.get('role') in ["admin", "manager"]:
+        if not (silo in silos_admin or silo in silos_manager):
+            abort(403, "Forbidden. You should be an administrator or manager to view this information")
 
         rdfsilo = ag.granary.get_rdf_silo(silo)
         state_info = ag.granary.describe_silo(silo)
@@ -69,6 +72,7 @@ The state information for a silo contains the following:
             abort(404)
         
         ident = request.environ.get('repoze.who.identity')
+
         if not ident:
             abort(401, "Not Authorised")
 
@@ -76,19 +80,22 @@ The state information for a silo contains the following:
         silos = ag.authz(granary_list, ident)
         if silo not in silos:
             abort(403, "Forbidden")
+        silos_admin = ag.authz(granary_list, ident, permission='administrator')
+        silos_manager = ag.authz(granary_list, ident, permission='manager')
 
         rdfsilo = ag.granary.get_rdf_silo(silo)       
         if not rdfsilo.exists(id):
             abort(404)
+
         item = rdfsilo.get_item(id)
         
         creator = None
         if item.manifest and item.manifest.state and 'metadata' in item.manifest.state and item.manifest.state['metadata'] and \
             'createdby' in item.manifest.state['metadata'] and item.manifest.state['metadata']['createdby']:
             creator = item.manifest.state['metadata']['createdby']
-        if not (ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]):
+        #if not (ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]):
+        if not (ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager):
             abort(403, "Forbidden. You should be the creator or manager or administrator to view this information")
-
                     
         options = request.GET
         if 'version' in options and options['version']:
@@ -114,42 +121,3 @@ The state information for a silo contains the following:
         response.status = "200 OK"
         return simplejson.dumps(dataset)
 
-    @rest.restrict('GET')
-    def datasetview_vnum(self, silo, id, vnum):       
-        if not request.environ.get('repoze.who.identity'):
-            abort(401, "Not Authorised")
-
-        if not ag.granary.issilo(silo):
-            abort(404)
-
-        ident = request.environ.get('repoze.who.identity')
-        granary_list = ag.granary.silos
-        silos = ag.authz(granary_list, ident)
-        if silo not in silos:
-            abort(403, "Forbidden")
-
-        rdfsilo = ag.granary.get_rdf_silo(silo)
-        
-        if not rdfsilo.exists(id):
-            abort(404)
-
-        item = rdfsilo.get_item(id)
-        vnum = str(vnum)
-        if not vnum in item.manifest['versions']:
-            abort(404)
-        item.set_version_cursor(vnum)                
-
-        parts = item.list_parts(detailed=True)                    
-
-        dataset = {}
-        dataset['parts'] = {}
-        for part in parts:
-            dataset['parts'][part] = serialisable_stat(parts[part])
-            if item.manifest:
-                dataset['state'] = item.manifest.state
-
-        # Always return application/json
-        response.content_type = 'application/json; charset="UTF-8"'
-        response.status_int = 200
-        response.status = "200 OK"
-        return simplejson.dumps(dataset)

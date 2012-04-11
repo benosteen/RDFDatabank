@@ -1,0 +1,22 @@
+# -*- coding: utf-8 -*-
+<%inherit file="/base.html" />
+<%def name="head_tags()">
+  <title> Admin Interface - List of Silos </title>
+</%def>
+<h1>Admin Interface</h1>
+% if c.granary_list:
+<h2> List of silos</h2>
+<ul>
+% for silo in c.granary_list:
+<li id="delete_${silo}">
+  <a href="/${silo}/admin"><big><big>${silo}</big></big></a> - <small><small>
+  <a class="delete" href="/${silo}/admin" data-remove="delete_${silo}">(remove)</a></small></small>
+</li>
+% endfor
+</ul>
+% endif
+<h2><a href="/users">View list of users</a></h2>
+% if  'administrator' in c.ident['permissions']:
+  <h2>Create new silo</h2>
+  <%include file="/create_new_silo.html"/>
+% endif

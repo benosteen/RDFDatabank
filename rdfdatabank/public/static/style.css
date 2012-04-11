@@ -153,3 +153,66 @@ h1 {
     display: inline;
     margin-right: 5px;
 }
+
+.create_silo label, .alter_silo label, .create_user label {
+    display: inline-block;
+    margin-bottom: 10px;
+    width: 300px;
+}
+
+.create_silo  div, .alter_silo div, .metadata div, .create_user div, .update_role div {
+    margin-left: 20px;
+}
+
+.metadata label {
+    display: inline-block;
+    margin-top: 10px;
+    width: 150px;
+}
+
+.metadata ul {
+    margin: -1.2em 0px -10px 150px;
+    padding: 0px;
+}
+
+.metadata li {
+    margin: 0px 0px 10px 0px;
+    padding: 0px;
+    list-style-type: none;
+}
+
+.metadata li.subtitle {
+    margin: 0px 0px 10px 0px;
+    padding: 0px;
+    list-style-type: none;
+    font-weight: bold;
+
+}
+
+.metadata li div {
+    display: inline;
+    margin-left: 10px;
+}
+
+.update_role label {
+    display: inline-block;
+    margin-top: 0px;
+    width: 150px;
+}
+
+.update_role div {
+    margin-bottom: 10px;
+    margin-left: 40px;
+}
+
+.update_user label {
+    display: inline-block;
+    margin-bottom: 10px;
+    width: 150px;
+}
+
+.update_user div {
+    margin-bottom: 10px;
+    margin-left: 40px;
+}
+

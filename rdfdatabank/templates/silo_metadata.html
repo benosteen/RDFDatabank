@@ -1,34 +1,88 @@
 # -*- coding: utf-8 -*-
-<p> Silo Metadata</p>
-<p>
-<ul class="metadata">
-<li><label for="silo">Silo label:</label> ${c.silo_name}</li>
+<div class="metadata">
+<div><label for="silo">Silo label:</label> ${c.silo}</div>
 % if c.kw:
   % if 'title' in c.kw:
-    <li><label for="title">Title:</label>${c.kw.get('title')}</li>
+    <div><label for="title">Title:</label>${c.kw.get('title')}</div>
   % endif
   % if 'description' in c.kw:
-    <li><label for="description">Description:</label>${c.kw.get('description')}</li>
+    <div><label for="description">Description:</label>${c.kw.get('description')}</div>
   % endif
   % if 'notes' in c.kw:
-    <li><label for="notes">Notes:</label>${c.kw.get('notes')}</li>
+    <div><label for="notes">Notes:</label>${c.kw.get('notes')}</div>
   % endif
-  % if 'owners' in c.kw:
+  % if ('administrators' in c.kw and c.kw['administrators']) or ('managers' in c.kw and c.kw['managers']) or ('submitters' in c.kw and c.kw['submitters']):
+    <div><label><b><a href="/${c.silo}/users">Members of the silo</a></b></label></div>
+    % if 'administrators' in c.kw and c.kw['administrators']:
+      <%
+        admins = []
+        admins = [x.strip() for x in c.kw['administrators'].split(",") if x]
+      %>
+      <div><label for="administartors">Administrators:</label>
+        <ul>
+        % for o in admins:
+          <li><a href="/${c.silo}/users/${o}">${o}</a>
+          <%
+            eid = "delete_%s_%s_administrator"%(c.silo, o)
+          %>
+          <div id="${eid}"> <a class="delete" href="/${c.silo}/users/${o}" data-remove="${eid}">Delete this user from silo</a></div>
+          </li>
+        % endfor
+        </ul>
+      </div>
+    % endif
+    % if 'managers' in c.kw and c.kw['managers']:
+      <%
+        admins = []
+        admins = [x.strip() for x in c.kw['managers'].split(",") if x]
+      %>
+      <div><label for="managers">Managers:</label>
+        <ul>
+        % for o in admins:
+          <li><a href="/${c.silo}/users/${o}">${o}</a>
+          <%
+            eid = "delete_%s_%s_manager"%(c.silo, o)
+          %>
+          <div id="${eid}"> <a class="delete" href="/${c.silo}/users/${o}" data-remove="${eid}">Delete this user from silo</a></div>
+          </li>
+        % endfor
+        </ul>
+      </div>
+    % endif
+    % if 'submitters' in c.kw and c.kw['submitters']:
+      <%
+        admins = []
+        admins = [x.strip() for x in c.kw['submitters'].split(",") if x]
+      %>
+      <div><label for="submitters">Submitters:</label>
+        <ul>
+        % for o in admins:
+          <li><a href="/${c.silo}/users/${o}">${o}</a>
+          <%
+            eid = "delete_%s_%s_submitter"%(c.silo, o)
+          %>
+          <div id="${eid}"> <a class="delete" href="/${c.silo}/users/${o}" data-remove="${eid}">Delete this user from silo</a></div>
+          </li>
+        % endfor
+        </ul>
+      </div>
+    % endif
+  % elif 'owners' in c.kw:
     <%
       owners = []
       owners = [x.strip() for x in c.kw['owners'].split(",") if x]
     %>
-    <li><label for="owners"><a href="/${c.silo_name}/users">Owners:</a></label>
+    <div><label for="owners"><a href="/${c.silo}/users}">Members of the silo:</a></label>
         <ul>
         % for o in owners:
-            <li><a href="/${c.silo_name}/users/${o}">${o}</a></li>
+            <li><a href="/${c.silo}/users/${o}">${o}</a></li>
         % endfor
         </ul>
-    </li>
+    </div>
   % endif
   % if 'disk_allocation' in c.kw:
-    <li><label for="disk_allocation">Disk Allocation (in Kb):</label>${c.kw.get('disk_allocation')}</li>
+    <div><label for="disk_allocation">Disk Allocation (in Kb):</label>${c.kw.get('disk_allocation')}</div>
   % endif
 % endif
-</ul>
+</div>
 </p>

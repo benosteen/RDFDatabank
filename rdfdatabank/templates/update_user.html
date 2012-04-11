@@ -1,72 +1,35 @@
 # -*- coding: utf-8 -*-
-<p><b> Update user information</b></p>
-<p>
-<!-- Silo: ${c.silo_name} -->
-<form method="POST" enctype="multipart/form-data" action="/${c.silo_name}/users/${c.username}" accept-charset="UTF-8">
-<ul>
-<li><label for="username">Username:</label>
-<input type="textbox" name="username" value="${c.username}" readonly=readonly/></li>
+<form class="update_user" method="POST" enctype="multipart/form-data" action="/users/${c.username}" accept-charset="UTF-8">
+<div><label for="username">Username:</label>
+<input type="textbox" name="username" value="${c.username}" readonly=readonly/></div>
 
-% if c.user and 'first_name' in c.user:
-  <li><label for="first_name">Firstname:</label>
-  <input type="text" name="first_name" value="${c.user['first_name']}" /></li>
+% if c.user and 'firstname' in c.user:
+  <div><label for="firstname">Firstname:</label>
+  <input type="text" name="firstname" value="${c.user['firstname']}" /></div>
 % else:
-  <li><label for="first_name">Firstname:</label><input type="text" name="first_name" value="" /></li>
+  <div><label for="firstname">Firstname:</label><input type="text" name="firstname" value="" /></div>
 % endif
 
-% if c.user and 'last_name' in c.user:
-  <li><label for="last_name">Lastname:</label>
-  <input type="text" name="last_name" value="${c.user['last_name']}" /></li>
+% if c.user and 'lastname' in c.user:
+  <div><label for="lastname">Lastname:</label>
+  <input type="text" name="lastname" value="${c.user['lastname']}" /></div>
 % else:
-  <li><label for="last_name">Lastname:</label><input type="text" name="last_name" value="" /></li>
+  <div><label for="lastname">Lastname:</label><input type="text" name="lastname" value="" /></div>
 % endif
 
 % if c.user and 'name' in c.user:
-  <li><label for="name">Name:</label><input type="textbox" name="name" value="${c.user['name']}" /></li>
+  <div><label for="name">Name:</label><input type="textbox" name="name" value="${c.user['name']}" /></div>
 % else:
-  <li><label for="name">Name:</label><input type="textbox" name="name" value="" /></li>
+  <div><label for="name">Name:</label><input type="textbox" name="name" value="" /></div>
 % endif
 
-% if c.user and 'owner' in c.user:
-  <%
-    if type(c.user['owner']).__name__ == 'list':
-        owner = ','.join(c.user['owner'])
-    else:
-        owner = c.user['owner']
-  %>
-  <li><label for="owner">Silos user has access to (comma separated silo ids):</label>
-    <input type="textbox" name="owner" value="${owner}"/></li>
+% if c.user and 'email' in c.user:
+  <div><label for="email">Email:</label><input type="textbox" name="email" value="${c.user['email']}" /></div>
 % else:
-  <li><label for="owner">Silos user has access to (comma separated silo ids):</label>
-    <input type="textbox" name="owner" value="${c.silo_name}"/></li>
+  <div><label for="name">Email:</label><input type="textbox" name="email" value="" /></div>
 % endif
 
-<li><label for="role">Role:</label>
-% if (c.roles and 'admin' in c.roles) or (c.user and 'role' in c.user and c.user['role'] =='admin'):
-  % if c.user and 'role' in c.user and c.user['role'] =='admin':
-    <input type="radio" name="role" value="admin" checked="checked" /> Administrator &nbsp;&nbsp;
-  % else:
-    <input type="radio" name="role" value="admin" /> Administrator &nbsp;&nbsp;
-  % endif
-% endif
-% if (c.roles and 'manager' in c.roles) or (c.user and 'role' in c.user and c.user['role'] =='manager'):
-  % if c.user and 'role' in c.user and c.user['role'] =='manager':
-    <input type="radio" name="role" value="manager" checked="checked" /> Manager &nbsp;&nbsp;
-  % else:
-    <input type="radio" name="role" value="manager" /> Manager &nbsp;&nbsp;
-  % endif
-% endif
-% if (c.user and 'role' in c.user and c.user['role'] == 'user'):
-  <input type="radio" name="role" value="user" checked="checked" /> User &nbsp;&nbsp;
-% else:
-  <input type="radio" name="role" value="user" /> User &nbsp;&nbsp;
-% endif
-</li>
-
-<li><label for="password">Password:</label><input type="password" name="password" /></li>
-
-<li><input type="submit" value="Update user information"/></li>
-
-</ul>
+<div><label for="password">Password:</label><input type="password" name="password" /></div>
+<div><input type="submit" value="Update user information"/></div>
 </form>
 </p>

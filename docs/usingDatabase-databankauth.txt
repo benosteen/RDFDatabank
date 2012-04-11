@@ -1,0 +1,134 @@
+Note: If you have forgotten the password for the root user, you can rest the password bu running dpkg-reconfigure
+$ dpkg -l mysql-server* | grep ii
+$ dpkg-configure mysql-server-5.1
+$ sudo dpkg-reconfigure mysql-server-5.1
+
+$ mysql -u root -p
+same as sudo password
+
+#Create Database databankauth and user databanksqladmin. Give user databanksqladmin access to databankauth
+mysql> use mysql;
+mysql> CREATE DATABASE databankauth DEFAULT CHARACTER SET utf8 COLLATE utf8_bin;
+mysql> GRANT ALL ON databankauth.* TO databanksqladmin@localhost IDENTIFIED BY 'password';
+mysql> exit
+
+$ mysql -h localhost -u databanksqladmin -p
+password: ######
+
+mysql> use databankauth;
+
+mysql> show tables;
+
+mysql> select * from silo;
++----+------------------------+----------+
+| id | group_name             | silo     |
++----+------------------------+----------+
+|  1 | sandbox_administrator  | sandbox  |
+|  2 | sandbox_manager        | sandbox  |
+|  3 | sandbox_submitter      | sandbox  |
+|  4 | sandbox2_administrator | sandbox2 |
+|  5 | sandbox2_manager       | sandbox2 |
+|  6 | sandbox2_submitter     | sandbox2 |
+|  7 | sandbox3_administrator | sandbox3 |
+|  8 | sandbox3_manager       | sandbox3 |
+|  9 | sandbox3_submitter     | sandbox3 |
++----+------------------------+----------+
+
+mysql> select * from permission;
++----+-----------------+
+| id | permission_name |
++----+-----------------+
+|  1 | administrator   |
+|  2 | manager         |
+|  3 | submitter       |
++----+-----------------+
+3 rows in set (0.00 sec)
+
+mysql> select * from user;
++----+------------------+----------+-------+------------------------+-----------+----------+
+| id | user_name        | password | email | name                   | firstname | lastname |
++----+------------------+----------+-------+------------------------+-----------+----------+
+|  1 | sandbox_user     | 2de12713 | NULL  | Test User I            | NULL      | NULL     |
+|  2 | sandbox_user2    | aa585d66 | NULL  | Test User II           | NULL      | NULL     |
+|  3 | sandbox_user3    | 8ad67e77 | NULL  | Test User III          | NULL      | NULL     |
+|  4 | admin            | 6f0006ba | NULL  | Test Administrator I   | NULL      | NULL     |
+|  5 | admin2           | 0b62a04c | NULL  | Test Administrator II  | NULL      | NULL     |
+|  6 | admin3           | 33bd9bbd | NULL  | Test Administrator III | NULL      | NULL     |
+|  7 | sandbox_manager  | bc6592d3 | NULL  | Test Manager I         | NULL      | NULL     |
+|  8 | sandbox_manager2 | 9c7643eb | NULL  | Test Manager II        | NULL      | NULL     |
+|  9 | sandbox_manager3 | 7f000410 | NULL  | Test Manager III       | NULL      | NULL     |
++----+------------------+----------+-------+------------------------+-----------+----------+
+9 rows in set (0.00 sec)
+
+mysql> select * from user_group;
++---------+----------+
+| user_id | group_id |
++---------+----------+
+|       1 |        3 |
+|       2 |        6 |
+|       3 |        9 |
+|       4 |        1 |
+|       5 |        4 |
+|       6 |        7 |
+|       7 |        2 |
+|       8 |        5 |
+|       9 |        8 |
++---------+----------+
+9 rows in set (0.00 sec)
+
+mysql> select * from group_permission;
++----------+---------------+
+| group_id | permission_id |
++----------+---------------+
+|        1 |             1 |
+|        2 |             2 |
+|        3 |             3 |
+|        4 |             1 |
+|        5 |             2 |
+|        6 |             3 |
+|        7 |             1 |
+|        8 |             2 |
+|        9 |             3 |
++----------+---------------+
+9 rows in set (0.00 sec)
+
+mysql> SELECT ug.user_id, ug.group_id, gp.permission_id 
+FROM user_group ug 
+INNER JOIN group_permission on ug.group_id = gp.group_id
++---------+----------+---------------+
+| user_id | group_id | permission_id |
++---------+----------+---------------+
+|       1 |        3 |             3 |
+|       2 |        6 |             3 |
+|       3 |        9 |             3 |
+|       4 |        1 |             1 |
+|       5 |        4 |             1 |
+|       6 |        7 |             1 |
+|       7 |        2 |             2 |
+|       8 |        5 |             2 |
+|       9 |        8 |             2 |
++---------+----------+---------------+
+9 rows in set (0.00 sec)
+
+mysql> SELECT u.user_name, g.silo, p.permission_name 
+FROM user u
+INNER JOIN user_group ug ON u.id = ug.user_id 
+INNER JOIN silo g ON ug.group_id = g.id
+INNER JOIN group_permission gp ON g.id = gp.group_id
+INNER JOIN permission p ON gp.permission_id = p.id;
++------------------+----------+-----------------+
+| user_name        | silo     | permission_name |
++------------------+----------+-----------------+
+| admin            | sandbox  | administrator   |
+| admin2           | sandbox2 | administrator   |
+| admin3           | sandbox3 | administrator   |
+| sandbox_manager  | sandbox  | manager         |
+| sandbox_manager2 | sandbox2 | manager         |
+| sandbox_manager3 | sandbox3 | manager         |
+| sandbox_user     | sandbox  | submitter       |
+| sandbox_user2    | sandbox2 | submitter       |
+| sandbox_user3    | sandbox3 | submitter       |
++------------------+----------+-----------------+
+9 rows in set (0.00 sec)
+
+

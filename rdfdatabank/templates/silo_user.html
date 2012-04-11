@@ -3,7 +3,7 @@
 <%def name="head_tags()">
   <title>User Info - ${c.username} </title>
 </%def>
-<h1>User ${c.username}</h1>
+<h2> User info for ${c.username} in silo ${c.silo}</h2>
 % if c.message:
 <p><span style="color:red;">${c.message}</span></p>
 % endif
@@ -24,16 +24,20 @@
     <li><label for="email">Email:</label>${c.user['email']}</li>
   % endif
   % if 'groups' in c.user and c.user['groups']:
-    <li class="subtitle">Memebership information:</li>
-    <li class="subtitle"><label for="silo">Silo</label>Role</li>
+    <li><label for="roles">Roles:</label></li>
+    <ul>
     % for g, p in c.user['groups']:
-        <li><label for="silo">${g}</label>${p}</li>
+        <li>${p}</li>
     % endfor
     </ul>
   % endif
   </ul>
 % endif
+% if 'administrator' in c.ident['permissions'] or 'manager' in c.ident['permissions']:
+  <h2>Modify role</h2>
+  <%include file="/update_user_role.html"/>
+% endif
 % if c.ident['user'].user_name == c.username:
-  <h1> Update user details for ${c.username} </h1>
+  <h2>Update user information</h2>
   <%include file="/update_user.html"/>
 % endif

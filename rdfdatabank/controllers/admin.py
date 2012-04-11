@@ -7,11 +7,13 @@ from pylons.decorators import rest
 from pylons import app_globals as ag
 from rdfdatabank.lib.base import BaseController, render
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
+from rdfdatabank.lib.auth_entry import add_silo, delete_silo, add_group_users, delete_group_users
+from rdfdatabank.lib.auth_entry import add_user, update_user, list_usernames, list_user_groups
 import codecs
 
 log = logging.getLogger(__name__)
 
-accepted_params = ['title', 'description', 'notes', 'owners', 'disk_allocation']
+accepted_params = ['title', 'description', 'notes', 'owners', 'disk_allocation', 'administrators', 'managers', 'submitters']
 
 class AdminController(BaseController):
 
@@ -22,12 +24,16 @@ class AdminController(BaseController):
         ident = request.environ.get('repoze.who.identity')
         c.ident = ident
         granary_list = ag.granary.silos
-        c.granary_list = ag.authz(granary_list, ident)
-        if not ident.get('role') == "admin":
-            abort(403, "Do not have admin credentials")
+        c.granary_list = ag.authz(granary_list, ident, permission=['administrator', 'manager'])
 
-        # Admin only
         http_method = request.environ['REQUEST_METHOD']
+
+        if http_method == 'GET':
+            if not 'administrator' in ident['permissions'] and not 'manager' in ident['permissions']:
+                abort(403, "Do not have administrator or manager credentials")
+        else:
+            if not 'administrator' in ident['permissions']:
+                abort(403, "Do not have administrator credentials")
 
         if http_method == "GET":
             #c.granary = ag.granary
@@ -43,7 +49,7 @@ class AdminController(BaseController):
             mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                    return render("/silo_admin.html")
+                    return render("/admin_silos.html")
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = 'application/json; charset="UTF-8"'
                     response.status_int = 200
@@ -54,45 +60,73 @@ class AdminController(BaseController):
                 except IndexError:
                     mimetype = None
             #Whoops nothing satisfies - return text/html            
-            return render("/silo_admin.html")
+            return render("admin_silos.html")
         elif http_method == "POST":
             params = request.POST
-            if 'silo' in params and 'owners' in params:
+            if 'silo' in params:
                 if ag.granary.issilo(params['silo']):
-                    abort(403)
+                    abort(403, "The silo %s exists"%params['silo'])
+                #NOTE:
+                #If any userid in params['administrators']/params['managers']/params['submitters'] does not exist, userid is ignored 
+                #if administartor list is empty, append current user to administartor list
+                #Owner is the superset of adminstrators, managers and submitters
+                owners = []
+                admins = []
+                managers = []
+                submitters = []
+                #if 'owners' in params and params['owners']:
+                #    owners = [x.strip() for x in kw['owners'].split(",") if x]
+                if 'administrators' in params and params['administrators']:
+                    admins = [x.strip() for x in params['administrators'].split(",") if x]
+                    owners.extend(admins)
+                if 'managers' in params and params['managers']:
+                    managers = [x.strip() for x in params['managers'].split(",") if x]
+                    owners.extend(managers)
+                if 'submitters' in params and params['submitters']:
+                    submitters = [x.strip() for x in params['submitters'].split(",") if x]
+                    owners.extend(submitters)
+                if not admins:
+                    owners.append(ident['user'].user_name)
+                    admins.append(ident['user'].user_name)
+                owners = list(set(owners))
+                admins = list(set(admins))
+                managers = list(set(managers))
+                submitters = list(set(submitters))
+
                 # Create new silo
-                silo_name = params['silo']
+                silo = params['silo']
                 g_root = config.get("granary.uri_root", "info:")
-                c.silo = ag.granary.get_rdf_silo(silo_name, uri_base="%s%s/datasets/" % (g_root, silo_name))
+                c.silo = ag.granary.get_rdf_silo(silo, uri_base="%s%s/datasets/" % (g_root, silo))
                 ag.granary._register_silos()
                 kw = {}
                 for term in accepted_params:
                     if term in params:
-                        kw[term] = params[term]
-                du = ag.granary.disk_usage_silo(silo_name)
+                        kw[term] = params[term]       
+                kw['owners'] = ','.join(owners)
+                kw['administrators'] = ','.join(admins)
+                kw['managers'] = ','.join(managers)
+                kw['submitters'] = ','.join(submitters)
+                du = ag.granary.disk_usage_silo(silo)
                 kw['disk_usage'] = du
-                ag.granary.describe_silo(silo_name, **kw)
+                ag.granary.describe_silo(silo, **kw)
                 ag.granary.sync()
 
-                #Update info in ag.users and users.py               
-                silo_users = [x.strip() for x in kw['owners'].split(",") if x]
-                users_added = False
-                for u in silo_users:
-                    if not u in ag.users:
-                        ag.users[u] = {'owner':silo_name, 'role':'user'}
-                        users_added = True
-                    else:
-                        silos_owned = ag.users[u]['owner']
-                        if isinstance(ag.users[u]['owner'], basestring):
-                            silos_owned = [x.strip() for x in ag.users[u]['owner'].split(",") if x]
-                        if not silo_name in silos_owned:
-                            silos_owned.append(silo_name)
-                            ag.users[u]['owner'] = silos_owned
-                            users_added = True
-                if users_added:
-                    f = codecs.open(ag.userfile, 'w', 'utf-8')
-                    f.write('# -*- coding: utf-8 -*-\n_USERS = %s'%str(ag.users))
-                    f.close()
+                # Add silo to database
+                add_silo(silo)
+                
+                #Add users belonging to the silo, to the database
+                all_silo_users = []
+                existing_users = list_usernames()
+                for a in admins:
+                    if a in existing_users:
+                        all_silo_users.append((a, 'administrator'))
+                for a in managers:
+                    if a in existing_users:
+                        all_silo_users.append((a, 'manager'))
+                for a in submitters:
+                    if a in existing_users:
+                        all_silo_users.append((a, 'submitter'))
+                add_group_users(params['silo'], all_silo_users)
  
                 # conneg return
                 accept_list = None
@@ -106,13 +140,13 @@ class AdminController(BaseController):
                 mimetype = accept_list.pop(0)
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                        redirect(url(controller="silos", action="siloview", silo=silo_name))
+                        redirect(url(controller="silos", action="siloview", silo=silo))
                     elif str(mimetype).lower() in ["text/plain", "application/json"]:
                         response.content_type = "text/plain"
                         response.status_int = 201
                         response.status = "201 Created"
-                        response.headers['Content-Location'] = url(controller="silos", action="siloview", silo=silo_name)
-                        return "201 Created Silo %s" % silo_name
+                        response.headers['Content-Location'] = url(controller="silos", action="siloview", silo=silo)
+                        return "201 Created Silo %s" % silo
                     try:
                         mimetype = accept_list.pop(0)
                     except IndexError:
@@ -121,8 +155,8 @@ class AdminController(BaseController):
                 response.content_type = "text/plain"
                 response.status_int = 201
                 response.status = "201 Created"
-                response.headers['Content-Location'] = url(controller="silos", action="siloview", silo=silo_name)
-                return "201 Created Silo %s" % silo_name
+                response.headers['Content-Location'] = url(controller="silos", action="siloview", silo=silo)
+                return "201 Created Silo %s" % silo
             else:
                 response.content_type = "text/plain"
                 response.status_int = 400
@@ -130,30 +164,29 @@ class AdminController(BaseController):
                 return "400 Bad request.  No valid parameters found."
 
     @rest.restrict('GET', 'POST', 'DELETE')
-    def archive(self, silo_name):
+    def siloview(self, silo):
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
+        if not ag.granary.issilo(silo):
+            abort(404)
         ident = request.environ.get('repoze.who.identity')
         c.ident = ident
-        #c.granary_list = ag.granary.silos
-        c.silo_name = silo_name
-        # Admin only
-        if not ident.get('role') == "admin":
-            abort(403, "Do not have admin credentials")
-        if ident.get('role') == "admin":
-            c.roles = ["admin", "manager", "user"]
-        else:
-            c.roles = ["admin", "manager"]
         granary_list = ag.granary.silos
-        silos = ag.authz(granary_list, ident)
-        if not silo_name in silos:
-            abort(403)
+        silos = ag.authz(granary_list, ident, permission=['administrator', 'manager'])
+        if not silo in silos:
+            abort(403, "Do not have administrator or manager credentials for silo %s"%silo)
+        user_groups = list_user_groups(ident['user'].user_name)
+        if (silo, 'administrator') in user_groups:
+            c.roles = ["admin", "manager", "user"]
+        elif (silo, 'manager') in user_groups:
+            c.roles = ["manager", "user"]
+        else:
+            #User is super user
+            c.roles = ["admin", "manager", "user"]
         http_method = request.environ['REQUEST_METHOD']
 
+        c.kw = ag.granary.describe_silo(silo)
         if http_method == "GET":
-            if not ag.granary.issilo(silo_name):
-                abort(404)
-            c.kw = ag.granary.describe_silo(silo_name)
             accept_list = None
             if 'HTTP_ACCEPT' in request.environ:
                 try:
@@ -179,277 +212,211 @@ class AdminController(BaseController):
             return render("/admin_siloview.html")
         elif http_method == "POST":
             params = request.POST
-            if ag.granary.issilo(silo_name):
-                kw = {}
-                for term in accepted_params:
-                    if term in params:
-                        if term == 'owners' and not params[term]:
-                            continue
-                        kw[term] = params[term]
-                ag.granary.describe_silo(silo_name, **kw)
-                ag.granary.sync()
+            #Get existing owners, admins, managers and submitters
+            owners = []
+            admins = []
+            managers = []
+            submitters = []
+            if 'owners' in c.kw and c.kw['owners']:
+                owners = [x.strip() for x in c.kw['owners'].split(",") if x]
+            if 'administrators' in c.kw and c.kw['administrators']:
+                admins = [x.strip() for x in c.kw['administrators'].split(",") if x]
+            if 'managers' in c.kw and c.kw['managers']:
+                managers = [x.strip() for x in c.kw['managers'].split(",") if x]
+            if 'submitters' in c.kw and c.kw['submitters']:
+                submitters = [x.strip() for x in c.kw['submitters'].split(",") if x]
+            #Get new and old admins
+            new_admins = []
+            old_admins = []
+            if 'admin' in c.roles and 'administrators' in params and params['administrators']:
+                returned_admins = [x.strip() for x in params['administrators'].split(",") if x]
+                new_admins = [x for x in returned_admins if not x in admins]
+                #old_admins = [x for x in admins if not x in returned_admins]
+                admins = []
+                owners = []
+                admins.extend(returned_admins)
+                owners.extend(returned_admins)
+            #Get new and old managers
+            new_managers = []
+            old_managers = []
+            if 'managers' in params and params['managers']:
+                returned_managers = [x.strip() for x in params['managers'].split(",") if x]
+                new_managers = [x for x in returned_managers if not x in managers]
+                #old_managers = [x for x in managers if not x in returned_managers]
+                managers = []
+                managers.extend(returned_managers)
+                owners.extend(returned_managers)
+            #Get new and old submitters
+            new_submitters = []
+            old_submitters = []
+            if 'submitters' in params and params['submitters']:
+                returned_submitters = [x.strip() for x in params['submitters'].split(",") if x]
+                new_submitters = [x for x in returned_submitters if not x in submitters]
+                #old_submitters = [x for x in submitters if not x in returned_submitters]
+                submitters = []
+                submitters.extend(returned_submitters)
+                owners.extend(returned_submitters)
+            #If there are no admins or owners left, add current user as admin if admin
+            if not admins and 'administrator' in ident['permissions']:
+                owners.append(ident['user'].user_name)
+                admins.append(ident['user'].user_name)
+                new_admins.append(ident['user'].user_name)
+                #if ident['user'].user_name in old_admins:
+                #    old_admins.remove(ident['user'].user_name)
+            #If there are no managers and owners left, add current user as manager if manager
+            if not managers and not admins and 'manager' in ident['permissions']:
+                managers.append(ident['user'].user_name)
+                owners.append(ident['user'].user_name)
+                new_managers.append(ident['user'].user_name)
+                #if ident['user'].user_name in old_managers:
+                #    old_managers.remove(ident['user'].user_name)
+            
+            owners = list(set(owners))
+            admins = list(set(admins))
+            managers = list(set(managers))
+            submitters = list(set(submitters))
+            new_admins = list(set(new_admins))
+            new_managers = list(set(new_managers))
+            new_submitters = list(set(new_submitters))
+            #old_admins = list(set(old_admins))
+            #old_managers = list(set(old_managers))
+            #old_submitters = list(set(old_submitters))
 
-                #Update info in ag.users and users.py
-                users_added = False
-                if 'owners' in kw.keys() and kw['owners']:
-                    silo_users = [x.strip() for x in kw['owners'].split(",") if x]
-                    for u in silo_users:
-                        if not u in ag.users:
-                            ag.users[u] = {'owner':silo_name, 'role':'user'}
-                            users_added = True
-                        else:
-                            silos_owned = ag.users[u]['owner']
-                            if isinstance(ag.users[u]['owner'], basestring):
-                                silos_owned = [x.strip() for x in ag.users[u]['owner'].split(",") if x]
-                            if not silo_name in silos_owned:
-                                silos_owned.append(silo_name)
-                                ag.users[u]['owner'] = silos_owned
-                                users_added = True
-                if users_added:
-                    f = codecs.open(ag.userfile, 'w', 'utf-8')
-                    f.write('# -*- coding: utf-8 -*-\n_USERS = %s'%str(ag.users))
-                    f.close()
+            # Update silo info
+            for term in accepted_params:
+                if term in params:
+                    c.kw[term] = params[term]
+            c.kw['owners'] = ','.join(owners)
+            c.kw['administrators'] = ','.join(admins)
+            c.kw['managers'] = ','.join(managers)
+            c.kw['submitters'] = ','.join(submitters)
+            ag.granary.describe_silo(silo, **c.kw)
+            ag.granary.sync()
 
-                # conneg return
-                accept_list = None
-                if 'HTTP_ACCEPT' in request.environ:
-                    try:
-                        accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
-                    except:
-                        accept_list= [MT("text", "html")]
-                if not accept_list:
+            #Add new silo users into database
+            existing_users = list_usernames()               
+            new_silo_users = []
+            for a in new_admins:
+                if a in existing_users:
+                    new_silo_users.append((a, 'administrator'))
+            for a in new_managers:
+                if a in existing_users:
+                    new_silo_users.append((a, 'manager'))
+            for a in new_submitters:
+                if a in existing_users:
+                    new_silo_users.append((a, 'submitter'))
+            add_group_users(silo, new_silo_users)
+            
+            #Delete old silo users from database
+            #old_silo_users = []
+            #for a in old_admins:
+            #    if a in existing_users:
+            #        old_silo_users.append((a, 'administrator'))
+            #for a in old_managers:
+            #    if a in existing_users:
+            #        old_silo_users.append((a, 'manager'))
+            #for a in old_submitters:
+            #    if a in existing_users:
+            #        old_silo_users.append((a, 'submitter'))
+            #delete_group_users(silo, old_silo_users)
+            
+            # conneg return
+            accept_list = None
+            if 'HTTP_ACCEPT' in request.environ:
+                try:
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                except:
                     accept_list= [MT("text", "html")]
-                mimetype = accept_list.pop(0)
-                while(mimetype):
-                    if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                        c.message = "Metadata updated"
-                        c.kw = ag.granary.describe_silo(silo_name)
-                        return render("/admin_siloview.html")
-                    elif str(mimetype).lower() in ["text/plain", "application/json"]:
-                        response.content_type = "text/plain"
-                        response.status_int = 204
-                        response.status = "204 Updated"
-                        #return "Updated Silo %s" % silo_name
-                        return
-                    try:
-                        mimetype = accept_list.pop(0)
-                    except IndexError:
-                        mimetype = None
-                # Whoops - nothing satisfies - return text/plain
-                response.content_type = "text/plain"
-                response.status_int = 204
-                response.status = "204 Updated"
-                return
-            else:
-                if not ('silo' in params and params['silo'] and 'owners' in params and params['owner']):
+            if not accept_list:
+                accept_list= [MT("text", "html")]
+            mimetype = accept_list.pop(0)
+            while(mimetype):
+                if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                    c.message = "Metadata updated"
+                    c.kw = ag.granary.describe_silo(silo)
+                    return render("/admin_siloview.html")
+                elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = "text/plain"
-                    response.status_int = 400
-                    response.status = "400 Bad Request"
-                    return "400 Bad request.  No valid parameters found."
-
-                # Create new silo
-                g_root = config.get("granary.uri_root", "info:")
-                c.silo = ag.granary.get_rdf_silo(silo_name, uri_base="%s%s/" % (g_root, silo_name))
-                ag.granary._register_silos()
-                kw = {}
-                for term in accepted_params:
-                    if term in params:
-                        kw[term] = params[term]
-                ag.granary.describe_silo(silo_name, **kw)
-                ag.granary.sync()
-
-                #Update info in ag.users and users.py
-                users_added = False
-                if 'owners' in kw.keys() and kw['owners']:
-                    silo_users = [x.strip() for x in kw['owners'].split(",") if x]
-                    for u in silo_users:
-                        if not u in ag.users:
-                            ag.users[u] = {'owner':silo_name, 'role':'user'}
-                            users_added = True
-                        else:
-                            silos_owned = ag.users[u]['owner']
-                            if isinstance(ag.users[u]['owner'], basestring):
-                                silos_owned = [x.strip() for x in ag.users[o]['owner'].split(",") if x]
-                            if not silo_name in silos_owned:
-                                silos_owned.append(silo_name)
-                                ag.users[u]['owner'] = silos_owned
-                                users_added = True
-                if users_added:
-                    f = codecs.open(ag.userfile, 'w', 'utf-8')
-                    f.write('# -*- coding: utf-8 -*-\n_USERS = %s'%str(ag.users))
-                    f.close()
-                 
-                # conneg return
-                accept_list = None
-                if 'HTTP_ACCEPT' in request.environ:
-                    try:
-                        accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
-                    except:
-                        accept_list= [MT("text", "html")]
-                if not accept_list:
-                    accept_list= [MT("text", "html")]
-                mimetype = accept_list.pop(0)
-                while(mimetype):
-                    if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                        redirect(url(controller="silos", action="siloview", silo=silo_name))
-                    elif str(mimetype).lower() in ["text/plain", "application/json"]:
-                        response.content_type = "text/plain"
-                        response.status_int = 201
-                        response.status = "201 Created"
-                        response.headers['Content-Location'] = url(controller="silos", action="siloview", silo=silo_name)
-                        return "201 Created Silo %s" % silo_name
-                    try:
-                        mimetype = accept_list.pop(0)
-                    except IndexError:
-                        mimetype = None
-                # Whoops - nothing satisfies - return text/plain
-                response.content_type = "text/plain"
-                response.status_int = 201
-                response.status = "201 Created"
-                response.headers['Content-Location'] = url(controller="silos", action="siloview", silo=silo_name)
-                return "201 Created Silo %s" % silo_name
+                    response.status_int = 204
+                    response.status = "204 Updated"
+                    #return "Updated Silo %s" % silo
+                    return
+                try:
+                    mimetype = accept_list.pop(0)
+                except IndexError:
+                    mimetype = None
+            # Whoops - nothing satisfies - return text/plain
+            response.content_type = "text/plain"
+            response.status_int = 204
+            response.status = "204 Updated"
+            return
         elif http_method == "DELETE":
-            if not ag.granary.issilo(silo_name):
-                abort(404)
             # Deletion of an entire Silo...
             # Serious consequences follow this action
             # Walk through all the items, emit a delete msg for each
             # and then remove the silo
-            todelete_silo = ag.granary.get_rdf_silo(silo_name)
+            todelete_silo = ag.granary.get_rdf_silo(silo)
             for item in todelete_silo.list_items():
-                ag.b.deletion(silo_name, item, ident=ident['repoze.who.userid'])
+                ag.b.deletion(silo, item, ident=ident['repoze.who.userid'])
 
-            ag.granary.delete_silo(silo_name)
+            ag.granary.delete_silo(silo)
 
-            ag.b.silo_deletion(silo_name, ident=ident['repoze.who.userid'])
+            ag.b.silo_deletion(silo, ident=ident['repoze.who.userid'])
             try:
-                del ag.granary.state[silo_name]
+                del ag.granary.state[silo]
             except:
                 pass
             ag.granary.sync()
             ag.granary._register_silos()
+            #Delete silo from database
+            delete_silo(silo)
             # conneg return
             accept_list = None
-            #if 'HTTP_ACCEPT' in request.environ:
-            #    try:
-            #        accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
-            #    except:
-            #        accept_list= [MT("text", "plain")]
-            #if not accept_list:
-            #    accept_list= [MT("text", "plain")]
-            #mimetype = accept_list.pop(0)
-            #while(mimetype):
-            #    if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-            #        redirect(url(controller="admin", action="index"))
-            #    elif str(mimetype).lower() in ["text/plain", "application/json"]:
-            #        response.content_type = "text/plain"
-            #        response.status_int = 200
-            #        response.status = "200 OK"
-            #        return """{'status':'Silo %s deleted'}""" % silo_name
-            # Whoops - nothing satisfies - return text/plain
             response.content_type = "text/plain"
             response.status_int = 200
             response.status = "200 OK"
-            #return """{'status':'Silo %s deleted'}""" % silo_name
             return "{'ok':'true'}"
 
     @rest.restrict('POST')
-    def register(self, silo_name):
+    def register(self, silo):
+        #Add user
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
+        if not ag.granary.issilo(silo):
+            abort(404)
         ident = request.environ.get('repoze.who.identity')
         c.ident = ident
-        #c.granary_list = ag.granary.silos
-        c.silo_name = silo_name
+        c.silo = silo
         # Admin only
-        if not ident.get('role') == "admin":
-            abort(403, "Do not have admin credentials")
-        if not ag.granary.issilo(silo_name):
-            abort(404)
         granary_list = ag.granary.silos
-        silos = ag.authz(granary_list, ident)
-        if not silo_name in silos:
-            abort(403)
+        silos = ag.authz(granary_list, ident, permission=['administrator', 'manager'])
+        if not silo in silos:
+            abort(403, "Do not have administrator or manager credentials for silo %s"%silo)
         params = request.POST
-        if not 'username' in params and not params['username']:
+        if not ('username' in params and params['username']):
             abort(400, "username not supplied")
-        if params['username'] in ag.users:
-            existing_owners_of_silo = []
-            kw = ag.granary.describe_silo(silo_name)
-            if "owners" in kw.keys():
-                existing_owners_of_silo = [x.strip() for x in kw['owners'].split(",") if x]
-            if not params['username'] in existing_owners_of_silo:
-                abort(403, "User not a part of the silo %s"%silo_name)
+        existing_users = list_usernames()
+        if params['username'] in existing_users:
+            ug = list_user_groups(params['username'])
+            if not ((params['username'], 'administrator') in ug or (params['username'], 'manager') in ug or (params['username'], 'submitter') in ug):
+                abort(403, "User %s is not a part of the silo %s"%(params['username'], silo))
             code = 204
         else:
             code = 201
         owner_of_silos = []
-        if code == 201:            
-            if 'owner' in params and params['owner'] and (('first_name' in params and 'last_name' in params) or 'name' in params) and \
-               'username' in params and params['username'] and 'password' in params and params['password']:
-                ag.passwdfile.update(params['username'], params['password'])
-                ag.passwdfile.save()
-                owner_of_silos = params['owner'].strip().split(',')
-                for s in owner_of_silos:
-                    if s and not ag.granary.issilo(s):
-                        owner_of_silos.remove(s)
-                ag.users[params['username']] = {'owner':owner_of_silos}
-                if 'role' in params and params['role'] and params['role'] in ['admin', 'manager', 'user']:
-                    ag.users[params['username']]['role'] = params['role']
-                else:
-                    ag.users[params['username']]['role'] = 'user'
-                if 'name' in params and params['name']:
-                    ag.users[params['username']]['name'] = params['name']
-                if 'first_name' in params and params['first_name']:
-                    ag.users[params['username']]['first_name'] = params['first_name']
-                if 'last_name' in params and params['last_name']:
-                    ag.users[params['username']]['last_name'] = params['last_name']
-        if code == 204:
-            if 'password' in params and params['password']:
-                ag.passwdfile.update(params['username'], params['password'])
-                ag.passwdfile.save()
-            if 'owner' in params and params['owner']:
-                owner_of_silos = params['owner'].strip().split(',')
-                for s in owner_of_silos:
-                    if not ag.granary.issilo(s):
-                        owner_of_silos.remove(s)
-                ag.users[params['username']]['owner'] = owner_of_silos
-            if 'role' in params and params['role'] and params['role'] in ['admin', 'manager', 'user']:
-                ag.users[params['username']]['role'] = params['role']
-            if 'name' in params and params['name']:
-                ag.users[params['username']]['name'] = params['name']
-            if 'first_name' in params and params['first_name']:
-                ag.users[params['username']]['first_name'] = params['first_name']
-            if 'last_name' in params and params['last_name']:
-                ag.users[params['username']]['last_name'] = params['last_name']
-
-        f = codecs.open(ag.userfile, 'w', 'utf-8')
-        f.write('# -*- coding: utf-8 -*-\n_USERS = %s'%str(ag.users))
-        f.close()
-        #reload(users)
-        #silos_to_be_added = ag.users[params['username']]['owner']
-        #Add owner to silos
-        if owner_of_silos:
-            for s in owner_of_silos:
-                if not ag.granary.issilo(s):
-                    continue
-                c.kw = ag.granary.describe_silo(s)
-                owners = c.kw.get('owners')
-                if owners and not type(owners).__name__ == 'list':
-                    owners = owners.split(',')
-                if not params['username'] in owners:
-                    #owners = owners.strip().strip(',').strip()
-                    owners.append(params['username'])
-                    owners = ','.join(owners)
-                    c.kw['owners'] = owners
-                    ag.granary.describe_silo(silo_name, **c.kw)
-                    ag.granary.sync()
         if code == 201:
+            #Can only add user details. User membershipis managed through each silo
+            if (('first_name' in params and 'last_name' in params) or 'name' in params) and \
+               'username' in params and params['username'] and 'password' in params and params['password']:
+                add_user(params)
+            else:
+                abort(400, "The following parameters have to be supplied: username, pasword and name (or firstname and lastanme)")
             response.status_int = 201
             response.status = "201 Created"
-            response.headers['Content-Location'] = url(controller="admin", action="archive", silo_name=silo_name)
+            response.headers['Content-Location'] = url(controller="admin", action="siloview", silo=silo)
             response_message = "201 Created"
         if code == 204:
+            update_user(params)
             response.status_int = 204
             response.status = "204 Updated"
             response_message = None
@@ -465,7 +432,7 @@ class AdminController(BaseController):
         mimetype = accept_list.pop(0)
         while(mimetype):
             if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                redirect(url(controller="admin", action="archive", silo_name=silo_name))
+                redirect(url(controller="admin", action="siloview", silo=silo))
             elif str(mimetype).lower() in ["text/plain", "application/json"]:
                 response.content_type = "text/plain"
                 return response_message

@@ -1,42 +1,59 @@
-from webob import Request
-import zope.interface
-from repoze.who.classifiers import default_request_classifier
-from repoze.who.interfaces import IRequestClassifier
-import ConfigParser
-from pylons import config
+# coding: utf-8
+ 
+"""Intended to work like a quick-started SQLAlchemy plugin"""
+ 
+from repoze.what.middleware import AuthorizationMetadata
+from repoze.what.plugins.pylonshq import booleanize_predicates
+from repoze.what.plugins.sql import configure_sql_adapters
+from repoze.who.plugins.sa import SQLAlchemyAuthenticatorPlugin
+from repoze.who.plugins.sa import SQLAlchemyUserMDPlugin
 
-def custom_request_classifier(environ):
-    """ Returns one of the classifiers 'app', 'browser' or any
-    standard classifiers returned by
-    repoze.who.classifiers:default_request_classifier
-    """
+from rdfdatabank.model import meta, User, Group, Permission
 
+# authenticator plugin
+authenticator = SQLAlchemyAuthenticatorPlugin(User, meta.Session)
+#authenticator.translations['user_name'] = 'username'
 
-    classifier = default_request_classifier(environ)
-    if classifier == 'browser':
-        login_form_url = '/login'
-        login_handler = '/login_handler'
-        logout_handler = '/logout_handler'
-        logout_url = '/logout'
-        # Decide if the client is a (user-driven) browser or an application
-        if config.has_key("who.config_file"):
-            config_file = config["who.config_file"]
-            config_who = ConfigParser.ConfigParser()
-            config_who.readfp(open(config_file))
-            login_form_url = config_who.get("plugin:friendlyform", "login_form_url")
-            login_handler = config_who.get("plugin:friendlyform", "login_handler_path")
-            logout_handler = config_who.get("plugin:friendlyform", "logout_handler_path")
-            logout_url = config_who.get("plugin:friendlyform", "post_logout_url")
+# metadata provider plugins
+#
+# From the documentation in repoze.what.plugins.sql.adapters package
+#
+# For developers to be able to use the names they want in their model, both the
+# groups and permissions source adapters use a "translation table" for the
+# field and table names involved:
+#  * Group source adapter:
+#    * "section_name" (default: "group_name"): The name of the table field that
+#      contains the primary key in the groups table.
+#    * "sections" (default: "groups"): The groups to which a given user belongs.
+#    * "item_name" (default: "user_name"): The name of the table field that
+#      contains the primary key in the users table.
+#    * "items" (default: "users"): The users that belong to a given group.
+#  * Permission source adapter:
+#    * "section_name" (default: "permission_name"): The name of the table field
+#      that contains the primary key in the permissions table.
+#    * "sections" (default: "permissions"): The permissions granted to a given
+#      group.
+#    * "item_name" (default: "group_name"): The name of the table field that
+#      contains the primary key in the groups table.
+#    * "items" (default: "groups"): The groups that are granted a given
+#      permission.
 
-        path_info = environ['PATH_INFO']
-        print "\nPATH INFO =", path_info, "\n"
-        #request = Request(environ)
-        #if not request.accept.best_match(['application/xhtml+xml', 'text/html']):
-        #    # In our view, any client who doesn't support HTML/XHTML is an "app",
-        #    #   not a (user-driven) "browser".
-        #    classifier = 'app'
-        if not path_info in [login_form_url, login_handler, logout_handler, logout_url]:
-            # In our view, any client who hasn't come in from the login url is an app
-            classifier = 'app'
-    return classifier
-zope.interface.directlyProvides(custom_request_classifier, IRequestClassifier)
+#adapters = configure_sql_adapters(User, Group, Permission, meta.Session,
+#                                  group_translations={'section_name': 'name',
+#                                                      'item_name': 'username'},
+#                                  permission_translations={'section_name': 'name',
+#                                                           'item_name': 'username'})
+adapters = configure_sql_adapters(User, Group, Permission, meta.Session)
+
+user = SQLAlchemyUserMDPlugin(User, meta.Session)
+#user.translations['user_name'] = 'username'
+
+group = AuthorizationMetadata(
+    {'sqlauth': adapters['group']}, 
+    {'sqlauth': adapters['permission']}
+)
+
+# THIS IS CRITICALLY IMPORTANT!  Without this your site will
+# consider every repoze.what predicate True!
+booleanize_predicates()
+

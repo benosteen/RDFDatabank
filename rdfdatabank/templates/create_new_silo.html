@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
-<p> Create new Silo </p>
-<p>
-<form method="POST" enctype="multipart/form-data" action="/admin" accept-charset="UTF-8">
-<ul>
-<li><label for="silo">Silo label (eg 'a' -> /a/datasets/...)</label><input type="text" name="silo" /></li>
-<li><label for="title">Title:</label><input type="text" name="title" /></li>
-<li><label for="description">Description:</label><input type="textbox" name="description" /></li>
-<li><label for="notes">Notes:</label><input type="textbox" name="notes" /></li>
-<li><label for="owners">Owners (comma separated userids):</label><input type="textbox" name="owners" /></li>
-<li><label for="disk_allocation">Disk Allocation (in Kb):</label><input type="textbox" name="disk_allocation" /></li>
-<li><input type="submit" value="Create new silo"/></li>
-</ul>
+<form class="create_silo" method="POST" enctype="multipart/form-data" action="/admin" accept-charset="UTF-8">
+<div><label for="silo">Silo label (eg 'a' -> /a/datasets/...)</label><input type="text" name="silo" /></div>
+<div><label for="title">Title:</label><input type="text" name="title" /></div>
+<div><label for="description">Description:</label><input type="textbox" name="description" /></div>
+<div><label for="notes">Notes:</label><input type="textbox" name="notes" /></div>
+<div><label for="administrators">Administrators (comma separated userids):</label><input type="textbox" name="administrators" /></div>
+<div><label for="managers">Managers (comma separated userids):</label><input type="textbox" name="managers" /></div>
+<div><label for="users">Submitters (comma separated userids):</label><input type="textbox" name="users" /></div>
+<div><label for="disk_allocation">Disk Allocation (in Kb):</label><input type="textbox" name="disk_allocation" /></div>
+<div><input type="submit" value="Create new silo"/></div>
 </form>
 </p>

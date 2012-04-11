@@ -37,11 +37,11 @@ def make_map():
     map.connect('/api/{api_name}', controller='api', action='apiview')
    
     map.connect('/admin', controller='admin', action='index')
-    map.connect('/{silo_name}/admin', controller='admin', action='archive')
-    map.connect('/{silo_name}/register', controller='admin', action='register')
-    
-    map.connect('/{silo_name}/users', controller='users', action='index')
-    map.connect('/{silo_name}/users/{username}', controller='users', action='userview')
+    map.connect('/users', controller='users', action='index')
+    map.connect('/users/{username}', controller='users', action='userview')
+    map.connect('/{silo}/users', controller='users', action='siloview')
+    map.connect('/{silo}/users/{username}', controller='users', action='silouserview')
+    map.connect('/{silo}/admin', controller='admin', action='siloview')
     
     map.connect('/silos', controller='silos', action='index')
     map.connect('/{silo}', controller='silos', action='siloview')

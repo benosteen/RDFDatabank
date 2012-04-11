@@ -1,0 +1,38 @@
+# -*- coding: utf-8 -*-
+<%inherit file="/base.html" />
+<%def name="head_tags()">
+  <title>Users </title>
+</%def>
+<h1> Users</h1>
+% if c.message:
+<p><span style="color:red;">${c.message}</span></p>
+% endif
+% if c.users:
+  % for user in c.users:
+      <h2><a href="/users/${user['user_name']}">${user['user_name']}</a></h2>
+      <ul class="metadata">
+      <li><label for="username">Username:</label>${user['user_name']}</li>
+      % if 'firstname' in user and user['firstname']:
+        <li><label for="firstname">Firstname:</label>${user['firstname']}</li>
+      % endif
+      % if 'lastname' in user and user['lastname']:
+        <li><label for="lastname">Lastname:</label>${user['lastname']}</li>
+      % endif
+      % if 'name' in user and user['name']:
+        <li><label for="name">Name:</label>${user['name']}</li>
+      % endif
+      % if 'email' in user and user['email']:
+        <li><label for="email">Email:</label>${user['email']}</li>
+      % endif
+      % if 'groups' in user and user['groups']:
+        <li class="subtitle">Memebership information:</li>
+        <li class="subtitle"><label for="silo">Silo</label>Role</li>
+        % for g, p in user['groups']:
+            <li><label for="silo">${g}</label>${p}</li>
+        % endfor
+      % endif
+      </ul>
+  % endfor
+% endif
+<h1>Create new user</h1>
+<%include file="/register_new_user.html"/>

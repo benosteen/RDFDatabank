@@ -17,9 +17,11 @@ from rdflib import Namespace, RDF, RDFS, URIRef, Literal, BNode
 from uuid import uuid4
 import re
 
+from rdfdatabank.lib.auth_entry import list_silos
+
 ID_PATTERN = re.compile(r"^[0-9A-z\-\:]+$")
 
-def authz(granary_list,ident):
+def authz_old(granary_list,ident):
     g = ag.granary
     g.state.revert()
     g._register_silos()
@@ -34,8 +36,6 @@ def authz(granary_list,ident):
     if 'role' in ident and ident['role'] == "admin":
         authd = []
         silos_owned = ident['owner']
-        if not type(silos_owned).__name__ == 'list':
-            silos_owned = [silos_owned]
         if '*' in silos_owned:
             #User has access to all silos
             return granary_list
@@ -53,8 +53,6 @@ def authz(granary_list,ident):
     elif 'owner' in ident:
         authd = []
         silos_owned = ident['owner']
-        if not type(silos_owned).__name__ == 'list':
-            silos_owned = [silos_owned]
         for item in granary_list:
             if item in silos_owned:
                 authd.append(item)
@@ -67,6 +65,50 @@ def authz(granary_list,ident):
         authd = []
         return authd
         
+def authz_old2(granary_list,ident, permission=None):
+    g = ag.granary
+    g.state.revert()
+    g._register_silos()
+    granary_list = g.silos
+
+    silos = []
+    for i in ident['user'].groups:
+        if i.silo == '*':
+            return granary_list
+        if i.silo in granary_list:
+            if not permission:
+                silos.append(i.silo)
+            else:
+                 if not type(permission).__name__ == 'list':
+                     permission = [permission]
+                 for p in i.permissions:
+                     if p.permission_name in permission:
+                         silos.append(i.silo)    
+    return silos
+
+def authz(granary_list, ident, permission=None):
+    #NOTE: g._register_silos() IS AN EXPENSIVE OPERATION. LISTING SILOS FROM DATABASE INSTEAD
+    #g = ag.granary
+    #g.state.revert()
+    #g._register_silos()
+    #granary_list = g.silos
+    granary_list = list_silos()
+
+    if permission and not type(permission).__name__ == 'list':
+        permission = [permission]
+
+    silos = []
+    for i in ident['user'].groups:
+        if i.silo == '*':
+            return granary_list
+        if i.silo in granary_list and not i.silo in silos:
+            if not permission:
+                silos.append(i.silo)
+            else:
+                 for p in i.permissions:
+                     if p.permission_name in permission:
+                         silos.append(i.silo)    
+    return silos
 
 def allowable_id(identifier):
     if ID_PATTERN.match(identifier):

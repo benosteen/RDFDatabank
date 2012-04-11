@@ -5,6 +5,7 @@ Provides the BaseController class for subclassing.
 """
 from pylons.controllers import WSGIController
 from pylons.templating import render_mako as render
+from rdfdatabank.model import meta
 
 class BaseController(WSGIController):
 
@@ -13,4 +14,7 @@ class BaseController(WSGIController):
         # WSGIController.__call__ dispatches to the Controller method
         # the request is routed to. This routing information is
         # available in environ['pylons.routes_dict']
-        return WSGIController.__call__(self, environ, start_response)
+        try:
+            return WSGIController.__call__(self, environ, start_response)
+        finally:
+            meta.Session.remove()

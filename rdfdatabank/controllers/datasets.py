@@ -172,9 +172,11 @@ class DatasetsController(BaseController):
             #identity management of item 
             if not request.environ.get('repoze.who.identity'):
                 abort(401, "Not Authorised")
-            silos = ag.authz(granary_list, ident)      
+            silos = ag.authz(granary_list, ident)
             if silo not in silos:
                 abort(403, "Forbidden")
+            silos_admin = ag.authz(granary_list, ident, permission='administrator')
+            silos_manager = ag.authz(granary_list, ident, permission='manager')
         elif http_method == "GET":
             if not c_silo.exists(id):
                 abort(404)
@@ -200,10 +202,12 @@ class DatasetsController(BaseController):
             if ag.metadata_embargoed:
                 if not ident:
                     abort(401, "Not Authorised")
-                silos = ag.authz(granary_list, ident)      
+                silos = ag.authz(granary_list, ident)
                 if silo not in silos:
                     abort(403, "Forbidden")
-                if ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]:
+                silos_admin = ag.authz(granary_list, ident, permission='administrator')
+                silos_manager = ag.authz(granary_list, ident, permission='manager')
+                if ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager:
                     c.editor = True
             elif item.metadata.get('embargoed') not in ["false", 0, False]:
                 #TODO: This will always provide the embargo information for the latest version.
@@ -211,15 +215,20 @@ class DatasetsController(BaseController):
                 embargoed = True
                 if ident:
                     silos = ag.authz(granary_list, ident)      
+                    silos_admin = ag.authz(granary_list, ident, permission='administrator')
+                    silos_manager = ag.authz(granary_list, ident, permission='manager')
                     if silo in silos:
-                        if ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]:
+                        #if ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]:
+                        if ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager:
                             c.editor = True
             elif ident:
                 silos = ag.authz(granary_list, ident)
+                silos_admin = ag.authz(granary_list, ident, permission='administrator')
+                silos_manager = ag.authz(granary_list, ident, permission='manager')
                 if silo in silos:
-                    if ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]:
+                    #if ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]:
+                    if ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager:
                         c.editor = True
-
             
             c.show_files = True
             #Only the administrator, manager and creator can view embargoed files.
@@ -367,7 +376,8 @@ class DatasetsController(BaseController):
                 if item.manifest and item.manifest.state and 'metadata' in item.manifest.state and item.manifest.state['metadata'] and \
                     'createdby' in item.manifest.state['metadata'] and item.manifest.state['metadata']['createdby']:
                     creator = item.manifest.state['metadata']['createdby']
-                if not (ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]):
+                #if not (ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]):
+                if not (ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager):
                     abort(403)
                 if not params['embargoed'].lower() in ['true', 'false', '0', '1']:
                     abort(400, "The value for embargoed has to be either 'True' or 'False'")
@@ -441,7 +451,8 @@ class DatasetsController(BaseController):
                 if item.manifest and item.manifest.state and 'metadata' in item.manifest.state and item.manifest.state['metadata'] and \
                     'createdby' in item.manifest.state['metadata'] and item.manifest.state['metadata']['createdby']:
                     creator = item.manifest.state['metadata']['createdby']
-                if not (ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]):
+                #if not (ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]):
+                if not (ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager):
                     abort(403)
 
                 upload = params.get('file')
@@ -544,7 +555,8 @@ class DatasetsController(BaseController):
                 if item.manifest and item.manifest.state and 'metadata' in item.manifest.state and item.manifest.state['metadata'] and \
                     'createdby' in item.manifest.state['metadata'] and item.manifest.state['metadata']['createdby']:
                     creator = item.manifest.state['metadata']['createdby']
-                if not (ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]):
+                #if not (ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]):
+                if not (ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager):
                     abort(403)
                 
                 target_path = filename
@@ -636,7 +648,8 @@ class DatasetsController(BaseController):
             if item.manifest and item.manifest.state and 'metadata' in item.manifest.state and item.manifest.state['metadata'] and \
                 'createdby' in item.manifest.state['metadata'] and item.manifest.state['metadata']['createdby']:
                 creator = item.manifest.state['metadata']['createdby']
-            if not (ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]):
+            #if not (ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]):
+            if not (ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager):
                 abort(403)
 
             c_silo.del_item(id)
@@ -792,7 +805,10 @@ class DatasetsController(BaseController):
             silos = ag.authz(granary_list, ident)      
             if silo not in silos:
                 abort(403, "Forbidden")
-            if not (ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]):
+            silos_admin = ag.authz(granary_list, ident, permission='administrator')
+            silos_manager = ag.authz(granary_list, ident, permission='manager')
+            #if not (ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]):
+            if not (ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager):
                 abort(403, "Forbidden")
         elif http_method == "GET":
             embargoed = False
@@ -812,7 +828,10 @@ class DatasetsController(BaseController):
                 silos = ag.authz(granary_list, ident)      
                 if silo not in silos:
                     abort(403, "Forbidden")
-                if ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]:
+                silos_admin = ag.authz(granary_list, ident, permission='administrator')
+                silos_manager = ag.authz(granary_list, ident, permission='manager')
+                #if ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]:
+                if ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager:
                     c.editor = True
             elif item.metadata.get('embargoed') not in ["false", 0, False]:
                 if not ident:
@@ -820,14 +839,20 @@ class DatasetsController(BaseController):
                 silos = ag.authz(granary_list, ident)      
                 if silo not in silos:
                     abort(403)
-                if not ident['repoze.who.userid'] == creator and not ident.get('role') in ["admin", "manager"]:
+                silos_admin = ag.authz(granary_list, ident, permission='administrator')
+                silos_manager = ag.authz(granary_list, ident, permission='manager')
+                #if not ident['repoze.who.userid'] == creator and not ident.get('role') in ["admin", "manager"]:
+                if not (ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager):
                     abort(403)
                 embargoed = True
                 c.editor = True                   
             elif ident:
                 silos = ag.authz(granary_list, ident)
+                silos_admin = ag.authz(granary_list, ident, permission='administrator')
+                silos_manager = ag.authz(granary_list, ident, permission='manager')
                 if silo in silos:
-                    if ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]:
+                    #if ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]:
+                    if ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager:
                         c.editor = True
 
             c.show_files = True
@@ -1145,11 +1170,14 @@ class DatasetsController(BaseController):
             silos = ag.authz(granary_list, ident)      
             if silo not in silos:
                 abort(403, "Forbidden")
+            silos_admin = ag.authz(granary_list, ident, permission='administrator')
+            silos_manager = ag.authz(granary_list, ident, permission='manager')
             creator = None
             if item.manifest and item.manifest.state and 'metadata' in item.manifest.state and item.manifest.state['metadata'] and \
                 'createdby' in item.manifest.state['metadata'] and item.manifest.state['metadata']['createdby']:
                 creator = item.manifest.state['metadata']['createdby']
-            if not ident['repoze.who.userid'] == creator and not ident.get('role') in ["admin", "manager"]:
+            #if not ident['repoze.who.userid'] == creator and not ident.get('role') in ["admin", "manager"]:
+            if not (ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager):
                 abort(403)
 
         if item.isfile(path):

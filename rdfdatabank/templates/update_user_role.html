@@ -1,0 +1,27 @@
+# -*- coding: utf-8 -*-
+<%
+  roles = []
+  if c.user and 'groups' in c.user and c.user['groups']:
+    for g, p in c.user['groups']:
+      roles.append(p)
+%>
+<form class="update_role" method="POST" enctype="multipart/form-data" action="/${c.silo}/users/${c.username}" accept-charset="UTF-8">
+<div><label for="role">Role:</label>
+% if "administrator" in roles:
+    <input type="radio" name="role" value="administrator" checked="checked"/>Administrator 
+% else:
+    <input type="radio" name="role" value="administrator" />Administrator 
+% endif
+% if "manager" in roles:
+    <input type="radio" name="role" value="manager" checked="checked" />Manager 
+% else:
+    <input type="radio" name="role" value="manager" />Manager 
+% endif
+% if "submitter" in roles:
+    <input type="radio" name="role" value="submitter" checked="checked" />Submitter
+% else:
+    <input type="radio" name="role" value="submitter" />Submitter
+% endif
+</div>
+<div><input type="submit" value="Update user role"/></div>
+</form>
