@@ -1,0 +1,49 @@
+Databank is a web-based application for storing, curating and publishing data-packages, and is written using python and the pylons web framework. Its default deployment includes a message queue providing databank notifications to listener services. This message queue is handled using `Redis <http://redis.io/>`_ and `Supervisor <http://supervisord.org/>`_ to maintain the listener services. The search interface in Databank is powered by `Apache SOLR <http://lucene.apache.org/solr/>`_. 
+
++--------------------------------+-----------+
+| Package name                   | Version   |
++================================+===========+
+| python                         | >=2.6     |
++--------------------------------+-----------+
+| python-pylons                  | >=0.9.7   |
++--------------------------------+-----------+                                                         
+| python-repoze.who              | =2.0a4    |
++--------------------------------+-----------+
+| python-repoze.who-friendlyform | =1.0.8    |
++--------------------------------+-----------+
+| python-rdflib                  | =2.4.2    |
++--------------------------------+-----------+
+| python-dateutil                | >=1.4.1-4 |
++--------------------------------+-----------+
+| python-libxml2                 | >=2.7.8   |
++--------------------------------+-----------+
+| python-libxslt1                | >=1.1.26-7|
++--------------------------------+-----------+
+| python-pairtree                | >=0.7.1   |
++--------------------------------+-----------+
+| python-recordsilo              | >=0.4.14  |
++--------------------------------+-----------+
+| python-solrpy                  | >=0.9.5   |
++--------------------------------+-----------+
+| python-redis                   | >=2.4.5-1 |
++--------------------------------+-----------+
+| unzip                          | >=6.0     |
++--------------------------------+-----------+
+| apache2                        | >=2.2.20  |
++--------------------------------+-----------+
+| apache2-utils                  | >=2.2.20  |
++--------------------------------+-----------+
+| libapache2-mod-wsgi            | >=3.3     |
++--------------------------------+-----------+
+| redis-server                   | >=2.2.11  |
++--------------------------------+-----------+
+| supervisor                     | >=3.0     |
++--------------------------------+-----------+
+| openjdk-6-jre                  | >=6b23    |
++--------------------------------+-----------+
+| solr-tomcat                    | >=1.4.1   |
++--------------------------------+-----------+
+| Simple Sword Server *          | 2.0       |
++--------------------------------+-----------+
+
+\* Availabale from http://sword-app.svn.sourceforge.net/viewvc/sword-app/sss/branches/sss-2/

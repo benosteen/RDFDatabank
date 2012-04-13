@@ -18,15 +18,15 @@
 
 <h1>Dataset ${c.id}</h1>
 % if c.version:
-<h3>Version ${c.version}</h3>
+<h2>Version ${c.version}</h2>
 % elif c.versions:
-<h3>Version ${c.versions[-1]}</h3>
+<h2>Version ${c.versions[-1]}</h2>
 % endif
 
 <!-- View Information -->
 % if c.editor:
   <div id="editor_view">
-  <p class="title">Editorial functions</p>
+  <h2>Edit options</h2>
   <!-- 
   % if c.view == 'editor':
     Editor view 
@@ -43,8 +43,10 @@
     <a href="/${c.silo_name}/datasets/${c.id}/${c.path}?view=user">User</a></p>
   % endif
   -->
-  <p><b><a href="#upload_file" onclick="showhide('upload_file');">
-    <img src="/static/styles/images/file-new-icon-24.png"/>Upload file</a></b></p>
+  <ul class="stateInfo">
+  <li><a href="#upload_file" onclick="showhide('upload_file');">
+    <img src="/static/styles/images/file-new-icon-24.png"/>Upload file</a></li>
+  </ul>
   </div>
 % endif
 
@@ -61,31 +63,24 @@
 % endif
 
 % if c.versions:
-  <p><b>View other versions:</b>
-  % for i in range(1, len(c.versions)-1):
-    % if c.version and c.versions[i] == c.version:
-      <a class="current" href="/${c.silo_name}/datasets/${c.id}/${c.path}?version=${c.versions[i]}">${c.versions[i]}</a> |
+  <h3>View other versions:</h3><ul class="versions">
+  % for v in c.versions:
+    % if c.version and v == c.version:
+      <li><a class="current" href="/${c.silo_name}/datasets/${c.id}/${c.path}?version=${v}">${v}</a></li>
+    % elif (not c.version) and (v == c.versions[-1]):
+      <li><a class="current" href="/${c.silo_name}/datasets/${c.id}/${c.path}?version=${v}">${v}</a></li>
     % else:
-      <a href="/${c.silo_name}/datasets/${c.id}/${c.path}?version=${c.versions[i]}">${c.versions[i]}</a> |
+      <li><a href="/${c.silo_name}/datasets/${c.id}/${c.path}?version=${v}">${v}</a></li>
     % endif
   % endfor
-  % if c.version:
-    % if c.version == c.versions[-1]:
-      <a class="current" href="/${c.silo_name}/datasets/${c.id}/${c.path}?version=${c.versions[-1]}">${c.versions[-1]}</a>
-    % else:
-      <a href="/${c.silo_name}/datasets/${c.id}/${c.path}?version=${c.versions[-1]}">${c.versions[-1]}</a>
-    % endif
-  % else:
-    <a class="current" href="/${c.silo_name}/datasets/${c.id}/${c.path}?version=${c.versions[-1]}">${c.versions[-1]}</a>
-  % endif
-  </p>
+  </ul>
 % endif
 </div>
 
 <div class="datapackage">
 <!-- List of Files -->
 % if c.parts:
-  <h3><b>Data package contents within ${c.path}</b></h3>
+  <h2>Data package contents within ${c.path}</h2>
   <div class="dataset_info">
   % if c.show_files:
     % if c.editor:
@@ -104,7 +99,7 @@
 
 <!-- Read Me Information -->
 % if c.readme_text:
-<h3><b>README text</b></h3>
+<h2>README text</h2>
 <div class="dataset_info">
 <%include file="/readme_section.html"/>
 </div>
@@ -115,7 +110,7 @@
   <!-- Upload File -->
   <div id="upload_file" class="edit_section" style="display: none;">
   <a name="upload_file"></a>
-  <h3><b>Upload file to ${c.id}/${c.path}:</b></h3>
+  <h2>Upload file to ${c.id}/${c.path}:</h2>
   <%include file="/item_file_upload.html"/>
   <div class="top"><a href="#top" onclick="showhide('upload_file');" title="Back to top"><img src="/static/styles/images/go-up-icon-24.png"/></a></div>
   </div>

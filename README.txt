@@ -8,7 +8,7 @@ RDF-enhanced storage API, pairtree-backed.
 Installation and dependancies
 =============================
 
-The dependancies are listed in the file docs/Dependancies.pdf
+The dependancies are listed in the file docs/Dependancies.txt
 The installation instructions are available at docs/Databank_VM_Installation.txt
 
 For further infromation visit http://www.dataflow.ox.ac.uk/

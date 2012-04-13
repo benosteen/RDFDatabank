@@ -133,7 +133,7 @@ class DatasetsController(BaseController):
                 response.content_type = "text/plain"
                 response.status_int = 400
                 response.status = "400 Bad request. Dataset name not valid"
-                return "Dataset name can contain only the following characters - %s and has to be more than 1 character"%ag.naming_rule
+                return "Dataset name can contain only the following characters - %s and has to be more than 1 character"%ag.naming_rule_humanized
 
             del params['id']
             item = create_new(c_silo, id, ident['repoze.who.userid'], **params)
@@ -201,10 +201,12 @@ class DatasetsController(BaseController):
                 abort(403, "Forbidden")
             silos_admin = ag.authz(granary_list, ident, permission='administrator')
             silos_manager = ag.authz(granary_list, ident, permission='manager')
-        elif http_method == "GET":
+
+        if http_method in ["GET", "DELETE"]:
             if not c_silo.exists(id):
                 abort(404)
 
+        if http_method == "GET":
             embargoed = False
             item = c_silo.get_item(id)
 
@@ -271,8 +273,6 @@ class DatasetsController(BaseController):
             else:
                 c.view = 'user'
 
-        # Method determination
-        if http_method == "GET":
             c.embargos = {}
             c.embargos[id] = is_embargoed(c_silo, id)
             c.parts = item.list_parts(detailed=True)
@@ -353,55 +353,24 @@ class DatasetsController(BaseController):
             #Whoops - nothing staisfies - default to text/html
             return render('/datasetview.html')
         elif http_method == "POST":
-            params = request.POST
+            code = None
+            #Create new dataset if it does not exist
             if not c_silo.exists(id):
-                #Create new data-package. Any authorized user can do this
                 if not allowable_id2(id):
                     response.content_type = "text/plain"
                     response.status_int = 400
                     response.status = "400 Bad request. Dataset name not valid"
-                    return "Dataset name can contain only the following characters - %s and has to be more than 1 character"%ag.naming_rule
-                if 'id' in params.keys():
-                    del params['id']
+                    return "Dataset name can contain only the following characters - %s and has to be more than 1 character"%ag.naming_rule_humanized
+                params = {}
                 item = create_new(c_silo, id, ident['repoze.who.userid'], **params)
-                
-                # Broadcast change as message
-                try:
-                    ag.b.creation(silo, id, ident=ident['repoze.who.userid'])
-                except:
-                    pass
-                
-                # conneg return
-                accept_list = None
-                if 'HTTP_ACCEPT' in request.environ:
-                    try:
-                        accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
-                    except:
-                        accept_list= [MT("text", "html")]
-                if not accept_list:
-                    accept_list= [MT("text", "html")]
-                mimetype = accept_list.pop(0)
-                while(mimetype):
-                    if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                        # probably a browser - redirect to newly created dataset
-                        redirect(url(controller="datasets", action="datasetview", silo=silo, id=id))
-                    elif str(mimetype).lower() in ["text/plain", "application/json"]:
-                        response.content_type = "text/plain"
-                        response.status_int = 201
-                        response.status = "201 Created"
-                        response.headers["Content-Location"] = url(controller="datasets", action="datasetview", silo=silo, id=id) 
-                        return "201 Created"
-                    try:
-                        mimetype = accept_list.pop(0)
-                    except IndexError:
-                        mimetype = None
-                # Whoops - nothing satisfies - return text/plain
-                response.content_type = "text/plain"
-                response.status_int = 201
-                response.headers["Content-Location"] = url(controller="datasets", action="datasetview", silo=silo, id=id) 
+                code = 201
                 response.status = "201 Created"
-                return "201 Created"
-            elif params.has_key('embargoed') and params['embargoed']:
+                response.status_int = 201
+                response.headers["Content-Location"] = url(controller="datasets", action="datasetview", id=id, silo=silo)
+                response_message = "201 Created empyt data package"
+            #Update embargo info
+            params = request.POST
+            if params.has_key('embargoed') and params['embargoed']:
                 item = c_silo.get_item(id)
                 creator = None
                 if item.manifest and item.manifest.state and 'metadata' in item.manifest.state and item.manifest.state['metadata'] and \
@@ -456,38 +425,15 @@ class DatasetsController(BaseController):
                 item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
                 item.sync()
 
-                # conneg return
-                accept_list = None
-                if 'HTTP_ACCEPT' in request.environ:
-                    try:
-                        accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
-                    except:
-                        accept_list= [MT("text", "html")]
-                if not accept_list:
-                    accept_list= [MT("text", "html")]
-                mimetype = accept_list.pop(0)
-                while(mimetype):
-                    if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                        redirect(url(controller="datasets", action="datasetview", id=id, silo=silo))
-                    elif str(mimetype).lower() in ["text/plain", "application/json"]:
-                        response.content_type = "text/plain"
-                        response.status_int = 204
-                        response.status = "204 Updated"
-                        return
-                    try:
-                        mimetype = accept_list.pop(0)
-                    except IndexError:
-                        mimetype = None
-                #Whoops - nothing satisfies - return text / plain
-                response.content_type = "text/plain"
-                response.status_int = 204
-                response.status = "204 Updated"
-                return
-            elif params.has_key('file'):
+                if not code:
+                    code = 204
+                    response.content_type = "text/plain"
+                    response.status_int = 204
+                    response.status = "204 Updated"
+                    response_message = None
+            if params.has_key('file'):
                 # File upload by a not-too-savvy method - Service-orientated fallback:
                 # Assume file upload to 'filename'
-                params = request.POST
-
                 item = c_silo.get_item(id)
                 creator = None
                 if item.manifest and item.manifest.state and 'metadata' in item.manifest.state and item.manifest.state['metadata'] and \
@@ -565,33 +511,8 @@ class DatasetsController(BaseController):
                     response.status = "204 Updated"
                     response.status_int = 204
                     response_message = None
-
-                # conneg return
-                accept_list = None
-                if 'HTTP_ACCEPT' in request.environ:
-                    try:
-                        accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
-                    except:
-                        accept_list= [MT("text", "html")]
-                if not accept_list:
-                    accept_list= [MT("text", "html")]
-                mimetype = accept_list.pop(0)
-                while(mimetype):
-                    if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                        redirect(url(controller="datasets", action="datasetview", id=id, silo=silo))
-                    elif str(mimetype).lower() in ["text/plain"]:
-                        response.content_type = "text/plain"
-                        return response_message
-                    try:
-                        mimetype = accept_list.pop(0)
-                    except IndexError:
-                        mimetype = None
-                #Whoops - nothing satisfies - return text / plain
-                response.content_type = "text/plain"
-                return response_message
             elif params.has_key('text'):
                 # Text upload convenience service
-                params = request.POST
                 item = c_silo.get_item(id)
                 filename = params.get('filename')
                 if not filename:
@@ -665,38 +586,35 @@ class DatasetsController(BaseController):
                     response.status = "204 Updated"
                     response.status_int = 204
                     response_message = None
-                # conneg return
-                accept_list = None
-                if 'HTTP_ACCEPT' in request.environ:
-                    try:
-                        accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
-                    except:
-                        accept_list= [MT("text", "html")]
-                if not accept_list:
-                    accept_list= [MT("text", "html")]
-                mimetype = accept_list.pop(0)
-                while(mimetype):
-                    if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                        redirect(url(controller="datasets", action="datasetview", id=id, silo=silo))
-                    elif str(mimetype).lower() in ["text/plain", "application/json"]:
-                        response.content_type = "text/plain"
-                        return response_message
-                    try:
-                        mimetype = accept_list.pop(0)
-                    except IndexError:
-                        mimetype = None
-                #Whoops - nothing satisfies - return text / plain
-                response.content_type = "text/plain"
-                return response_message
-            else:
+            if not code:
                 response.content_type = "text/plain"
                 response.status_int = 400
                 response.status = "400 Bad request"
                 return "400 Bad Request. No valid parameters found."
+            # conneg return
+            accept_list = None
+            if 'HTTP_ACCEPT' in request.environ:
+                try:
+                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
+                except:
+                    accept_list= [MT("text", "html")]
+            if not accept_list:
+                accept_list= [MT("text", "html")]
+            mimetype = accept_list.pop(0)
+            while(mimetype):
+                if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                    redirect(url(controller="datasets", action="datasetview", id=id, silo=silo))
+                elif str(mimetype).lower() in ["text/plain", "application/json"]:
+                    response.content_type = "text/plain"
+                    return response_message
+                try:
+                    mimetype = accept_list.pop(0)
+                except IndexError:
+                    mimetype = None
+            #Whoops - nothing satisfies - return text / plain
+            response.content_type = "text/plain"
+            return response_message
         elif http_method == "DELETE":
-            if not c_silo.exists(id):
-                abort(404)
-
             item = c_silo.get_item(id)
             creator = None
             if item.manifest and item.manifest.state and 'metadata' in item.manifest.state and item.manifest.state['metadata'] and \
@@ -718,115 +636,6 @@ class DatasetsController(BaseController):
             response.status_int = 200
             response.status = "200 OK"
             return "{'ok':'true'}" # required for the JQuery magic delete to succede.
-
-    @rest.restrict('GET') 
-    def datasetview_vnum(self, silo, id, vnum):       
-        if not ag.granary.issilo(silo):
-            abort(404)
-        c.silo_name = silo
-        c.id = id
-        c_silo = ag.granary.get_rdf_silo(silo)
-        
-        if not c_silo.exists(id):
-            abort(404)
-
-        item = c_silo.get_item(id)
-        vnum = str(vnum)
-        if not vnum in item.manifest['versions']:
-            abort(404)
-
-        # filename options - used to check if DOI redirects the parameters
-        c.options = request.GET
-
-        #Set the item's version cursor
-        item.set_version_cursor(vnum)
-        c.version = vnum           
-
-        embargoed = False
-        c.editor = False 
-
-        if item.metadata.get('embargoed') not in ["false", 0, False]:
-            embargoed = True
-        if embargoed:
-            if not request.environ.get('repoze.who.identity'):
-                abort(401, "Not Authorized")
-            ident = request.environ.get('repoze.who.identity')  
-            c.ident = ident
-            granary_list = ag.granary.silos
-            silos = ag.authz(granary_list, ident)
-            if silo not in silos:
-                abort(403, "Forbidden")
-            c.editor = silo in silos
-        elif request.environ.get('repoze.who.identity'):
-            ident = request.environ.get('repoze.who.identity')  
-            c.ident = ident
-            granary_list = ag.granary.silos
-            silos = ag.authz(granary_list, ident)
-            c.editor = silo in silos
-
-        # Check to see if embargo is on:        
-        c.embargos = {}
-        c.embargos[id] = is_embargoed(c_silo, id)
-        c.readme_text = None
-        c.parts = item.list_parts(detailed=True)
-        c.manifest_pretty = item.rdf_to_string(format="pretty-xml")
-        if "README" in c.parts.keys():
-            c.readme_text = get_readme_text(item)
-                 
-        accept_list = None
-        if 'HTTP_ACCEPT' in request.environ:
-            try:
-                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
-            except:
-                accept_list= [MT("text", "html")]
-        if not accept_list:
-            accept_list= [MT("text", "html")]
-        mimetype = accept_list.pop(0)
-        
-        while(mimetype):
-            if str(mimetype).lower() in ["text/html", "text/xhtml"]:                    
-                return render('/datasetview_version.html')
-            elif str(mimetype).lower() in ["text/plain", "application/json"]:
-                response.content_type = 'application/json; charset="UTF-8"'
-                response.status_int = 200
-                response.status = "200 OK"
-                returndata = {}
-                returndata['embargos'] = c.embargos
-                returndata['view'] = c.view
-                returndata['editor'] = c.editor
-                returndata['parts'] = {}
-                for part in c.parts:
-                    returndata['parts'][part] = serialisable_stat(c.parts[part])
-                returndata['readme_text'] = c.readme_text
-                returndata['manifest_pretty'] = c.manifest_pretty
-                return simplejson.dumps(returndata)
-            elif str(mimetype).lower() in ["application/rdf+xml", "text/xml"]:
-                response.content_type = 'application/rdf+xml; charset="UTF-8"'
-                response.status_int = 200
-                response.status = "200 OK"
-                return c.manifest_pretty
-            elif str(mimetype).lower() == "text/rdf+n3":
-                response.content_type = 'text/rdf+n3; charset="UTF-8"'
-                response.status_int = 200
-                response.status = "200 OK"
-                return item.rdf_to_string(format="n3")
-            elif str(mimetype).lower() == "application/x-turtle":
-                response.content_type = 'application/x-turtle; charset="UTF-8"'
-                response.status_int = 200
-                response.status = "200 OK"
-                return item.rdf_to_string(format="turtle")
-            elif str(mimetype).lower() in ["text/rdf+ntriples", "text/rdf+nt"]:
-                response.content_type = 'text/rdf+ntriples; charset="UTF-8"'
-                response.status_int = 200
-                response.status = "200 OK"
-                return item.rdf_to_string(format="nt")
-            # Whoops - nothing satisfies
-            try:
-                mimetype = accept_list.pop(0)
-            except IndexError:
-                mimetype = None
-        #Whoops - nothing staisfies - default to text/html
-        return render('/datasetview_version.html')
 
     @rest.restrict('GET', 'POST', 'PUT', 'DELETE')
     def itemview(self, silo, id, path):
@@ -1212,87 +1021,3 @@ class DatasetsController(BaseController):
             else:
                 abort(404)
 
-    @rest.restrict('GET')
-    def itemview_vnum(self, silo, id, path, vnum):
-        if not ag.granary.issilo(silo):
-            abort(404)
-        # Check to see if embargo is on:
-        c.silo_name = silo
-        c.id = id
-        c.version = vnum
-        c.path = path 
-        c_silo = ag.granary.get_rdf_silo(silo)
-
-        if not c_silo.exists(id):
-            # dataset doesn't exist
-            abort(404)
-        
-        item = c_silo.get_item(id)
-        vnum = str(vnum)
-        if not vnum in item.manifest['versions']:
-            abort(404)
-        item.set_version_cursor(vnum)
-
-        embargoed = False        
-        if item.metadata.get('embargoed') not in ["false", 0, False]:
-            embargoed = True
-        
-        if embargoed:
-            #identity management if item 
-            if not request.environ.get('repoze.who.identity'):
-                abort(401, "Not Authorised")
-            ident = request.environ.get('repoze.who.identity')  
-            c.ident = ident
-            granary_list = ag.granary.silos
-            silos = ag.authz(granary_list, ident)      
-            if silo not in silos:
-                abort(403, "Forbidden")
-            silos_admin = ag.authz(granary_list, ident, permission='administrator')
-            silos_manager = ag.authz(granary_list, ident, permission='manager')
-            creator = None
-            if item.manifest and item.manifest.state and 'metadata' in item.manifest.state and item.manifest.state['metadata'] and \
-                'createdby' in item.manifest.state['metadata'] and item.manifest.state['metadata']['createdby']:
-                creator = item.manifest.state['metadata']['createdby']
-            #if not ident['repoze.who.userid'] == creator and not ident.get('role') in ["admin", "manager"]:
-            if not (ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager):
-                abort(403)
-
-        if item.isfile(path):
-            fileserve_app = FileApp(item.to_dirpath(path))
-            return fileserve_app(request.environ, self.start_response)
-        elif item.isdir(path):
-            c.parts = item.list_parts(path, detailed=True)
-            c.readme_text = None
-            if "README" in c.parts.keys():
-                c.readme_text = get_readme_text(item, "%s/README" % path)
-                    
-            accept_list = None
-            if 'HTTP_ACCEPT' in request.environ:
-                try:
-                    accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
-                except:
-                    accept_list= [MT("text", "html")]
-            if not accept_list:
-                accept_list= [MT("text", "html")]
-            mimetype = accept_list.pop(0)
-            while(mimetype):
-                if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                    return render("/itemview_version.html")
-                elif str(mimetype).lower() in ["text/plain", "application/json"]:
-                    response.content_type = 'application/json; charset="UTF-8"'
-                    response.status_int = 200
-                    response.status = "200 OK"
-                    returndata = {}
-                    returndata['parts'] = {}
-                    for part in c.parts:
-                        returndata['parts'][part] = serialisable_stat(c.parts[part])
-                    returndata['readme_text'] = c.readme_text
-                    return simplejson.dumps(returndata)
-                try:
-                    mimetype = accept_list.pop(0)
-                except IndexError:
-                    mimetype = None
-            #Whoops - nothing satisfies - return text/html
-            return render("/itemview_version.html")
-        else:
-            abort(404)

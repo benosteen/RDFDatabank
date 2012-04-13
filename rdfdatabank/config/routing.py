@@ -48,7 +48,7 @@ def make_map():
              _redirect_code='301 Moved Permanently')
 
     #Special controller to redirect datasets from databank.ouls to databank.ora
-    map.connect('/objects/{id}', controller='redirect', action='index')
+    #map.connect('/objects/{id}', controller='redirect', action='index')
 
     map.connect("/login", controller='account', action='login')
     map.connect("/logout", controller='account', action='logout')
@@ -74,8 +74,6 @@ def make_map():
 
     map.connect('/{silo}/datasets', controller='datasets', action='siloview')
     map.connect('/{silo}/datasets/{id}', controller='datasets', action='datasetview')
-    map.connect('/{silo}/datasets/{id}/version{vnum}', controller='datasets', action='datasetview_vnum')
-    map.connect('/{silo}/datasets/{id}/{path:.*}/version{vnum}', controller='datasets', action='itemview_vnum')
     map.connect('/{silo}/datasets/{id}/{path:.*}', controller='datasets', action='itemview')
 
     map.connect('/{silo}/items', controller='items', action='siloview')
@@ -86,9 +84,15 @@ def make_map():
     
     map.connect('/{silo}/states', controller='states', action='siloview')
     map.connect('/{silo}/states/{id}', controller='states', action='datasetview')
-    map.connect('/{silo}/states/{id}/version{vnum}', controller='states', action='datasetview_vnum')
     
     map.connect('/{silo}/doi/{id}', controller='doi', action='datasetview')
+
+    # SWORDv2 Configuration
+    map.connect('/swordv2/service-document', controller="sword", action="service_document") # From which to retrieve the service document
+    map.connect('/swordv2/silo/{path:.*?}', controller="sword", action="collection") # Representing a Collection as listed in the service document
+    map.connect('/swordv2/edit-media/{path:.*?}', controller="sword", action="media_resource") # The URI used in atom:link@rel=edit-media
+    map.connect('/swordv2/edit/{path:.*?}', controller="sword", action="container") # The URI used in atom:link@rel=edit
+    map.connect('/swordv2/statement/{path:.*?}', controller="sword", action="statement") # The URI used in atom:link@rel=sword:statement
 
     map.connect('/{controller}')
     map.connect('/{controller}/{action}')

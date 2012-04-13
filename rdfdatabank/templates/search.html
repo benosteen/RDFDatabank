@@ -2,10 +2,10 @@
 <%inherit file="/base.html" />
 
 <%def name="head_tags()">
-  <title> Advanced Search</title>
+  <title>Search</title>
 
 % if c.search and c.q:
-  <link rel="alternate" type="application/atom+xml" href="${c.add_facet}&format=atom&rows=c.rows&sort=score+desc" title="Search results for \"${c.q}\""/>
+  <link rel="alternate" type="application/atom+xml" href="${c.add_facet}&format=atom&rows=c.rows&sort=score+desc" title="Search results for '${c.q}'"/>
 % endif
 
 </%def>
@@ -14,17 +14,15 @@
 <%def name="footer()">
 </%def>
 
-	<div id="results">
-	<%include file="/search_response_display.html"/>
-	</div>
+<div id="results">
+<%include file="/search_response_display.html"/>
+</div>
 
 <div id="facet_wrapper">
 <% count = 0 %>
 <div id="facet_container">
-
-## Current search was here
-
 % if c.returned_facets:
+<div class="facet_title">Filter results</div>
 % for facet in c.returned_facets:
 <% count = count + 1 %>
 % if c.returned_facets[facet] and len(c.returned_facets[facet]) > 1:
@@ -45,8 +43,8 @@ if len(result) > 40:
 else:
     res_label = result
 %>
-<a href="${c.add_facet + u'&filter%s="%s"&rows=%d&sort=%s' % (facet, res, c.rows, c.sort)}" title="${result}">${res_label}
-<span class="value">(${value})</span> <a/></span></li>
+<a href="${c.add_facet + u'&filter%s="%s"&rows=%d&sort=%s' % (facet, res, c.rows, c.sort)}" title="${result}">${res_label}</a></span>
+<span class="value">(${value})</span></li>
 %     endfor
 </ul>
 </div>
@@ -86,12 +84,12 @@ else:
 			if ($('#fl' + ind).hasClass("closed")){
 			$('#fl' + ind).show();
 			$('#fl' + ind).removeClass("closed");
-			$('#fh' + ind).css("background-image", "url('/styles/images/fminus.png')");
+			$('#fh' + ind).css("background-image", "url('/static/styles/images/fminus.png')");
 			$('#fs' + ind).css("background-color", "#EEE");
 			} else {
 			$('#fl' + ind).hide();
 			$('#fl' + ind).addClass("closed");
-			$('#fh' + ind).css("background-image", "url('/styles/images/fplus.png')");
+			$('#fh' + ind).css("background-image", "url('/static/styles/images/fplus.png')");
 			$('#fs' + ind).css("background-color", "#BBB");
 			}
 			fhAdjust();
@@ -137,12 +135,12 @@ else:
 			if ($('#fl' + ind).hasClass("closed")){
 			$('#fl' + ind).show();
 			$('#fl' + ind).removeClass("closed");
-			$('#fh' + ind).css("background-image", "url('/styles/images/fminus.png')");
+			$('#fh' + ind).css("background-image", "url('/static/styles/images/fminus.png')");
 			$('#fs' + ind).css("background-color", "#EEE");
 			} else {
 			$('#fl' + ind).hide();
 			$('#fl' + ind).addClass("closed");
-			$('#fh' + ind).css("background-image", "url('/styles/images/fplus.png')");
+			$('#fh' + ind).css("background-image", "url('/static/styles/images/fplus.png')");
 			$('#fs' + ind).css("background-color", "#BBB");
 			}
 			fhAdjust();
@@ -159,10 +157,3 @@ else:
 </script>
 <![endif]-->
 
-% if not c.docs:
-<script type="text/javascript">
-	$(document).ready(function() {
-		$.backstretch("/../background-book.jpg");
-	});
-</script>
-% endif

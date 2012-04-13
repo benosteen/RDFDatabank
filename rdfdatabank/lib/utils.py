@@ -310,6 +310,8 @@ def munge_manifest(manifest_file, item):
                     pass
         for (s, p, o) in triples:
             item.add_triple(s, p, o)
+    manifest_file_name = os.path.basename(manifest_file)
+    item.manifest['versionlog'][item.currentversion].append('Updated file manifest.rdf')
     item.sync()
     if seeAlsoFiles:
         for fileuri in seeAlsoFiles:

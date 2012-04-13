@@ -28,10 +28,10 @@ db_go
 #db_go
 
 # Password?
-#db_input critical databank/password || true
-#db_go
+db_input critical databank/password || true
+db_go
 
 # Note on Password
-db_input critical databank/passwdnote || true
-db_go
+#db_input critical databank/passwdnote || true
+#db_go
 

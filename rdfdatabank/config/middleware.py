@@ -84,6 +84,7 @@ def make_app(global_conf, full_stack=True, static_files=True, **app_conf):
     app = SessionMiddleware(app, config)
     app = CacheMiddleware(app, config)
 
+    #TODO: Check if the new error controller works with sword server
     # CUSTOM MIDDLEWARE HERE (filtered by error handling middlewares)
     if asbool(full_stack):
         # Handle Python exceptions

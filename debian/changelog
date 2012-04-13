@@ -1,3 +1,14 @@
+databank (0.3rc1) unstable; urgency=low
+
+  * Basic support for sword deposit 
+  * Databank search interface enhanced
+  * Added function to PUT a zipfile and unpack it
+  * content negotiation also on error messages
+  * Added message workers for data indexing 
+
+ -- Anusha Ranganathan <anusha.ranganathan@ieee.org>  Mon, 09 Apr 2012 17:08:50 +0000
+
+
 databank (0.2) unstable; urgency=low
 
   * Added message workers

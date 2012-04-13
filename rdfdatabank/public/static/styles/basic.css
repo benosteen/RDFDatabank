@@ -642,7 +642,8 @@ color: #fff;
 
 .intro,
 .pleaseNote,
-.message{
+.message, 
+.about {
   background: #fdfefe; /* for non-css3 browsers */
 		filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fdfefe', endColorstr='#f4f7fa'); /* for IE */
 		background: -webkit-gradient(linear, left top, left bottom, from(#fdfefe), to(#f4f7fa)); /* for webkit browsers */
@@ -667,7 +668,14 @@ color: #fff;
 font-weight: bold;
 }
 
+.about {
+margin: 0px 20px;
+padding: 10px 30px;
+}
 
+.about p {
+    margin-bottom: 20px;
+}
 .create-silo form  {
 border: 1px solid #eee;
 padding: 5px;
@@ -790,32 +798,66 @@ div.response_doc {
         padding-bottom: 20px;
         border-bottom: 1px solid #999;
 }
-.response_doc span.stitle a {
+
+.response_doc .silotitle {
         font-weight: bold;
-        color: #002147;
-        font-size: 14px;
-}
-.row {
-        width: 100%;
-        clear: both;
+        font-size: 1.2em;
+        margin-bottom: 5px;
 }
 
-.label {
+.response_doc .silotitle a {
         font-weight: bold;
-        color: #002147;
+        font-size: 1.2em;
+        
+          background: #7e94a5; /* for non-css3 browsers */
+		filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#7e94a5', endColorstr='#90b6b7'); /* for IE */
+		background: -webkit-gradient(linear, left top, left bottom, from(#7e94a5), to(#90b6b7)); /* for webkit browsers */
+		background: -moz-linear-gradient(top,  #7e94a5,  #90b6b7); /* for firefox 3.6+ */ 
+		
+		color: #fff;
+		display: block;
+		padding: 5px;
+		text-decoration: none;
+        
+}
+
+#results .response_doc .silotitle a:focus,
+#results .response_doc .silotitle a:hover {
+
+text-decoration: underline;
+
+}
+
+
+.response_doc .silotitle a:visited {
+
+
+        background: #425e77; /* for non-css3 browsers */
+		filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#425e77', endColorstr='#609494'); /* for IE */
+		background: -webkit-gradient(linear, left top, left bottom, from(#425e77), to(#609494)); /* for webkit browsers */
+		background: -moz-linear-gradient(top,  #425e77,  #609494); /* for firefox 3.6+ */
+		
+		
+}
+
+
+
+
+.response_doc dt {
+        font-weight: bold;
+        font-size: 1em;
         vertical-align: top;
         width: 150px;
         float:left;
         display: inline;
 }
 
-.value, .value a, .value a:hover, .value a:active, .value a:visited {
-     display:inline;
-     padding-left:2px;
-     text-align:right;
-     color: #000000;
-     text-decoration: none;
-     font-weight: normal;
+.response_doc dd {
+	padding-left:3px;
+	text-align:left;
+	font-weight: normal;
+        font-size: 1em;
+	margin-bottom: 5px;
 }
 
 .rt {
@@ -826,12 +868,12 @@ div.response_doc {
         display: inline;
 }
 
+/* facets in results */
 #facet_wrapper {
         position: absolute;
         width: 160px;
-        left: 10px;
         margin-left: 10px;
-        top: 250px;
+        top: 150px;
         font-size: 11px;
 }
 
@@ -840,10 +882,39 @@ div.response_doc {
         word-wrap: break-word;
 }
 
+.facet_title {
+        /*
+        background: #BBB;
+        padding: 10px 5px;
+        border-bottom: 1px solid #002147 !important;
+	font-size: 1.3em;
+	font-weight: bold;
+        text-align: center;
+        */
+        
+        background: #425e77;
+        color: #fff;
+        padding: 10px 5px;
+        border-bottom: 1px solid #fff !important;
+	font-size: 1.3em;
+	font-weight: bold;
+        text-align: center;
+        
+}
+
 .facet_results .subheading {
+        /*
         background: #BBB;
         padding: 4px 5px;
         border-bottom: 1px solid #002147 !important;
+        */
+        background: #425e77; /* for non-css3 browsers */
+		filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#425e77', endColorstr='#609494'); /* for IE */
+		background: -webkit-gradient(linear, left top, left bottom, from(#425e77), to(#609494)); /* for webkit browsers */
+		background: -moz-linear-gradient(top,  #425e77,  #609494); /* for firefox 3.6+ */ 
+		color: #fff;
+        padding: 4px 5px;
+        border-bottom: 1px solid #fff !important;
 }
 
 .facet_results .facetlist {
@@ -855,7 +926,7 @@ div.response_doc {
 
 .facet_results .subheading a {
         text-decoration: none;
-        color: black;
+        color: #fff;
         font-weight: normal;
         background: url('/static/styles/images/fplus.png') no-repeat 0% 60%;
         padding-left: 18px;
@@ -885,13 +956,78 @@ div.response_doc {
         font-size: 11px;
         font-weight: bold;
 }
-#current_search {
-        font-weight: bold;
-        background: #002147;
-        color: white;
-        font-size: 1.2em;
-        border-bottom: 1px solid white;
-        padding: 4px 5px;
+
+/*Current search */
+.current_search {
+
+	background: #FDFEFE;
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fdfefe', endColorstr='#f4f7fa');
+	background: -webkit-gradient(linear, left top, left bottom, from(#FDFEFE), to(#F4F7FA));
+	background: -moz-linear-gradient(top, #FDFEFE, #F4F7FA);
+	border: 1px solid #DFE2E4;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
+	padding: 5px;
+}
+
+h2.current_search_header {
+ 
+        border-bottom: 1px solid #DFE2E4;
+        font-size: 1.3em;
+        margin: 0px;
+        padding: 0px;
+
+}
+
+.numRecords {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+
+.current_facet {
+	margin: 10px;
+	border-bottom: 1px dotted #cccccc;
+        clear: both;
+        height: 25px;
+}
+
+.current_facet .search_remove {
+        float:left;
+        position:inline;
+	font-weight: bold;
+        width: 50px;
+	text-align: left;
+        padding-right: 10px;
+}
+
+.current_facet .search_remove form {
+    margin: 0px;
+}
+
+.current_facet .search_remove form input{
+    margin: 0px;
+    width: 20px;
+    font-size: 1em;
+    font-weight: bold;
+}
+
+.current_facet .label {
+        float:left;
+        position:inline;
+	font-weight: bold;
+        width: 200px;
+	text-align: left;
+        padding: 5px 10px 0px 0px;
+}
+
+.current_facet .value {
+        float:left;
+        position:inline;
+	text-align: left;
+        margin-bottom: 5px;
+        padding: 5px 10px 0px 0px;
 }
 
 div#link_to_this_search {
@@ -899,6 +1035,8 @@ div#link_to_this_search {
         margin-bottom: -15px;
         clear: both;
         color: #000000;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #999999
 }
 
 div#link_to_this_search a {
@@ -1010,6 +1148,14 @@ span#itemsppt a.active:hover, span#itemsppb a.active:hover {
     border: 1px solid #666;
     background: #FFFF99;
 }
+
+
+ul.versions li{
+display: inline;
+list-style: none;
+}
+
+
 /* Used in the api */
 .List-contents {
    padding-bottom: 5px;
@@ -1086,23 +1232,38 @@ span#itemsppt a.active:hover, span#itemsppb a.active:hover {
 /* Data package */
 #editor_view {
    float: right;
-   background: #fff; /* for non-css3 browsers */
-		filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fff', endColorstr='#ccc'); /* for IE */
-		background: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#ccc)); /* for webkit browsers */
-		background: -moz-linear-gradient(top,  #fff,  #ccc); /* for firefox 3.6+ */ 
-	border-top: 1px solid #ccc;
-	box-shadow: #666 0.3em 0.3em 0.2em; /* Opera 10.5, IE 9.0 */
-	 	-webkit-box-shadow: #aaa 0.3em 0.3em 0.2em; /* Chrome Safari */
-		-moz-box-shadow: #aaa 0.3em 0.3em 0.2em; /* Firefox F3.5+ */
+ 	background: #FDFEFE;
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fdfefe', endColorstr='#f4f7fa');
+	background: -webkit-gradient(linear, left top, left bottom, from(#FDFEFE), to(#F4F7FA));
+	background: -moz-linear-gradient(top, #FDFEFE, #F4F7FA);
+	border: 1px solid #DFE2E4;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
+	padding: 0px;
 	clear: both;
-	margin: 10px 20px 10px 10px;
-	padding: 5px;
+	margin: 0px 20px 10px 10px;
 	text-decoration: none;
+	
 }
 
-#editor_view .title{
-    text-align: center;
-    font-weight: bold;
+#editor_view ul {
+  margin: 0px;
+  padding: 5px 2px;
+}
+
+#editor_view h2{
+ 
+ background: #425E77;
+filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#425e77', endColorstr='#609494');
+background: -webkit-gradient(linear, left top, left bottom, from(#425E77), to(#609494));
+background: -moz-linear-gradient(top, #425E77, #609494);
+color: white;
+font-size: 1.3em;
+ margin: 0px;
+ padding: 3px;
+ text-align: center;
+ 
 }
 
 #editor_view a {
@@ -1173,8 +1334,8 @@ span#itemsppt a.active:hover, span#itemsppb a.active:hover {
 }
 
 .metadata td div {
-    max-height: 150px;
-    overflow: auto;
+    /*max-height: 150px;
+    overflow: auto;*/
 }
 
 pre {

@@ -1,4 +1,3 @@
-#-*- coding: utf-8 -*-
 """
 Copyright (c) 2012 University of Oxford
 
@@ -116,17 +115,21 @@ class HTTPRequest():
         return reqtype, reqdata
 
     def doRequest(self, command, resource, reqdata=None, reqheaders={}):
+        #print "User:", self._endpointuser
+        #print "Host:", self._endpointhost
+        #print "Resource:", resource
         if self._endpointuser:
             auth = base64.encodestring("%s:%s" % (self._endpointuser, self._endpointpass)).strip()
             reqheaders["Authorization"] = "Basic %s" % auth
-        hc   = httplib.HTTPConnection(self._endpointhost)
-        path = self.getRequestPath(resource)
+        hc = httplib.HTTPConnection(self._endpointhost)
+        #hc = httplib.HTTPSConnection(self._endpointhost)
+        #resource = self.getRequestPath(resource)
         response     = None
         responsedata = None
         repeat       = 10
-        while path and repeat > 0:
+        while resource and repeat > 0:
             repeat -= 1
-            hc.request(command, path, reqdata, reqheaders)
+            hc.request(command, resource, reqdata, reqheaders)
             response = hc.getresponse()
             if response.status != 301: break
             path = response.getheader('Location', None)
@@ -138,6 +141,9 @@ class HTTPRequest():
                 response.read()  # Seems to be needed to free up connection for new request
         logger.debug("Status: %i %s" % (response.status, response.reason))
         responsedata = response.read()
+        #print "Response data", responsedata
+        #print "Response status", response.status
+        #print "Response reason", response.reason
         hc.close()
         return (response, responsedata)
 

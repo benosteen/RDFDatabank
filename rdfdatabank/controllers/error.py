@@ -50,6 +50,7 @@ class ErrorController(BaseController):
         resp = request.environ.get('pylons.original_response')
         content = literal(resp.body) or cgi.escape(request.GET.get('message', ''))
         code = cgi.escape(request.GET.get('code', str(resp.status_int)))
+        accept_list = None
         if 'HTTP_ACCEPT' in request.environ:
             try:
                 accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])

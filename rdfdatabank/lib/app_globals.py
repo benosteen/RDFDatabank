@@ -88,6 +88,11 @@ class Globals(object):
         if config.has_key("naming_rule"):
             self.naming_rule = config['naming_rule']
 
+        if config.has_key("naming_rule_humanized"):
+            self.naming_rule_humanized = config['naming_rule_humanized']
+        elif config.has_key("naming_rule"):
+            self.naming_rule_humanized = config['naming_rule']
+
         if config.has_key("metadata.embargoed"):
             self.metadata_embargoed = config['metadata.embargoed']
             if isinstance(self.metadata_embargoed, basestring):

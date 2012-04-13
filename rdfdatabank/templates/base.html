@@ -44,6 +44,9 @@
   ${ h.javascript_link( '/static/js/html5.js' ) }
   <![endif]-->
   
+  <!-- auto-discovery link to sword service document -->
+  <link rel="http://purl.org/net/sword/discovery/service-document" href="/swordv2/service-document"/>
+  
   <!-- print stylesheet for print stlying -->
   <link media="print"  href="/static/styles/print.css" rel="stylesheet" type="text/css"/>
   
@@ -90,36 +93,33 @@ media="(min-width: 1100px) and (max-width: 1600px)"/>
      
       <%
         user_logged_in = request.environ.get("repoze.who.identity")
+        showAdmin = False
         if user_logged_in:
             c.user_logged_in_name = user_logged_in['repoze.who.userid']
+            if 'role' in user_logged_in and user_logged_in['role'] == "admin":
+                showAdmin = True
         current_url = request.environ.get('PATH_INFO')
       %> 
       
       <nav>
 
      <!--  mainnav div starts -->
-<label class="nonVis"  >main navigation</label>
+	<label class="nonVis"  >main navigation</label>
 
 	<ul id="mainnav">
 	<li> <a href="/" id="nav-index" >home</a></li>
 	
 	<li><a href="/silos" >browse</a></li>
-	
-	<li><a href="/searching" >search</a></li>
-	
-	<li><a href="/keywords" >keywords</a></li>
+
 	
 	<li><a href="/about" >about</a></li>
 
 
-% if c.ident and 'role' in c.ident and c.ident['role'] == "admin":
-<li><a href="/admin">admin</a></li>
-% endif
+	% if showAdmin:
+	<li><a href="/admin">admin</a></li>
+	% endif
 
-</ul>
-
-
-
+	</ul>
 
 <label class="nonVis" >breadcrumb trail</label>
 <ul class="breadcrumb" >
@@ -145,7 +145,6 @@ path_url = "/%s/datasets/%s"%(c.silo_name,c.id)
 <li><a href="${path_url}">${path}</a></li>
 % endfor
 % endif
-
 </ul>
 
 <div class="nav_rt">
@@ -172,26 +171,20 @@ path_url = "/%s/datasets/%s"%(c.silo_name,c.id)
 
 <div class="main">
 
-
     <article class="content" >
 
 	<div class="wrapper">
-	
-	
-	
-	
-	
-	
     ${self.body()}
       	</div>
-	</article> 
- 	<div class="clear" ></div>
- 
- 
- </div><!-- close .main -->
-      <footer class="site">
-      <%include file="/footer.html"/>
-      </footer>
+
+    </article> 
+    <div class="clear" ></div>
+
+</div><!-- close .main -->
+
+<footer class="site">
+  <%include file="/footer.html"/>
+</footer>
     </div><!-- /end #page -->
   </body>
 </html>

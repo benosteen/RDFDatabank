@@ -191,7 +191,7 @@ def unpack_zip_item(target_dataset, current_dataset, zip_item, silo, ident):
 
     # -- Step 4 -----------------------------
     #Copy unpacked dir as new version
-    target_dataset.move_directory_as_new_version(unpacked_dir)
+    target_dataset.move_directory_as_new_version(unpacked_dir, log="Unpacked file %s. Contents"%zip_item)
 
     # -- Step 5 -----------------------------
     #Add type and isVersionOf metadata
@@ -242,12 +242,14 @@ def unpack_zip_item(target_dataset, current_dataset, zip_item, silo, ident):
         os.remove(mani_file)
         
     # -- Step 7 -----------------------------
-    target_dataset.sync()
-    target_dataset.sync()
-    target_dataset.sync()
-    current_dataset.add_triple("%s/%s" % (current_dataset.uri, zip_item.lstrip(os.sep)), "dcterms:hasVersion", target_dataset.uri)
-    current_dataset.sync()
+    #uri_s = "%s/%s" % (current_dataset.uri, zip_item.lstrip(os.sep))
+    #uri_p = "%s?version=%s" % (target_dataset.uri, target_dataset.currentversion)
+    #current_dataset.add_triple(uri_s, "dcterms:hasVersion", uri_p)
+    #current_dataset.sync()
 
+    target_dataset.sync()
+    target_dataset.sync()
+    target_dataset.sync()
     return True
 
 """

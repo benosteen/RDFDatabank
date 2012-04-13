@@ -175,8 +175,8 @@ class SearchController(BaseController):
         start = request.params.get('start', None)
         rows = request.params.get('rows', None)
         sort = request.params.get('sort', None)
-        format = request.params.get('format', None)
-        if not format:
+        res_format = request.params.get('format', None)
+        if not res_format:
             accept_list = None
             if 'HTTP_ACCEPT' in request.environ:
                 try:
@@ -188,23 +188,24 @@ class SearchController(BaseController):
             mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                    format = 'html'
+                    res_format = 'html'
                     break
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
-                    format = 'json'
+                    res_format = 'json'
                     break
                 elif str(mimetype).lower() in ["text/xml"]:
-                    format = 'xml'
+                    res_format = 'xml'
                     break
                 elif str(mimetype).lower() in ["text/csv"]:
-                    format = 'csv'
+                    res_format = 'csv'
                     break
                 try:
                     mimetype = accept_list.pop(0)
                 except IndexError:
                     mimetype = None
             # Whoops - nothing satisfies - return text/plain
-            format = 'json'    
+            if not res_format:
+                res_format = 'html'
 
         c.sort = 'score desc'
         # Lock down the sort parameter.
@@ -309,8 +310,8 @@ class SearchController(BaseController):
             else:
                 solr_params['q'] = c.q.encode('utf-8')+query_filter  
 
-            if format in ['json', 'xml', 'python', 'php']:
-                solr_params['wt'] = format
+            if res_format in ['json', 'xml', 'python', 'php']:
+                solr_params['wt'] = res_format
             else:
                 solr_params['wt'] = 'json'
 
@@ -342,16 +343,16 @@ class SearchController(BaseController):
                 # conneg return
                 response.status_int = 200
                 response.status = "200 OK"
-                if format == "html":
+                if res_format == "html":
                     c.numFound = 0
                     c.message = 'Sorry, either that search "%s" resulted in no matches, or the search service is not functional.' % c.q
                     return render('/search.html')
-                elif format == 'xml':
+                elif res_format == 'xml':
                     response.headers['Content-Type'] = 'application/xml'
                     response.charset = 'utf8'
                     c.atom = {}
                     return render('/atom_results.html')
-                elif format == 'json':
+                elif res_format == 'json':
                     response.headers['Content-Type'] = 'application/json'
                     response.charset = 'utf8'
                     return {}
@@ -362,16 +363,16 @@ class SearchController(BaseController):
         
             response.status_int = 200
             response.status = "200 OK"
-            if format == 'xml':
+            if res_format == 'xml':
                 response.headers['Content-Type'] = 'application/xml'
                 response.charset = 'utf8'
                 c.atom = solr_response
                 return render('/atom_results.html')
-            elif format == 'json':
+            elif res_format == 'json':
                 response.headers['Content-Type'] = 'application/json'
                 response.charset = 'utf8'
                 return solr_response
-            elif format in ['csv', 'python', 'php']:
+            elif res_format in ['csv', 'python', 'php']:
                 response.headers['Content-Type'] = 'application/text'
                 response.charset = 'utf8'
                 return solr_response

@@ -1,15 +1,25 @@
 Guide to using the RDFDatabank API
 
+The directory contains example python code that services can use for interacting with the Databank API.
+There are two sets of examples
+1. main.py
+    This uses the helper class HTTP_request.py which in turn uses httplib to make http calls.
+    It has code on using GET, POST, PUT and DELETE methods for interacting with the API and works over both http / https.
+
+2. DatabankDemo.py or postingToDatabank.py
+    This is exmaple code to POST items to Databank using urllib2.
+    The form data is constructed is slightly differently in DatabankDemo.py and postingToDatabank.py which can be seen in multipartform.py and multipart.py respectively.
+
 RDFDatabank was developed by Ben O'Steen and Anusha Ranganathan at the Bodleian Libraries, Universiy of Oxford 
 
 The purpose of DataBank is to provide a robust and efficient system for the safe storage of and open access to research data.
 
 The API documentation for using RDFdatabank is at
-http://databank.ora.ox.ac.uk/api or 
-https://github.com/anusharanganathan/RDFDatabank/tree/master/rdfdatabank/public/static/api_files
+http://databank-vm1.oerc.ox.ac.uk/api or 
+https://github.com/databank/RDFDatabank/tree/master/rdfdatabank/public/static/api_files
 
-The source code for databank is available at https://github.com/anusharanganathan/RDFDatabank.
-The test code for databank can be found in https://github.com/anusharanganathan/RDFDatabank/tree/master/rdfdatabank/tests/RDFDatabank
+The source code for databank is available at https://github.com/dataflow/RDFDatabank.
+The test code for databank can be found in https://github.com/dataflow/RDFDatabank/tree/master/rdfdatabank/tests/RDFDatabank
 
 Note:
     DataBank is not intended to store large-scale data sets such as grid data or other vast data sets. 

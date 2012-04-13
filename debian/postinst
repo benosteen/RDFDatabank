@@ -22,8 +22,8 @@ local dbstore="$RET"
 db_get databank/uri
 local dburi="$RET"
 
-#db_get databank/password
-#local dbpasswd="$RET"
+db_get databank/password
+local dbpasswd="$RET"
 
 #Modify the ini files
 CONFIG_FILE1=/etc/default/databank/production.ini
@@ -51,9 +51,15 @@ TARGET_KEY=granary.uri_root
 sed -i "s,\($TARGET_KEY *= *\).*,\1$dburi," $CONFIG_FILE1
 sed -i "s,\($TARGET_KEY *= *\).*,\1$dburi," $CONFIG_FILE2
 
-#Copy htpasswd file
+#Add the user password
 #htpasswd -b -c /var/lib/databank/passwd admin $dbpasswd
-cp /var/lib/databank/passwd-default /var/lib/databank/passwd
+#cp /var/lib/databank/passwd-default /var/lib/databank/passwd
+cd /var/lib/databank
+if ! [ -f /var/lib/databank/passwd ]
+then
+touch /var/lib/databank/passwd
+fi
+python add_user.py admin $dbpasswd
 
 #Link config files
 ln -sf /etc/default/databank/production.ini /var/lib/databank/production.ini
@@ -131,5 +137,18 @@ a2ensite databank_wsgi
 #Start Apache
 invoke-rc.d apache2 reload
 invoke-rc.d apache2 start
+
+echo ===========================================================
+echo Databank has been successfully installed
+echo
+echo Your Databank instance is available at http://localhost
+echo Databank\'s home directory is /var/lib/databank
+echo Data is stored under $dbstore
+echo
+echo To get started, visit the Databank homepage at http://localhost
+echo
+echo This paackage is brought to you by the Dataflow Team
+echo http://dataflow.ox.ac.uk
+echo ===========================================================
 
 db_stop
