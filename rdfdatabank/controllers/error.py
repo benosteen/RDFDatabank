@@ -47,9 +47,32 @@ class ErrorController(BaseController):
 
     def document(self):
         """Render the error document"""
+        icode = 404
+        code= "404"
+        status = "Not Found"
         resp = request.environ.get('pylons.original_response')
-        content = literal(resp.body) or cgi.escape(request.GET.get('message', ''))
-        code = cgi.escape(request.GET.get('code', str(resp.status_int)))
+        if resp and resp.body:
+            content = literal(resp.body)
+        else:
+            content = request.GET.get('message', '')
+            if content:
+                content = cgi.escape(content)
+        if resp and resp.status_int: 
+            icode = resp.status_int
+            code = str(resp.status_int)
+        elif request.GET.get('code', ''):
+            code = request.GET.get('code')
+            if code:
+                code = cgi.escape(code)
+            else:
+                code = 404
+        if resp and resp.status: 
+            status = resp.status
+        c.message = request.GET.get('message', '')
+        if c.message:
+            c.message = cgi.escape(c.message)
+        else:
+            c.message = content
         accept_list = None
         if 'HTTP_ACCEPT' in request.environ:
             try:
@@ -66,18 +89,12 @@ class ErrorController(BaseController):
                 #    code=code,
                 #    message=content)
                 #return page
-                c.code = code
-                #c.message = content
-                c.message = cgi.escape(request.GET.get('message', ''))
-                c.status = resp.status
-                c.status = c.status.replace(c.code, '').strip()
-                if not c.message:
-                    c.message = content.replace(resp.status, '').strip()
+                c.status = status.replace(c.code, '').strip()
                 return render('/error.html')
             elif str(mimetype).lower() in ["text/plain", "application/json"]:
                 response.content_type = 'text/plain; charset="UTF-8"'
-                response.status_int = resp.status_int
-                response.status = resp.status
+                response.status_int = icode
+                response.status = status
                 return content
             try:
                 mimetype = accept_list.pop(0)

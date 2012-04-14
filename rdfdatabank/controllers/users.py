@@ -94,8 +94,11 @@ class UsersController(BaseController):
             existing_users = list_usernames()
             if params['username'] in existing_users:
                 abort(403, "User exists")
+            if not( 'username' in params or 'password' in params or 'name' in params or \
+                'email' in params or 'firstname' in params or 'lastname' in params):
+                abort(400, "No valid parameters found")
             if (('firstname' in params and 'lastname' in params) or 'name' in params) and \
-               'username' in params and params['username'] and 'password' in params and params['password']:
+                 'username' in params and params['username'] and 'password' in params and params['password']:
                 add_user(params)
             else:   
                 abort(400, "The following parameters have to be supplied: username, pasword and name (or firstname and lastanme)")
@@ -135,7 +138,8 @@ class UsersController(BaseController):
         http_method = request.environ['REQUEST_METHOD']        
         if http_method == 'GET' or 'DELETE':
             #Admins, managers and user can see user data / delete the user
-            if not ('administrator' in ident['permissions'] or 'manager' in ident['permissions'] or ident['user'].user_name == username):
+            if not ('administrator' in ident['permissions'] or \
+                   'manager' in ident['permissions'] or ident['user'].user_name == username):
                 abort(403, "Do not have administrator or manager credentials to view profiles of other users")
         elif http_method == 'POST':
             #Only user can updte their data
@@ -175,6 +179,9 @@ class UsersController(BaseController):
             return simplejson.dumps(c.user)
         elif http_method == "POST":
             params = request.POST
+            if not( 'username' in params or 'password' in params or 'name' in params or \
+                   'email' in params or 'firstname' in params or 'lastname' in params):
+                abort(400, "No valid parameters found")
             update_user(params)
             response.status_int = 204
             response.status = "204 Updated"
@@ -284,7 +291,8 @@ class UsersController(BaseController):
             silos = ag.authz(granary_list, ident)
             if not silo in silos:
                 abort(403, "User is not a member of the silo %s"%silo)
-            if not ('administrator' in ident['permissions'] or 'manager' in ident['permissions'] or ident['user'].user_name == username):
+            if not ('administrator' in ident['permissions'] or \
+                    'manager' in ident['permissions'] or ident['user'].user_name == username):
                 abort(403, "Do not have administrator or manager credentials to view profiles of other users")
         else:
             silos = ag.authz(granary_list, ident, permission=['administrator', 'manager'])
@@ -402,30 +410,27 @@ class UsersController(BaseController):
             submitters = list(set(submitters))
 
             # Update silo info
-            kw['owners'] = ','.join(owners)
-            kw['administrators'] = ','.join(admins)
-            kw['managers'] = ','.join(managers)
-            kw['submitters'] = ','.join(submitters)
-            ag.granary.describe_silo(silo, **kw)
-            ag.granary.sync()
+            if to_remove or to_add:
+                kw['owners'] = ','.join(owners)
+                kw['administrators'] = ','.join(admins)
+                kw['managers'] = ','.join(managers)
+                kw['submitters'] = ','.join(submitters)
+                ag.granary.describe_silo(silo, **kw)
+                ag.granary.sync()
 
-            #Add new silo users into database
-            if to_add:
-                add_group_users(silo, to_add)
+                #Add new silo users into database
+                if to_add:
+                    add_group_users(silo, to_add)
+                    response.status_int = 201
+                    response.status = "201 Created"
+                    response.headers['Content-Location'] = url(controller="users", action="silouserview", silo=silo, username=params['username'])
+                    response_message = "201 Created"
 
-            if to_remove:
-                delete_group_users(silo, to_remove)
-
-            #Set response code
-            if not to_remove:
-                response.status_int = 204
-                response.status = "204 Updated"
-                response_message = None
-            elif to_add:
-                response.status_int = 201
-                response.status = "201 Created"
-                response.headers['Content-Location'] = url(controller="users", action="silouserview", silo=silo, username=params['username'])
-                response_message = "201 Created"
+                if to_remove:
+                    delete_group_users(silo, to_remove)
+                    response.status_int = 204
+                    response.status = "204 Updated"
+                    response_message = None
             else:
                 response.status_int = 200
                 response.status = "200 OK"

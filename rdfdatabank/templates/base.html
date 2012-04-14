@@ -96,7 +96,7 @@ media="(min-width: 1100px) and (max-width: 1600px)"/>
         showAdmin = False
         if user_logged_in:
             c.user_logged_in_name = user_logged_in['repoze.who.userid']
-            if 'role' in user_logged_in and user_logged_in['role'] == "admin":
+            if 'permissions' in user_logged_in and 'administrator' in user_logged_in['permissions']:
                 showAdmin = True
         current_url = request.environ.get('PATH_INFO')
       %> 
@@ -149,7 +149,7 @@ path_url = "/%s/datasets/%s"%(c.silo_name,c.id)
 
 <div class="nav_rt">
   % if c.user_logged_in_name:
-    <p>Welcome ${c.user_logged_in_name}</p>
+    <p>Welcome <a href="/users/${c.user_logged_in_name}">${c.user_logged_in_name}</a></p>
   % endif
   <p>
   % if c.user_logged_in_name:

@@ -1,5 +1,7 @@
 Databank is a web-based application for storing, curating and publishing data-packages, and is written using python and the pylons web framework. Its default deployment includes a message queue providing databank notifications to listener services. This message queue is handled using `Redis <http://redis.io/>`_ and `Supervisor <http://supervisord.org/>`_ to maintain the listener services. The search interface in Databank is powered by `Apache SOLR <http://lucene.apache.org/solr/>`_. 
 
+Dependencies for databank version 0.3rc1
+
 +--------------------------------+-----------+
 | Package name                   | Version   |
 +================================+===========+
@@ -21,7 +23,7 @@ Databank is a web-based application for storing, curating and publishing data-pa
 +--------------------------------+-----------+
 | python-pairtree                | >=0.7.1   |
 +--------------------------------+-----------+
-| python-recordsilo              | >=0.4.14  |
+| python-recordsilo              | >=0.4.15  |
 +--------------------------------+-----------+
 | python-solrpy                  | >=0.9.5   |
 +--------------------------------+-----------+

@@ -178,9 +178,11 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             if 'sandbox_user' in user['user_name']:
                 userExists = True
         fields = [
-            'username':'sandbox_user',
-            'password':'test',
-            'name':'Sandbox User',
+            ('username','sandbox_user'),
+            ('password','test'),
+            ('firstname','Sandbox'),
+            ('lastname','User'),
+            ('name','Sandbox User'),
         ]
         files = []
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
@@ -262,21 +264,23 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             resource="users/sandbox_user",
             expect_status=200, expect_reason="OK", expect_type="application/JSON")
         membershipExists = False
-        if ('*', 'administrator') in data['groups']:
+        if ['sandbox', 'submitter'] in data['groups']:
             membershipExists = True
         fields = [
-            'role':'submitter'
+            ('role','submitter')
         ]
         files = []
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
         if membershipExists:
             (resp,respdata)= self.doHTTP_POST(
                 reqdata, reqtype, 
+                endpointpath="/sandbox/",
                 resource="users/sandbox_user", 
                 expect_status=200, expect_reason="OK")
         else:
             (resp,respdata)= self.doHTTP_POST(
                 reqdata, reqtype, 
+                endpointpath="/sandbox/",
                 resource="users/sandbox_user", 
                 expect_status=201, expect_reason="Created")
             LHobtained = resp.getheader('Content-Location', None)
@@ -287,9 +291,11 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             endpointpath="/",
             resource="users/sandbox_user",
             expect_status=200, expect_reason="OK", expect_type="application/JSON")
-        self.assertEquals(data['username'], 'sandbox_user', "user info: username")
+        self.assertEquals(data['user_name'], 'sandbox_user', "user info: username")
         self.assertEquals(data['name'], 'Sandbox User', "user info: name")
-        self.assertEquals(data['groups'], ('sandbox', 'submitter'), "user info: membership")
+        self.assertEquals(data['firstname'], 'Sandbox', "user info: firstname")
+        self.assertEquals(data['lastname'], 'User', "user info: lastname")
+        self.assertEquals(data['groups'], [['sandbox', 'submitter']], "user info: membership")
         return
 
     def testListSilos(self):
