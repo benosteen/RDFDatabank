@@ -28,9 +28,12 @@ from sqlalchemy.exc import IntegrityError
 def add_silo(silo_name):
     try:
         p_q = meta.Session.query(Permission)
-
+        
         ga = Group()
-        ga.group_name = u'%s_administrator'%silo_name
+        if silo_name == '*':
+            ga.group_name = u'databank_administrator'
+        else:
+            ga.group_name = u'%s_administrator'%silo_name
         ga.silo = u"%s"%silo_name
         meta.Session.add(ga)
 
@@ -38,7 +41,10 @@ def add_silo(silo_name):
         p_q_admin.groups.append(ga)
 
         gb = Group()
-        gb.group_name = u'%s_manager'%silo_name
+        if silo_name == '*':
+            gb.group_name = u'databank_manager'
+        else:
+            gb.group_name = u'%s_manager'%silo_name
         gb.silo = u"%s"%silo_name
         meta.Session.add(gb)
 
@@ -46,7 +52,10 @@ def add_silo(silo_name):
         p_q_manager.groups.append(gb)
 
         gc = Group()
-        gc.group_name = u'%s_submitter'%silo_name
+        if silo_name == '*':
+            gc.group_name = u'databank_submitter'
+        else:
+            gc.group_name = u'%s_submitter'%silo_name
         gc.silo = u'%s'%silo_name
         meta.Session.add(gc)
 
@@ -64,9 +73,14 @@ def add_silo(silo_name):
 def delete_silo(silo_name):
     try:
         g_q = meta.Session.query(Group)
-        g_q_group1 = g_q.filter(Group.group_name == u'%s_administrator'%silo_name).one()
-        g_q_group2 = g_q.filter(Group.group_name == u'%s_manager'%silo_name).one()
-        g_q_group3 = g_q.filter(Group.group_name == u'%s_submitter'%silo_name).one()
+        if silo_name == '*':
+            g_q_group1 = g_q.filter(Group.group_name == u'databank_administrator').one()
+            g_q_group2 = g_q.filter(Group.group_name == u'databank_manager').one()
+            g_q_group3 = g_q.filter(Group.group_name == u'databank_submitter').one()
+        else:
+            g_q_group1 = g_q.filter(Group.group_name == u'%s_administrator'%silo_name).one()
+            g_q_group2 = g_q.filter(Group.group_name == u'%s_manager'%silo_name).one()
+            g_q_group3 = g_q.filter(Group.group_name == u'%s_submitter'%silo_name).one()
         meta.Session.delete(g_q_group1)
         meta.Session.delete(g_q_group2)
         meta.Session.delete(g_q_group3)
@@ -154,7 +168,10 @@ def add_user_groups(username, groups):
         u = u_q.filter(User.user_name == u'%s'%username).one()
         g_q = meta.Session.query(Group)
         for silo_name, permission_name in groups:
-            g_q_group = g_q.filter(Group.group_name == u'%s_%s'%(silo_name, permission_name)).one()
+            if silo_name =='*':
+                g_q_group = g_q.filter(Group.group_name == u'databank_%s'%permission_name).one()
+            else:
+                g_q_group = g_q.filter(Group.group_name == u'%s_%s'%(silo_name, permission_name)).one()
             u.groups.append(g_q_group)
         meta.Session.commit()
     except IntegrityError:
@@ -171,7 +188,10 @@ def delete_user_groups(username, groups):
         u = u_q.filter(User.user_name == u'%s'%username).one()
         g_q = meta.Session.query(Group)
         for silo_name, permission_name in groups:
-            g = g_q.filter(Group.group_name == u'%s_%s'%(silo_name, permission_name)).one()
+            if silo_name =='*':
+                g = g_q.filter(Group.group_name == u'databank_%s'%permission_name).one()
+            else:
+                g = g_q.filter(Group.group_name == u'%s_%s'%(silo_name, permission_name)).one()
             query = "DELETE FROM user_group WHERE user_id=%d and group_id=%d"%(u.id, g.id)
             meta.Session.execute(query)
         meta.Session.commit()
@@ -190,7 +210,10 @@ def add_group_users(silo_name, user_groups):
         for username, permission_name in user_groups:
             u = u_q.filter(User.user_name == u'%s'%username).one()
             if u:
-                g_q_group = g_q.filter(Group.group_name == u'%s_%s'%(silo_name, permission_name)).one()
+                if silo_name =='*':
+                    g_q_group = g_q.filter(Group.group_name == u'databank_%s'%permission_name).one()
+                else:
+                    g_q_group = g_q.filter(Group.group_name == u'%s_%s'%(silo_name, permission_name)).one()
                 u.groups.append(g_q_group)
         meta.Session.commit()
     except IntegrityError:
@@ -207,7 +230,10 @@ def delete_group_users(silo_name, user_groups):
         g_q = meta.Session.query(Group)
         for username, permission_name in user_groups:
             u = u_q.filter(User.user_name == u'%s'%username).one()
-            g = g_q.filter(Group.group_name == u'%s_%s'%(silo_name, permission_name)).one()
+            if silo_name =='*':
+                g = g_q.filter(Group.group_name == u'databank_%s'%permission_name).one()
+            else:
+                g = g_q.filter(Group.group_name == u'%s_%s'%(silo_name, permission_name)).one()
             query = "DELETE FROM user_group WHERE user_id=%d and group_id=%d"%(u.id, g.id)
             meta.Session.execute(query)
         meta.Session.commit()

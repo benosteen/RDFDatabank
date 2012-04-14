@@ -33,7 +33,7 @@ from rdfdatabank.lib.utils import authz
 from rdfdatabank.lib.htpasswd import HtpasswdFile
 from rdfdatabank.lib.broadcast import BroadcastToRedis
 
-from rdfdatabank.config.users import _USERS
+#from rdfdatabank.config.users import _USERS
 from rdfdatabank.config.namespaces import NAMESPACES, PREFIXES
 
 class Globals(object):
@@ -51,7 +51,7 @@ class Globals(object):
         """
         
         self.authz = authz
-        self.users = _USERS
+        #self.users = _USERS
         self.NAMESPACES = NAMESPACES
         self.PREFIXES = PREFIXES
 

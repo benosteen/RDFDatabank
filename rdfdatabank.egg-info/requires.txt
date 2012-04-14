@@ -5,6 +5,5 @@ redis
 repoze.who>=2.0a4
 repoze.who_friendlyform
 solrpy
-lxml
 rdflib==2.4.2
 python-dateutil>=1.4.1
