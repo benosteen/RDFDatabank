@@ -163,7 +163,50 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         return zipdata
 
     # Actual tests follow
-    def test01CreateSilo(self):
+    def test01CreateUser(self):
+        """Create user sandbox_user"""
+        self.setRequestUserPass(
+            endpointuser=RDFDatabankConfig.endpointadminuser,
+            endpointpass=RDFDatabankConfig.endpointadminpass)
+        # Access list silos, check response
+        (resp, data) = self.doHTTP_GET(
+            endpointpath="/",
+            resource="users/",
+            expect_status=200, expect_reason="OK", expect_type="application/JSON")
+        userExists = False
+        for user in data:
+            if 'sandbox_user' in user['user_name']:
+                userExists = True
+        fields = [
+            'username':'sandbox_user',
+            'password':'test',
+            'name':'Sandbox User',
+        ]
+        files = []
+        (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
+        if userExists:
+            (resp,respdata)= self.doHTTP_POST(
+                reqdata, reqtype, 
+                endpointpath="/",
+                resource="users/", 
+                expect_status=403, expect_reason="Forbidden")
+        else:
+            (resp,respdata)= self.doHTTP_POST(
+                reqdata, reqtype, 
+                endpointpath="/",
+                resource="users/", 
+                expect_status=201, expect_reason="Created")
+            LHobtained = resp.getheader('Content-Location', None)
+            LHexpected = "/users/sandbox_user"
+            self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
+        #Access user details
+        (resp, data) = self.doHTTP_GET(
+            endpointpath="/",
+            resource="users/sandbox_user",
+            expect_status=200, expect_reason="OK", expect_type="application/JSON")
+        return
+
+    def test02CreateSilo(self):
         """List all silos your account has access to - GET /admin. If the silo 'sandbox' does not exist, create it"""
         self.setRequestUserPass(
             endpointuser=RDFDatabankConfig.endpointadminuser,
@@ -186,7 +229,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
                   ("title", "Sandbox silo"),
                   ("description", "Sandbox silo for testing"),
                   ("notes", "Created by test"),
-                  ("owners", owner_list),
+                  ("administrators", RDFDatabankConfig.endpointadminuser),
                   ("disk_allocation", "100000")
                 ]
             files =[]
@@ -207,6 +250,46 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             self.assertEquals(len(newsilolist), len(silolist)+1, "One additional silo should have been returned")
             for s in silolist: self.failUnless(s in newsilolist, "Silo "+s+" in original list, not in new list")
             self.failUnless(silo_name in newsilolist, "Silo '%s' not in new list"%silo_name)
+        return
+
+    def test03AddUserMembership(self):
+        self.setRequestUserPass(
+            endpointuser=RDFDatabankConfig.endpointadminuser,
+            endpointpass=RDFDatabankConfig.endpointadminpass)
+        # Access user details, check response
+        (resp, data) = self.doHTTP_GET(
+            endpointpath="/",
+            resource="users/sandbox_user",
+            expect_status=200, expect_reason="OK", expect_type="application/JSON")
+        membershipExists = False
+        if ('*', 'administrator') in data['groups']:
+            membershipExists = True
+        fields = [
+            'role':'submitter'
+        ]
+        files = []
+        (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
+        if membershipExists:
+            (resp,respdata)= self.doHTTP_POST(
+                reqdata, reqtype, 
+                resource="users/sandbox_user", 
+                expect_status=200, expect_reason="OK")
+        else:
+            (resp,respdata)= self.doHTTP_POST(
+                reqdata, reqtype, 
+                resource="users/sandbox_user", 
+                expect_status=201, expect_reason="Created")
+            LHobtained = resp.getheader('Content-Location', None)
+            LHexpected = "/users/sandbox_user"
+            self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
+        #Access user details
+        (resp, data) = self.doHTTP_GET(
+            endpointpath="/",
+            resource="users/sandbox_user",
+            expect_status=200, expect_reason="OK", expect_type="application/JSON")
+        self.assertEquals(data['username'], 'sandbox_user', "user info: username")
+        self.assertEquals(data['name'], 'Sandbox User', "user info: name")
+        self.assertEquals(data['groups'], ('sandbox', 'submitter'), "user info: membership")
         return
 
     def testListSilos(self):
@@ -4234,7 +4317,9 @@ def getTestSuite(select="unit"):
     testdict = {
         "unit":
             [ "testUnits"
-            , "test01CreateSilo"
+            , "test01CreateUser"
+            , "test02CreateSilo"
+            , "test03AddUserMembership"
             , "testListSilos"
             , "testListDatasets"
             , "testSiloState"

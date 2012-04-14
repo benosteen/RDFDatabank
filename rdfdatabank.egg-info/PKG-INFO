@@ -1,6 +1,6 @@
 Metadata-Version: 1.0
 Name: rdfdatabank
-Version: 0.2
+Version: 0.3
 Summary: RDF-enhanced, pairtree-backed storage API
 Home-page: https://github.com/dataflow/RDFDatabank
 Author: Anusha Ranganathan, Ben O'Steen

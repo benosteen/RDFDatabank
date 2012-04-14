@@ -1,0 +1,15 @@
+# -*- coding: utf-8 -*-
+<%inherit file="/base.html" />
+<%def name="head_tags()">
+  <title> Error </title>
+</%def>
+<div class="httperrortitle">
+<p>Oops!</p>
+</div>
+<div class="httperrorcode">
+<h1>${c.code}</h1>
+</div>
+<div class="httperror">
+<h3>${c.status}</h3>
+<p>${c.message}</p>
+</div>
