@@ -95,4 +95,5 @@ class AccountController(BaseController):
             del session['user_email']
         session.save()
         #return render('/logout.html')
-        return redirect(url(came_from))
+        #return redirect(url(came_from))
+        return redirect(url("/"))

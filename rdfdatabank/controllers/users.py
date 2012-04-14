@@ -94,9 +94,6 @@ class UsersController(BaseController):
             existing_users = list_usernames()
             if params['username'] in existing_users:
                 abort(403, "User exists")
-            if not( 'username' in params or 'password' in params or 'name' in params or \
-                'email' in params or 'firstname' in params or 'lastname' in params):
-                abort(400, "No valid parameters found")
             if (('firstname' in params and 'lastname' in params) or 'name' in params) and \
                  'username' in params and params['username'] and 'password' in params and params['password']:
                 add_user(params)
@@ -133,9 +130,11 @@ class UsersController(BaseController):
     def userview(self, username):
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
+
         ident = request.environ.get('repoze.who.identity')
 
-        http_method = request.environ['REQUEST_METHOD']        
+        http_method = request.environ['REQUEST_METHOD']
+
         if http_method == 'GET' or 'DELETE':
             #Admins, managers and user can see user data / delete the user
             if not ('administrator' in ident['permissions'] or \
@@ -145,6 +144,10 @@ class UsersController(BaseController):
             #Only user can updte their data
             if not ident['user'].user_name == username:
                 abort(403, "Login as %s to edit profile"%username)
+
+        existing_users = list_usernames()
+        if not username in existing_users:
+            abort(404, "User not found")
 
         c.ident = ident
         c.username = username
@@ -179,9 +182,10 @@ class UsersController(BaseController):
             return simplejson.dumps(c.user)
         elif http_method == "POST":
             params = request.POST
-            if not( 'username' in params or 'password' in params or 'name' in params or \
+            if not('password' in params or 'name' in params or \
                    'email' in params or 'firstname' in params or 'lastname' in params):
                 abort(400, "No valid parameters found")
+            params['username'] = username
             update_user(params)
             response.status_int = 204
             response.status = "204 Updated"
@@ -282,6 +286,10 @@ class UsersController(BaseController):
     def silouserview(self, silo, username):
         if not request.environ.get('repoze.who.identity'):
             abort(401, "Not Authorised")
+
+        if not ag.granary.issilo(silo):
+            abort(404)
+
         ident = request.environ.get('repoze.who.identity')
 
         granary_list = ag.granary.silos
@@ -300,6 +308,10 @@ class UsersController(BaseController):
                 abort(403, "Do not have administrator or manager credentials for silo %s"%silo)
             if not ('administrator' in ident['permissions'] or 'manager' in ident['permissions']):
                 abort(403, "Do not have administrator or manager credentials")
+
+        existing_users = list_usernames()
+        if not username in existing_users:
+            abort(404, "User not found")
 
         c.ident = ident
         c.silo = silo
@@ -480,8 +492,8 @@ class UsersController(BaseController):
             if username in admins:
                 if not 'administrator' in ident['permissions']:
                     abort(403, "Need to be admin to modify user of role admin")                
-                if len(admins) == 1:
-                    abort(403, "Add another administrator to silo before updating user role")
+                #if len(admins) == 1:
+                #    abort(403, "Add another administrator to silo before updating user role")
                 to_remove.append((username, 'administrator'))
                 admins.remove(username)
             if username in managers:

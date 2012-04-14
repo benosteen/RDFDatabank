@@ -330,7 +330,8 @@ class AdminController(BaseController):
             for a in new_submitters:
                 if a in existing_users:
                     new_silo_users.append((a, 'submitter'))
-            add_group_users(silo, new_silo_users)
+            if new_silo_users:
+                add_group_users(silo, new_silo_users)
             
             #Delete old silo users from database
             #old_silo_users = []

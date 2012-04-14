@@ -213,6 +213,7 @@ class DatasetsController(BaseController):
             options = request.GET
 
             currentversion = str(item.currentversion)
+            c.version = currentversion
             if 'version' in options:
                 if not options['version'] in item.manifest['versions']:
                     abort(404)
@@ -445,7 +446,7 @@ class DatasetsController(BaseController):
 
                 upload = params.get('file')
                 #if not upload:
-                #    abort(400, "No file was recived")
+                #    abort(400, "No file was received")
                 filename = params.get('filename')
                 if not filename:
                     filename = params['file'].filename
@@ -681,6 +682,7 @@ class DatasetsController(BaseController):
             options = request.GET
 
             currentversion = str(item.currentversion)
+            c.version = currentversion
             if 'version' in options:
                 if not options['version'] in item.manifest['versions']:
                     abort(404)
@@ -880,10 +882,10 @@ class DatasetsController(BaseController):
             # overwrite the file, if there is a multipart file uploaded
             # Expected params: filename, file (uploaded file)
             params = request.POST
+            if not params.has_key('file'):
+                abort(400, "No file was received")
             filename = params.get('filename')
             upload = params.get('file')
-            #if not upload:
-            #    abort(400, "No file was recived")
             if not filename:
                 filename = params['file'].filename
             if filename and JAILBREAK.search(filename) != None:
