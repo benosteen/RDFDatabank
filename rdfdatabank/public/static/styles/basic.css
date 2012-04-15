@@ -1295,6 +1295,7 @@ font-size: 1.3em;
 }
 
 .edit_section {
+   clear: both;
    margin: 20px;
    padding: 10px 20px;
    border: 2px outset #333;
@@ -1338,6 +1339,14 @@ font-size: 1.3em;
     overflow: auto;*/
 }
 
+div.metadata {
+    margin-bottom: 10px;
+    line-height: 1.5em;
+}
+
+div.metadata label {
+}
+
 pre {
     white-space: pre-wrap; /* css-3 */
     white-space: -moz-pre-wrap !important; /* Mozilla, since 1999 */
@@ -1376,4 +1385,13 @@ pre {
     margin-top: 0px;
 }
 
+/* Admin section */
+.admin_list h4 {
+    display:inline;
+    margin-right: 5px;
+}
+
+.admin_list a {
+    margin-right: 10px;
+}
 

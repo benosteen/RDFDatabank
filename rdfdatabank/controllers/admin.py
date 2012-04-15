@@ -361,7 +361,7 @@ class AdminController(BaseController):
                     ag.b.deletion(silo_name, item, ident=ident['repoze.who.userid'])
                 except:
                     pass
-            ag.granary.delete_silo(silo_name)
+            ag.granary.delete_silo(silo)
             try:
                 ag.b.silo_deletion(silo_name, ident=ident['repoze.who.userid'])
             except:

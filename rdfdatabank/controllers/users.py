@@ -89,13 +89,13 @@ class UsersController(BaseController):
             return simplejson.dumps(c.users)
         elif http_method == "POST":
             params = request.POST
-            if not 'username' in params and not params['username']:
-                abort(400, "username not supplied")
+            if not ('username' in params and params['username'] and 'password' in params and params['password']):
+                abort(400, "username and password not supplied")
             existing_users = list_usernames()
             if params['username'] in existing_users:
                 abort(403, "User exists")
-            if (('firstname' in params and 'lastname' in params) or 'name' in params) and \
-                 'username' in params and params['username'] and 'password' in params and params['password']:
+            if (('firstname' in params and params['firstname'] and 'lastname' in params and params['lastname']) \
+                or 'name' in params and params['name']):
                 add_user(params)
             else:   
                 abort(400, "The following parameters have to be supplied: username, pasword and name (or firstname and lastname)")
@@ -436,7 +436,7 @@ class UsersController(BaseController):
                     add_group_users(silo, to_add)
                     response.status_int = 201
                     response.status = "201 Created"
-                    response.headers['Content-Location'] = url(controller="users", action="silouserview", silo=silo, username=params['username'])
+                    response.headers['Content-Location'] = url(controller="users", action="silouserview", silo=silo, username=username)
                     response_message = "201 Created"
 
                 if to_remove:

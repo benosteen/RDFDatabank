@@ -6,7 +6,7 @@
       roles.append(p)
 %>
 <form class="update_role" method="POST" enctype="multipart/form-data" action="/${c.silo}/users/${c.username}" accept-charset="UTF-8">
-<div><label for="role">Role:</label>
+<div class="role">
 % if "administrator" in roles:
     <input type="radio" name="role" value="administrator" checked="checked"/>Administrator 
 % else:
@@ -23,5 +23,5 @@
     <input type="radio" name="role" value="submitter" />Submitter
 % endif
 </div>
-<div><input type="submit" value="Update user role"/></div>
+<div><input type="submit" value="Modify user role"/></div>
 </form>

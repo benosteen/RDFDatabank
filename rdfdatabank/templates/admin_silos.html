@@ -2,21 +2,67 @@
 <%inherit file="/base.html" />
 <%def name="head_tags()">
   <title> Admin Interface - List of Silos </title>
+<script type="text/javascript">
+<!--
+    function showhide(id) {
+       var e = document.getElementById(id);
+       if(e.style.display == 'block')
+          e.style.display = 'none';
+       else
+          e.style.display = 'block';
+    }
+//-->
+</script>
+
 </%def>
 <h1>Admin Interface</h1>
+
+<div id="editor_view">
+  <h2>Edit options</h2>
+  <ul class="stateInfo">
+  % if  'administrator' in c.ident['permissions']:
+  <li><a href="#add_silo" onclick="showhide('add_silo');">
+    <img src="/static/styles/images/silo-add-icon-24.png"/>Create new silo</a></li>
+  % endif
+  <li><a href="/users">
+    <img src="/static/styles/images/user-group-icon-24.png"/>View users</a></li>
+  <li><a href="#add_user" onclick="showhide('add_user');">
+    <img src="/static/styles/images/user-add-icon-24.png"/>Create new user</a></li>
+  </ul>
+</div>
+
 % if c.granary_list:
-<h2> List of silos</h2>
+<div class="admin_list">
+<h2> List of silos managed by you</h2>
 <ul>
 % for silo in c.granary_list:
-<li id="delete_${silo}">
-  <a href="/${silo}/admin"><big><big>${silo}</big></big></a> - <small><small>
-  <a class="delete" href="/${silo}/admin" data-remove="delete_${silo}">(remove)</a></small></small>
+<li>
+  <h4><a href="/${silo}/admin">${silo}</a></h4>
+  <a href="/${silo}">
+    <img src="/static/styles/images/silo-view-icon-16.png" alt="View silo" title="View ${silo}"/></a>
+  <a href="/${silo}/admin">
+    <img src="/static/styles/images/silo-edit-icon-16.png" alt="Edit silo metadata" title="edit ${silo}"/></a>
+  <a class="delete" href="/${silo}/admin" data-remove="delete_${silo}">
+    <img src="/static/styles/images/delete-icon-16.png" alt="Delete silo" title="Delete ${silo}"/></a>
 </li>
 % endfor
 </ul>
+</div>
 % endif
-<h2><a href="/users">View list of users</a></h2>
+
 % if  'administrator' in c.ident['permissions']:
+  <div id="add_silo" class="edit_section" style="display: none;">
+  <a name="add_silo"></a>
   <h2>Create new silo</h2>
   <%include file="/create_new_silo.html"/>
+  <div class="top"><a href="#top" onclick="showhide('add_silo');" title="Back to top"><img src="/static/styles/images/go-up-icon-24.png"/></a></div>
+  </div>
 % endif
+
+<div id="add_user" class="edit_section" style="display: none;">
+<a name="add_user"></a>
+<h2>Create new user</h2>
+<%include file="/register_new_user.html"/>
+<div class="top"><a href="#top" onclick="showhide('add_user');" title="Back to top"><img src="/static/styles/images/go-up-icon-24.png"/></a></div>
+</div>
+
