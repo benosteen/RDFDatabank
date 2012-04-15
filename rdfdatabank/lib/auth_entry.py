@@ -336,6 +336,23 @@ def list_group_users(siloname):
                         'lastname':u.lastname})
     return group_users
 
+def list_group_usernames(siloname):
+    all_users = meta.Session.query(User)
+    admins = []
+    managers = []
+    submitters = []
+    for u in all_users:
+        for g in u.groups:
+            if g.silo == siloname:
+                for p in g.permissions:
+                    if p.permission_name == 'administrator' and not u.user_name in admins:
+                        admins.append(u.user_name)
+                    if p.permission_name == 'manager' and not u.user_name in managers:
+                        managers.append(u.user_name)
+                    if p.permission_name == 'submitter' and not u.user_name in submitters:
+                        submitters.append(u.user_name)
+    return (admins, managers, submitters)
+
 def list_new_users():
     #Users not a part of any group
     all_users = meta.Session.query(User)

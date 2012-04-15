@@ -98,7 +98,7 @@ class UsersController(BaseController):
                  'username' in params and params['username'] and 'password' in params and params['password']:
                 add_user(params)
             else:   
-                abort(400, "The following parameters have to be supplied: username, pasword and name (or firstname and lastanme)")
+                abort(400, "The following parameters have to be supplied: username, pasword and name (or firstname and lastname)")
             response.status_int = 201
             response.status = "201 Created"
             response.headers['Content-Location'] = url(controller="users", action="userview", username=params['username'])
@@ -217,10 +217,8 @@ class UsersController(BaseController):
             user_groups = list_user_groups(username)
             if user_groups:
                 abort(403, "User is member of silos. Remove user from all silos before deleting them")
-            #Deleet user from database
+            #Delete user from database
             delete_user(username)
-            #TODO: Delete user from silos in database
-            #TODO: Deleet user from silo description data
             #Get all the silos user belomgs to, remove them from each silo and sync silo metadata
             # conneg return
             accept_list = None
@@ -242,13 +240,14 @@ class UsersController(BaseController):
         if not silo in silos:
             abort(403, "Do not have administrator or manager credentials for silo %s"%silo)
         user_groups = list_user_groups(ident['user'].user_name)
-        if (silo, 'administrator') in user_groups:
+        if ('*', 'administrator') in user_groups:
+            c.roles = ["admin", "manager", "user"]
+        elif (silo, 'administrator') in user_groups:
             c.roles = ["admin", "manager", "user"]
         elif (silo, 'manager') in user_groups:
             c.roles = ["manager", "user"]
         else:
-            #User is super user
-            c.roles = ["admin", "manager", "user"]
+            abort(403, "Do not have administrator or manager credentials for silo %s"%silo)
         c.silo = silo
         
         http_method = request.environ['REQUEST_METHOD']
@@ -370,6 +369,8 @@ class UsersController(BaseController):
             to_remove = []
             to_add = []
             if params['role'] == 'administrator':
+                if not 'administrator' in ident['permissions']:
+                    abort(403, "Need to be administrator to add user to role admin")
                 if not username in admins:
                     to_add.append((username, 'administrator'))
                     admins.append(username)
@@ -412,7 +413,7 @@ class UsersController(BaseController):
                     to_remove.append((username, 'administrator'))
                 if username in managers:
                     if len(managers) == 1 and len(admins) == 0:
-                        abort(403, "Add another administrator to silo before updating user role")
+                        abort(403, "Add another administrator or manager to silo before updating user role")
                     managers.remove(username)
                     to_remove.append((username, 'manager'))
 
@@ -492,11 +493,13 @@ class UsersController(BaseController):
             if username in admins:
                 if not 'administrator' in ident['permissions']:
                     abort(403, "Need to be admin to modify user of role admin")                
-                #if len(admins) == 1:
-                #    abort(403, "Add another administrator to silo before updating user role")
+                if len(admins) == 1:
+                    abort(403, "Add another administrator to silo before deleting user")
                 to_remove.append((username, 'administrator'))
                 admins.remove(username)
             if username in managers:
+                if len(managers) == 1 and len(admins) == 0:
+                    abort(403, "Add another administrator or manager to silo before deleting user")
                 managers.remove(username)
                 to_remove.append((username, 'manager'))
             if username in submitters:

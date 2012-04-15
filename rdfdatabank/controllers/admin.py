@@ -90,9 +90,10 @@ class AdminController(BaseController):
                 if ag.granary.issilo(params['silo']):
                     abort(403, "The silo %s exists"%params['silo'])
                 #NOTE:
-                #If any userid in params['administrators']/params['managers']/params['submitters'] does not exist, userid is ignored 
+                #If any userid in params['administrators']/params['managers']/params['submitters'] does not exist, return 403
                 #if administartor list is empty, append current user to administartor list
                 #Owner is the superset of adminstrators, managers and submitters
+                existing_users = list_usernames()
                 owners = []
                 admins = []
                 managers = []
@@ -112,6 +113,9 @@ class AdminController(BaseController):
                     owners.append(ident['user'].user_name)
                     admins.append(ident['user'].user_name)
                 owners = list(set(owners))
+                for o in owners:
+                    if not o in existing_users:
+                        abort (403, "User %s does not exist"%o)
                 admins = list(set(admins))
                 managers = list(set(managers))
                 submitters = list(set(submitters))
@@ -139,16 +143,13 @@ class AdminController(BaseController):
                 
                 #Add users belonging to the silo, to the database
                 all_silo_users = []
-                existing_users = list_usernames()
+                
                 for a in admins:
-                    if a in existing_users:
-                        all_silo_users.append((a, 'administrator'))
+                    all_silo_users.append((a, 'administrator'))
                 for a in managers:
-                    if a in existing_users:
-                        all_silo_users.append((a, 'manager'))
+                    all_silo_users.append((a, 'manager'))
                 for a in submitters:
-                    if a in existing_users:
-                        all_silo_users.append((a, 'submitter'))
+                    all_silo_users.append((a, 'submitter'))
                 add_group_users(params['silo'], all_silo_users)
  
                 # conneg return
@@ -250,102 +251,75 @@ class AdminController(BaseController):
                 managers = [x.strip() for x in c.kw['managers'].split(",") if x]
             if 'submitters' in c.kw and c.kw['submitters']:
                 submitters = [x.strip() for x in c.kw['submitters'].split(",") if x]
-            #Get new and old admins
+
+            #Get new members
+            new_owners = []
+            #Get new admins
             new_admins = []
-            old_admins = []
-            if 'admin' in c.roles and 'administrators' in params and params['administrators']:
+            if 'administrators' in params and params['administrators']:
                 returned_admins = [x.strip() for x in params['administrators'].split(",") if x]
                 new_admins = [x for x in returned_admins if not x in admins]
-                #old_admins = [x for x in admins if not x in returned_admins]
-                admins = []
-                owners = []
-                admins.extend(returned_admins)
-                owners.extend(returned_admins)
-            #Get new and old managers
+                new_owners.extend(new_admins)
+            #Get new managers
             new_managers = []
-            old_managers = []
             if 'managers' in params and params['managers']:
                 returned_managers = [x.strip() for x in params['managers'].split(",") if x]
                 new_managers = [x for x in returned_managers if not x in managers]
-                #old_managers = [x for x in managers if not x in returned_managers]
-                managers = []
-                managers.extend(returned_managers)
-                owners.extend(returned_managers)
-            #Get new and old submitters
+                new_owners.extend(new_managers)
+            #Get new submitters
             new_submitters = []
-            old_submitters = []
             if 'submitters' in params and params['submitters']:
                 returned_submitters = [x.strip() for x in params['submitters'].split(",") if x]
                 new_submitters = [x for x in returned_submitters if not x in submitters]
-                #old_submitters = [x for x in submitters if not x in returned_submitters]
-                submitters = []
-                submitters.extend(returned_submitters)
-                owners.extend(returned_submitters)
-            #If there are no admins or owners left, add current user as admin if admin
-            if not admins and 'administrator' in ident['permissions']:
-                owners.append(ident['user'].user_name)
-                admins.append(ident['user'].user_name)
-                new_admins.append(ident['user'].user_name)
-                #if ident['user'].user_name in old_admins:
-                #    old_admins.remove(ident['user'].user_name)
-            #If there are no managers and owners left, add current user as manager if manager
-            if not managers and not admins and 'manager' in ident['permissions']:
-                managers.append(ident['user'].user_name)
-                owners.append(ident['user'].user_name)
-                new_managers.append(ident['user'].user_name)
-                #if ident['user'].user_name in old_managers:
-                #    old_managers.remove(ident['user'].user_name)
-            
-            owners = list(set(owners))
-            admins = list(set(admins))
-            managers = list(set(managers))
-            submitters = list(set(submitters))
+                new_owners.extend(new_submitters)
+
+            #Check if the new members exist. If not return 403
+            existing_users = list_usernames()
+            new_owners = list(set(new_owners))
+            for o in new_owners:
+                if not o in existing_users:
+                    abort (403, "User %s does not exist"%o)
+
+            if new_admins and not 'admin' in c.roles:
+                abort (403, "Only administrators can assing users to role 'administrator'")
+
+            owners.extend(new_owners)
             new_admins = list(set(new_admins))
+            admins.extend(new_admins)
             new_managers = list(set(new_managers))
+            managers.extend(new_managers)
             new_submitters = list(set(new_submitters))
-            #old_admins = list(set(old_admins))
-            #old_managers = list(set(old_managers))
-            #old_submitters = list(set(old_submitters))
+            submitters.extend(new_submitters)
 
             # Update silo info
+            updateMetadata = False
             for term in accepted_params:
-                if term in params:
+                if term in params and not term in ['owners', 'administrators', 'managers', 'submitters'] and params[term]:
                     c.kw[term] = params[term]
-            c.kw['owners'] = ','.join(owners)
-            c.kw['administrators'] = ','.join(admins)
-            c.kw['managers'] = ','.join(managers)
-            c.kw['submitters'] = ','.join(submitters)
-            ag.granary.describe_silo(silo, **c.kw)
-            ag.granary.sync()
-
-            #Add new silo users into database
-            existing_users = list_usernames()               
-            new_silo_users = []
-            for a in new_admins:
-                if a in existing_users:
-                    new_silo_users.append((a, 'administrator'))
-            for a in new_managers:
-                if a in existing_users:
-                    new_silo_users.append((a, 'manager'))
-            for a in new_submitters:
-                if a in existing_users:
-                    new_silo_users.append((a, 'submitter'))
-            if new_silo_users:
-                add_group_users(silo, new_silo_users)
-            
-            #Delete old silo users from database
-            #old_silo_users = []
-            #for a in old_admins:
-            #    if a in existing_users:
-            #        old_silo_users.append((a, 'administrator'))
-            #for a in old_managers:
-            #    if a in existing_users:
-            #        old_silo_users.append((a, 'manager'))
-            #for a in old_submitters:
-            #    if a in existing_users:
-            #        old_silo_users.append((a, 'submitter'))
-            #delete_group_users(silo, old_silo_users)
-            
+                    updateMetadata = True 
+            if new_owners or new_admins or new_managers or new_submitters or updateMetadata:
+                new_silo_users = []
+                if new_owners:
+                    c.kw['owners'] = ','.join(owners)
+                if new_admins:
+                    c.kw['administrators'] = ','.join(admins)
+                    for a in new_admins:
+                        new_silo_users.append((a, 'administrator'))
+                if new_managers:
+                    c.kw['managers'] = ','.join(managers)
+                    for a in new_managers:   
+                        new_silo_users.append((a, 'manager'))
+                if new_submitters:
+                    c.kw['submitters'] = ','.join(submitters)
+                    for a in new_submitters:
+                        new_silo_users.append((a, 'submitter'))
+                #Add metadat changes to the silo
+                ag.granary.describe_silo(silo, **c.kw)
+                ag.granary.sync()
+                #Add new silo users into database
+                if new_silo_users:
+                    add_group_users(silo, new_silo_users)
+                       
             # conneg return
             accept_list = None
             if 'HTTP_ACCEPT' in request.environ:
@@ -406,7 +380,7 @@ class AdminController(BaseController):
             response.status_int = 200
             response.status = "200 OK"
             return "{'ok':'true'}"
-
+    """
     @rest.restrict('POST')
     def register(self, silo):
         #Add user
@@ -473,3 +447,4 @@ class AdminController(BaseController):
         # Whoops - nothing satisfies - return text/plain
         response.content_type = "text/plain"
         return response_message
+    """
