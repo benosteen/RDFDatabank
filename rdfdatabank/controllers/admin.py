@@ -30,6 +30,7 @@ from pylons.decorators import rest
 from pylons import app_globals as ag
 from rdfdatabank.lib.base import BaseController, render
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
+from rdfdatabank.lib.utils import allowable_id2
 from rdfdatabank.lib.auth_entry import add_silo, delete_silo, add_group_users, delete_group_users
 from rdfdatabank.lib.auth_entry import add_user, update_user, list_usernames, list_user_groups
 import codecs
@@ -89,6 +90,11 @@ class AdminController(BaseController):
             if 'silo' in params:
                 if ag.granary.issilo(params['silo']):
                     abort(403, "The silo %s exists"%params['silo'])
+                if not allowable_id2(params['silo']):
+                    response.content_type = "text/plain"
+                    response.status_int = 400
+                    response.status = "400 Bad request. Silo name not valid"
+                    return "Silo name can contain only the following characters - %s and has to be more than 1 character"%ag.naming_rule_humanized                
                 #NOTE:
                 #If any userid in params['administrators']/params['managers']/params['submitters'] does not exist, return 403
                 #if administartor list is empty, append current user to administartor list
@@ -380,71 +386,3 @@ class AdminController(BaseController):
             response.status_int = 200
             response.status = "200 OK"
             return "{'ok':'true'}"
-    """
-    @rest.restrict('POST')
-    def register(self, silo):
-        #Add user
-        if not request.environ.get('repoze.who.identity'):
-            abort(401, "Not Authorised")
-        if not ag.granary.issilo(silo):
-            abort(404)
-        ident = request.environ.get('repoze.who.identity')
-        c.ident = ident
-        c.silo = silo
-        # Admin only
-        granary_list = ag.granary.silos
-        silos = ag.authz(granary_list, ident, permission=['administrator', 'manager'])
-        if not silo in silos:
-            abort(403, "Do not have administrator or manager credentials for silo %s"%silo)
-        params = request.POST
-        if not ('username' in params and params['username']):
-            abort(400, "username not supplied")
-        existing_users = list_usernames()
-        if params['username'] in existing_users:
-            ug = list_user_groups(params['username'])
-            if not ((params['username'], 'administrator') in ug or (params['username'], 'manager') in ug or (params['username'], 'submitter') in ug):
-                abort(403, "User %s is not a part of the silo %s"%(params['username'], silo))
-            code = 204
-        else:
-            code = 201
-        owner_of_silos = []
-        if code == 201:
-            #Can only add user details. User membershipis managed through each silo
-            if (('first_name' in params and 'last_name' in params) or 'name' in params) and \
-               'username' in params and params['username'] and 'password' in params and params['password']:
-                add_user(params)
-            else:
-                abort(400, "The following parameters have to be supplied: username, pasword and name (or firstname and lastanme)")
-            response.status_int = 201
-            response.status = "201 Created"
-            response.headers['Content-Location'] = url(controller="admin", action="siloview", silo=silo)
-            response_message = "201 Created"
-        if code == 204:
-            update_user(params)
-            response.status_int = 204
-            response.status = "204 Updated"
-            response_message = None
-        # conneg return
-        accept_list = None
-        if 'HTTP_ACCEPT' in request.environ:
-            try:
-                accept_list = conneg_parse(request.environ['HTTP_ACCEPT'])
-            except:
-                accept_list= [MT("text", "html")]
-        if not accept_list:
-            accept_list= [MT("text", "html")]
-        mimetype = accept_list.pop(0)
-        while(mimetype):
-            if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                redirect(url(controller="admin", action="siloview", silo=silo))
-            elif str(mimetype).lower() in ["text/plain", "application/json"]:
-                response.content_type = "text/plain"
-                return response_message
-            try:
-                mimetype = accept_list.pop(0)
-            except IndexError:
-                mimetype = None
-        # Whoops - nothing satisfies - return text/plain
-        response.content_type = "text/plain"
-        return response_message
-    """

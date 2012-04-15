@@ -31,6 +31,7 @@ from pylons.decorators import rest
 from pylons import app_globals as ag
 from rdfdatabank.lib.base import BaseController, render
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
+from rdfdatabank.lib.utils import allowable_id2
 from rdfdatabank.lib.auth_entry import add_user, update_user, delete_user, add_group_users, delete_group_users
 from rdfdatabank.lib.auth_entry import list_users, list_usernames, list_user_groups, list_group_users, list_user
 
@@ -91,6 +92,12 @@ class UsersController(BaseController):
             params = request.POST
             if not ('username' in params and params['username'] and 'password' in params and params['password']):
                 abort(400, "username and password not supplied")
+            if not allowable_id2(params['username']):
+                response.content_type = "text/plain"
+                response.status_int = 400
+                response.status = "400 Bad request. Username not valid"
+                return "username can contain only the following characters - %s and has to be more than 1 character"%ag.naming_rule_humanized
+
             existing_users = list_usernames()
             if params['username'] in existing_users:
                 abort(403, "User exists")

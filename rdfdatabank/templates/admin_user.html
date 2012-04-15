@@ -26,7 +26,7 @@
   <ul class="stateInfo">
   % if c.ident['user'].user_name == c.username:
     <li><a href="#edit_user" onclick="showhide('edit_user');">
-    <img src="/static/styles/images/user-edit-icon-24.png"/>Upadte user details</a></li>
+    <img src="/static/styles/images/user-edit-icon-24.png"/>Update user details</a></li>
   % endif
   <li><a class="delete" href="/users/${c.username}" data-remove="delete_${c.username}">
     <img src="/static/styles/images/user-delete-icon-24.png" alt="Delete user" title="Delete ${c.username}"/>Delete user</a>
@@ -50,7 +50,7 @@
     <li><label for="email">Email:</label>${c.user['email']}</li>
   % endif
   % if 'groups' in c.user and c.user['groups']:
-    <h4>Memebership information</h4><ul>
+    <h4>Membership information</h4><ul>
     % for g, p in c.user['groups']:
       % if g == '*':
         <li>Databank administrator</li>

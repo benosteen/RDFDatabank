@@ -328,6 +328,7 @@ def list_group_users(siloname):
             if g.silo == siloname:
                 #permissions associated with the group
                 for p in g.permissions:
+                    #TODO:Check if I am getting only those permission associated with the user and group
                     group_users.append({
                         'user_name':u.user_name,
                         'permission':p.permission_name,

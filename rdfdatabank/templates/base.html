@@ -96,9 +96,10 @@ media="(min-width: 1100px) and (max-width: 1600px)"/>
         showAdmin = False
         if user_logged_in:
             c.user_logged_in_name = user_logged_in['repoze.who.userid']
-            if 'permissions' in user_logged_in and ('administrator' in user_logged_in['permissions'] \
-                or 'manager' in user_logged_in['permissions']):
-                showAdmin = True
+            if 'permissions' in user_logged_in and 'administrator' in user_logged_in['permissions']:
+                showAdmin = 'admin'
+            elif 'permissions' in user_logged_in and 'manager' in user_logged_in['permissions']:
+                showAdmin = 'manage'
         current_url = request.environ.get('PATH_INFO')
       %> 
       
@@ -117,7 +118,7 @@ media="(min-width: 1100px) and (max-width: 1600px)"/>
 
 
 	% if showAdmin:
-	<li><a href="/admin">admin</a></li>
+	<li><a href="/admin">${showAdmin}</a></li>
 	% endif
 
 	</ul>

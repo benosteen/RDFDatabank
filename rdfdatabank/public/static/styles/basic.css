@@ -697,6 +697,8 @@ line-height: 2em;
  
  	font-size: 2em;
  	text-align: center;
+	margin-bottom: 25px;
+	margin-top: 20px;
 }
 
 a:link.callToAction,
