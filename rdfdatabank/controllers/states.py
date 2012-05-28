@@ -59,12 +59,11 @@ The state information for a silo contains the following:
         ident = request.environ.get('repoze.who.identity')
         if not ident:
             abort(401, "Not Authorised")
-        granary_list = ag.granary.silos
-        silos = ag.authz(granary_list, ident)
+        silos = ag.authz(ident)
         if silo not in silos:
             abort(403, "Forbidden")
-        silos_admin = ag.authz(granary_list, ident, permission='administrator')
-        silos_manager = ag.authz(granary_list, ident, permission='manager')
+        silos_admin = ag.authz(ident, permission='administrator')
+        silos_manager = ag.authz(ident, permission='manager')
         #if not ident.get('role') in ["admin", "manager"]:
         if not (silo in silos_admin or silo in silos_manager):
             abort(403, "Forbidden. You should be an administrator or manager to view this information")
@@ -99,12 +98,11 @@ The state information for a silo contains the following:
         if not ident:
             abort(401, "Not Authorised")
 
-        granary_list = ag.granary.silos
-        silos = ag.authz(granary_list, ident)
+        silos = ag.authz(ident)
         if silo not in silos:
             abort(403, "Forbidden")
-        silos_admin = ag.authz(granary_list, ident, permission='administrator')
-        silos_manager = ag.authz(granary_list, ident, permission='manager')
+        silos_admin = ag.authz(ident, permission='administrator')
+        silos_manager = ag.authz(ident, permission='manager')
 
         rdfsilo = ag.granary.get_rdf_silo(silo)       
         if not rdfsilo.exists(id):

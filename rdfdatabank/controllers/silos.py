@@ -34,6 +34,7 @@ from paste.fileapp import FileApp
 
 from rdfdatabank.lib.base import BaseController, render
 from rdfdatabank.lib.utils import is_embargoed
+from rdfdatabank.lib.auth_entry import list_silos
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 
 JAILBREAK = re.compile("[\/]*\.\.[\/]*")
@@ -45,12 +46,13 @@ class SilosController(BaseController):
     def index(self):
         ident = request.environ.get('repoze.who.identity')
         c.ident = ident
-        granary_list = ag.granary.silos
-        c.silos = granary_list
+        #granary_list = ag.granary.silos
+        #c.silos = granary_list
+        c.silos = list_silos()
         if ag.metadata_embargoed:
             if not ident:
                 abort(401, "Not Authorised")
-            c.silos = ag.authz(granary_list, ident)
+            c.silos = ag.authz(ident)
 
         # conneg return
         accept_list = None
@@ -69,10 +71,7 @@ class SilosController(BaseController):
                 response.content_type = 'application/json; charset="UTF-8"'
                 response.status_int = 200
                 response.status = "200 OK"
-                list_of_silos = []
-                for silo_id in c.silos:
-                    list_of_silos.append(silo_id)
-                return simplejson.dumps(list_of_silos)
+                return simplejson.dumps(c.silos)
             try:
                 mimetype = accept_list.pop(0)
             except IndexError:
@@ -87,20 +86,22 @@ class SilosController(BaseController):
             
         ident = request.environ.get('repoze.who.identity')
         c.ident = ident
-        granary_list = ag.granary.silos
         c.silo_name = silo
         c.editor = False
         if ag.metadata_embargoed:
             if not ident:
                 abort(401, "Not Authorised")
-            silos = ag.authz(granary_list, ident)
+            silos = ag.authz(ident)
             if silo not in silos:
                 abort(403, "Forbidden")
             c.editor = True
         elif ident:
-            silos = ag.authz(granary_list, ident)
+            silos = ag.authz(ident)
             if silo in silos:
                 c.editor = True
+
+        if silo in ['ww1archives', 'digitalbooks']:
+            abort(501, "The silo %s contains too many data packages to list"%silo)
         
         rdfsilo = ag.granary.get_rdf_silo(silo)       
         c.embargos = {}

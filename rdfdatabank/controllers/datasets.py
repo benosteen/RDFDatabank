@@ -27,7 +27,7 @@ import re, os, shutil, codecs
 import simplejson
 from datetime import datetime, timedelta
 from dateutil.relativedelta import *
-from dateutil.parser import parse
+#from dateutil.parser import parse
 import time
 from uuid import uuid4
 from pylons import request, response, session, tmpl_context as c, url, app_globals as ag
@@ -50,24 +50,25 @@ class DatasetsController(BaseController):
         if not ag.granary.issilo(silo):
             abort(404)
         c.silo_name = silo
-        granary_list = ag.granary.silos
         ident = request.environ.get('repoze.who.identity')
         c.ident = ident
 
         http_method = request.environ['REQUEST_METHOD']
 
         if http_method == "GET":
+            if silo in ['ww1archives', 'digitalbooks']:
+                abort(501, "The silo %s contains too many data packages to list"%silo)
             c.editor = False
             if ag.metadata_embargoed:
                 if not ident:
                     abort(401, "Not Authorised")
-                silos = ag.authz(granary_list, ident)
+                silos = ag.authz(ident)
                 if silo not in silos:
                     abort(403, "Forbidden")
                 c.editor = True
             else:
                 if ident:
-                    silos = ag.authz(granary_list, ident)
+                    silos = ag.authz(ident)
                     if silo in silos:
                         c.editor = True
                  
@@ -108,7 +109,7 @@ class DatasetsController(BaseController):
             if not ident:
                 abort(401, "Not Authorised")
 
-            silos = ag.authz(granary_list, ident)
+            silos = ag.authz(ident)
             if silo not in silos:
                 abort(403, "Forbidden")
             params = request.POST
@@ -123,8 +124,8 @@ class DatasetsController(BaseController):
             if c_silo.exists(params['id']):
                 response.content_type = "text/plain"
                 response.status_int = 409
-                response.status = "409 Conflict: Dataset Already Exists"
-                return "Dataset Already Exists"
+                response.status = "409 Conflict: Data package already exists"
+                return "Data package already exists"
 
             # Supported params:
             # id, title, embargoed, embargoed_until, embargo_days_from_now
@@ -132,8 +133,8 @@ class DatasetsController(BaseController):
             if not allowable_id2(id):
                 response.content_type = "text/plain"
                 response.status_int = 400
-                response.status = "400 Bad request. Dataset name not valid"
-                return "Dataset name can contain only the following characters - %s and has to be more than 1 character"%ag.naming_rule_humanized
+                response.status = "400 Bad request. Data package name not valid"
+                return "Data package name can contain only the following characters - %s and has to be more than 1 character"%ag.naming_rule_humanized
 
             del params['id']
             item = create_new(c_silo, id, ident['repoze.who.userid'], **params)
@@ -186,7 +187,6 @@ class DatasetsController(BaseController):
 
         ident = request.environ.get('repoze.who.identity')  
         c.ident = ident
-        granary_list = ag.granary.silos
         c_silo = ag.granary.get_rdf_silo(silo)
 
         c.version = None
@@ -196,11 +196,11 @@ class DatasetsController(BaseController):
             #identity management of item 
             if not request.environ.get('repoze.who.identity'):
                 abort(401, "Not Authorised")
-            silos = ag.authz(granary_list, ident)
+            silos = ag.authz(ident)
             if silo not in silos:
                 abort(403, "Forbidden")
-            silos_admin = ag.authz(granary_list, ident, permission='administrator')
-            silos_manager = ag.authz(granary_list, ident, permission='manager')
+            silos_admin = ag.authz(ident, permission='administrator')
+            silos_manager = ag.authz(ident, permission='manager')
 
         if http_method in ["GET", "DELETE"]:
             if not c_silo.exists(id):
@@ -229,11 +229,11 @@ class DatasetsController(BaseController):
             if ag.metadata_embargoed:
                 if not ident:
                     abort(401, "Not Authorised")
-                silos = ag.authz(granary_list, ident)
+                silos = ag.authz(ident)
                 if silo not in silos:
                     abort(403, "Forbidden")
-                silos_admin = ag.authz(granary_list, ident, permission='administrator')
-                silos_manager = ag.authz(granary_list, ident, permission='manager')
+                silos_admin = ag.authz(ident, permission='administrator')
+                silos_manager = ag.authz(ident, permission='manager')
                 if ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager:
                     c.editor = True
             elif item.metadata.get('embargoed') not in ["false", 0, False]:
@@ -241,17 +241,17 @@ class DatasetsController(BaseController):
                 # The embargo status should always reflect the latest version, but should the embargo information displayed be that of the vesion???
                 embargoed = True
                 if ident:
-                    silos = ag.authz(granary_list, ident)      
-                    silos_admin = ag.authz(granary_list, ident, permission='administrator')
-                    silos_manager = ag.authz(granary_list, ident, permission='manager')
+                    silos = ag.authz(ident)      
+                    silos_admin = ag.authz(ident, permission='administrator')
+                    silos_manager = ag.authz(ident, permission='manager')
                     if silo in silos:
                         #if ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]:
                         if ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager:
                             c.editor = True
             elif ident:
-                silos = ag.authz(granary_list, ident)
-                silos_admin = ag.authz(granary_list, ident, permission='administrator')
-                silos_manager = ag.authz(granary_list, ident, permission='manager')
+                silos = ag.authz(ident)
+                silos_admin = ag.authz(ident, permission='administrator')
+                silos_manager = ag.authz(ident, permission='manager')
                 if silo in silos:
                     #if ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]:
                     if ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager:
@@ -360,8 +360,8 @@ class DatasetsController(BaseController):
                 if not allowable_id2(id):
                     response.content_type = "text/plain"
                     response.status_int = 400
-                    response.status = "400 Bad request. Dataset name not valid"
-                    return "Dataset name can contain only the following characters - %s and has to be more than 1 character"%ag.naming_rule_humanized
+                    response.status = "400 Bad request. Data package name not valid"
+                    return "Data package name can contain only the following characters - %s and has to be more than 1 character"%ag.naming_rule_humanized
                 params = {}
                 item = create_new(c_silo, id, ident['repoze.who.userid'], **params)
                 code = 201
@@ -625,13 +625,19 @@ class DatasetsController(BaseController):
             if not (ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager):
                 abort(403)
 
-            c_silo.del_item(id)
-            
+            try:
+                ag.r.delete("%s:%s:embargoed_until" % (c_silo.state['storage_dir'], id))
+                ag.r.delete("%s:%s:embargoed" % (c_silo.state['storage_dir'], id))
+            except:
+                pass
+
             # Broadcast deletion
             try:
                 ag.b.deletion(silo, id, ident=ident['repoze.who.userid'])
             except:
                 pass
+
+            c_silo.del_item(id)
             
             response.content_type = "text/plain"
             response.status_int = 200
@@ -653,7 +659,6 @@ class DatasetsController(BaseController):
 
         ident = request.environ.get('repoze.who.identity')  
         c.ident = ident
-        granary_list = ag.granary.silos
         item = c_silo.get_item(id)
         creator = None
         if item.manifest and item.manifest.state and 'metadata' in item.manifest.state and item.manifest.state['metadata'] and \
@@ -669,11 +674,11 @@ class DatasetsController(BaseController):
             #identity management of item 
             if not request.environ.get('repoze.who.identity'):
                 abort(401, "Not Authorised")
-            silos = ag.authz(granary_list, ident)      
+            silos = ag.authz(ident)      
             if silo not in silos:
                 abort(403, "Forbidden")
-            silos_admin = ag.authz(granary_list, ident, permission='administrator')
-            silos_manager = ag.authz(granary_list, ident, permission='manager')
+            silos_admin = ag.authz(ident, permission='administrator')
+            silos_manager = ag.authz(ident, permission='manager')
             #if not (ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]):
             if not (ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager):
                 abort(403, "Forbidden")
@@ -693,31 +698,31 @@ class DatasetsController(BaseController):
             if ag.metadata_embargoed:
                 if not ident:
                     abort(401, "Not Authorised")
-                silos = ag.authz(granary_list, ident)      
+                silos = ag.authz(ident)      
                 if silo not in silos:
                     abort(403, "Forbidden")
-                silos_admin = ag.authz(granary_list, ident, permission='administrator')
-                silos_manager = ag.authz(granary_list, ident, permission='manager')
+                silos_admin = ag.authz(ident, permission='administrator')
+                silos_manager = ag.authz(ident, permission='manager')
                 #if ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]:
                 if ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager:
                     c.editor = True
             elif item.metadata.get('embargoed') not in ["false", 0, False]:
                 if not ident:
                     abort(401)
-                silos = ag.authz(granary_list, ident)      
+                silos = ag.authz(ident)      
                 if silo not in silos:
                     abort(403)
-                silos_admin = ag.authz(granary_list, ident, permission='administrator')
-                silos_manager = ag.authz(granary_list, ident, permission='manager')
+                silos_admin = ag.authz(ident, permission='administrator')
+                silos_manager = ag.authz(ident, permission='manager')
                 #if not ident['repoze.who.userid'] == creator and not ident.get('role') in ["admin", "manager"]:
                 if not (ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager):
                     abort(403)
                 embargoed = True
                 c.editor = True                   
             elif ident:
-                silos = ag.authz(granary_list, ident)
-                silos_admin = ag.authz(granary_list, ident, permission='administrator')
-                silos_manager = ag.authz(granary_list, ident, permission='manager')
+                silos = ag.authz(ident)
+                silos_admin = ag.authz(ident, permission='administrator')
+                silos_manager = ag.authz(ident, permission='manager')
                 if silo in silos:
                     #if ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]:
                     if ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager:
@@ -997,7 +1002,8 @@ class DatasetsController(BaseController):
                 item.add_triple(item.uri, u"oxds:currentVersion", item.currentversion)
                 item.sync()
                 try:
-                    ag.b.deletion(silo, id, path, ident=ident['repoze.who.userid'])
+                    #ag.b.deletion(silo, id, path, ident=ident['repoze.who.userid'])
+                    ag.b.change(silo, id, path, ident=ident['repoze.who.userid'])
                 except:
                     pass
                 response.content_type = "text/plain"
@@ -1013,7 +1019,8 @@ class DatasetsController(BaseController):
                 item.add_triple(item.uri, u"dcterms:modified", datetime.now())
                 item.sync()
                 try:
-                    ag.b.deletion(silo, id, path, ident=ident['repoze.who.userid'])
+                    #ag.b.deletion(silo, id, path, ident=ident['repoze.who.userid'])
+                    ag.b.change(silo, id, path, ident=ident['repoze.who.userid'])
                 except:
                     pass
                 response.content_type = "text/plain"
