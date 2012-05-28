@@ -1,51 +1,85 @@
 Databank is a web-based application for storing, curating and publishing data-packages, and is written using python and the pylons web framework. Its default deployment includes a message queue providing databank notifications to listener services. This message queue is handled using `Redis <http://redis.io/>`_ and `Supervisor <http://supervisord.org/>`_ to maintain the listener services. The search interface in Databank is powered by `Apache SOLR <http://lucene.apache.org/solr/>`_. 
 
-Dependencies for databank version 0.3rc1
+Dependencies for databank
 
-+--------------------------------+-----------+
-| Package name                   | Version   |
-+================================+===========+
-| python                         | >=2.6     |
-+--------------------------------+-----------+
-| python-pylons                  | >=0.9.7   |
-+--------------------------------+-----------+                                                         
-| python-repoze.who              | =2.0a4    |
-+--------------------------------+-----------+
-| python-repoze.who-friendlyform | =1.0.8    |
-+--------------------------------+-----------+
-| python-rdflib                  | =2.4.2    |
-+--------------------------------+-----------+
-| python-dateutil                | >=1.4.1-4 |
-+--------------------------------+-----------+
-| python-libxml2                 | >=2.7.8   |
-+--------------------------------+-----------+
-| python-libxslt1                | >=1.1.26-7|
-+--------------------------------+-----------+
-| python-pairtree                | >=0.7.1   |
-+--------------------------------+-----------+
-| python-recordsilo              | >=0.4.15  |
-+--------------------------------+-----------+
-| python-solrpy                  | >=0.9.5   |
-+--------------------------------+-----------+
-| python-redis                   | >=2.4.5-1 |
-+--------------------------------+-----------+
-| unzip                          | >=6.0     |
-+--------------------------------+-----------+
-| apache2                        | >=2.2.20  |
-+--------------------------------+-----------+
-| apache2-utils                  | >=2.2.20  |
-+--------------------------------+-----------+
-| libapache2-mod-wsgi            | >=3.3     |
-+--------------------------------+-----------+
-| redis-server                   | >=2.2.11  |
-+--------------------------------+-----------+
-| supervisor                     | >=3.0     |
-+--------------------------------+-----------+
-| openjdk-6-jre                  | >=6b23    |
-+--------------------------------+-----------+
-| solr-tomcat                    | >=1.4.1   |
-+--------------------------------+-----------+
-| Simple Sword Server *          | 2.0       |
-+--------------------------------+-----------+
++---------------------------------+-----------+
+| Package name                    | Version   |
++=================================+===========+
+| python                          | >=2.6     |
++---------------------------------+-----------+
+| python-dev                      |           |
++---------------------------------+-----------+
+| libxml2                         |           |
++---------------------------------+-----------+
+| libxslt1.1                      |           |
++---------------------------------+-----------+
+| libxml-dev                      |           |
++---------------------------------+-----------+
+| libxslt-dev                     |           |
++---------------------------------+-----------+
+| python-virtualenv               |           |
++---------------------------------+-----------+
+| python-pylons^                  | >=0.9.7   |
++---------------------------------+-----------+                                                         
+| python-repoze.who^              | =2.0a4    |
++---------------------------------+-----------+
+| python-repoze.who-friendlyform^ | =1.0.8    |
++---------------------------------+-----------+
+| python-rdflib^                  | =2.4.2    |
++---------------------------------+-----------+
+| python-dateutil^                | >=1.4.1-4 |
++---------------------------------+-----------+
+| python-lxml^                    | >=2.3.4   |
++---------------------------------+-----------+
+| python-pairtree^                | >=0.7.1   |
++---------------------------------+-----------+
+| python-recordsilo^              | >=0.4.15  |
++---------------------------------+-----------+
+| python-solrpy^                  | >=0.9.5   |
++---------------------------------+-----------+
+| python-redis^                   | >=2.4.5-1 |
++---------------------------------+-----------+
+| unzip                           | >=6.0     |
++---------------------------------+-----------+
+| apache2                         | >=2.2.20  |
++---------------------------------+-----------+
+| apache2-utils                   | >=2.2.20  |
++---------------------------------+-----------+
+| libapache2-mod-wsgi             | >=3.3     |
++---------------------------------+-----------+
+| redis-server                    | >=2.2.11  |
++---------------------------------+-----------+
+| supervisor                      | >=3.0     |
++---------------------------------+-----------+
+| openjdk-6-jre                   | >=6b23    |
++---------------------------------+-----------+
+| solr-tomcat                     | >=1.4.1   |
++---------------------------------+-----------+
 
-\* Availabale from http://sword-app.svn.sourceforge.net/viewvc/sword-app/sss/branches/sss-2/
+
+In addition to the above, these are the depoendencies for databank veersion 0.3rc2
+
++---------------------------------+-----------+
+| Package name                    | Version   |
++=================================+===========+
+| python-repoze.what^             | >=1.0.3   |
++---------------------------------+-----------+
+| python-repoze.who.plugins.sa^   | >=1.0.1   |
++---------------------------------+-----------+
+| python-repoze.who.plugins.sql^  | >=1.0rc2  |
++---------------------------------+-----------+
+| python-sqlalchemy^              | =0.6.8.1  |
++---------------------------------+-----------+
+| mysql-server                    | =5.1      |
++---------------------------------+-----------+
+| libmysql++-dev                  | =3.1.0    |
++---------------------------------+-----------+
+| python-mysqldb (mysql-python)^  | =1.2.3    |
++---------------------------------+-----------+
+
+\^ these python packages are installed within a virtual environment no site packages used
+
+ Databank 0.3rc2 has the Simple Sword Server also packaged with it.
+  * Availabale from http://sword-app.svn.sourceforge.net/viewvc/sword-app/sss/branches/sss-2/
+  * This will be packaged separately for the next release of databank
+  * The simple swrod server depends on web.py and lxml version 2.3.4

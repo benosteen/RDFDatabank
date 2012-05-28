@@ -35,3 +35,9 @@ db_go
 #db_input critical databank/passwdnote || true
 #db_go
 
+# Set default database name, database user
+if [ -f /usr/share/dbconfig-common/dpkg/config ]; then
+        . /usr/share/dbconfig-common/dpkg/config.mysql
+        dbc_go databank $@
+fi
+

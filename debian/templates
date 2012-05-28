@@ -22,7 +22,7 @@ Description: Base URI:
  Example: http://example.com/
 
 Template: databank/password
-Type: string
+Type: password
 Description: Administrator password:
  The password for user 'admin'
  The user 'admin' is the main administartor for Databank and 

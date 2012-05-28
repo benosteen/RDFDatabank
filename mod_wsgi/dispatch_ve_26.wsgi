@@ -22,7 +22,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 # Add the virtual Python environment site-packages directory to the path
-#import site
+import site
+site.addsitedir('/var/lib/databank/lib/python2.6/site-packages')
 #site.addsitedir('/home/simplesite/env/lib/python2.5/site-packages')
 #site.addsitedir('/usr/local/lib/python2.6/dist-packages')
 

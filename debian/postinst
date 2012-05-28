@@ -7,6 +7,11 @@ set -e
 
 # Source debconf library.
 . /usr/share/debconf/confmodule
+. /usr/share/dbconfig-common/dpkg/postinst.mysql
+
+paramfile=/etc/default/databank/db.sh
+dbc_generate_include=sh:$paramfile
+dbc_go databank $@
 
 # Ask questions
 db_get databank/email
@@ -28,6 +33,7 @@ local dbpasswd="$RET"
 #Modify the ini files
 CONFIG_FILE1=/etc/default/databank/production.ini
 CONFIG_FILE2=/etc/default/databank/development.ini
+CONFIG_FILE3=/etc/default/databank/sss.conf.json
 #replace email
 TARGET_KEY=email_to
 echo "Setting email Id: " $dbemail
@@ -47,24 +53,33 @@ sed -i "s,\($TARGET_KEY *= *\).*,\1$dbstore," $CONFIG_FILE2
 #replace granary uri root
 echo "Setting Base URI: " $dburi
 TARGET_KEY=granary.uri_root
-[ $TARGET_KEY != "*/" ] && TARGET_KEY="$TARGET_KEY""/"
+#[ $dburi != "*/" ] && dburi="$dburi""/"
+dburi=${dburi%/}
+dburi="$dburi""/"
 sed -i "s,\($TARGET_KEY *= *\).*,\1$dburi," $CONFIG_FILE1
 sed -i "s,\($TARGET_KEY *= *\).*,\1$dburi," $CONFIG_FILE2
-
-#Add the user password
-#htpasswd -b -c /var/lib/databank/passwd admin $dbpasswd
-#cp /var/lib/databank/passwd-default /var/lib/databank/passwd
-cd /var/lib/databank
-if ! [ -f /var/lib/databank/passwd ]
-then
-touch /var/lib/databank/passwd
-fi
-python add_user.py admin $dbpasswd
+TARGET_KEY1='    "base_url"'
+TARGET_KEY2='    "db_base_url"'
+val1='"'$dburi'swordv2/",'
+val2='"'$dburi'",'
+sed -i "s|\($TARGET_KEY1 *: *\).*|\1$val1|" $CONFIG_FILE3
+sed -i "s|\($TARGET_KEY2 *: *\).*|\1$val2|" $CONFIG_FILE3
+#replace the database connection string
+TARGET_KEY=sqlalchemy.url
+echo "Setting Database connection string: "
+chmod 744 $paramfile
+. $paramfile
+dburl=mysql://$dbuser:$dbpass@localhost:3306/$dbname
+sed -i "s^\($TARGET_KEY *= *\).*^\1$dburl^" $CONFIG_FILE1
+sed -i "s^\($TARGET_KEY *= *\).*^\1$dburl^" $CONFIG_FILE2
 
 #Link config files
 ln -sf /etc/default/databank/production.ini /var/lib/databank/production.ini
 ln -sf /etc/default/databank/development.ini /var/lib/databank/development.ini
+ln -sf /etc/default/databank/sss.conf.json /var/lib/databank/sss.conf.json
 ln -sf /etc/default/databank/databank_wsgi /etc/apache2/sites-available/databank_wsgi
+ln -sf /etc/default/databank/databank_ve26_wsgi /etc/apache2/sites-available/databank_ve26_wsgi
+ln -sf /etc/default/databank/databank_ve27_wsgi /etc/apache2/sites-available/databank_ve27_wsgi
 
 #Create dirs and change ownership and permissions
 # ownership and permissions for /var/lib/databank
@@ -83,8 +98,55 @@ chgrp -R www-data /etc/default/databank/
 chmod -R 770 /var/cache/databank/
 # ownership and permissions granary.store
 mkdir -p $dbstore
+cp /var/lib/databank/persisted_state.json $dbstore
 chgrp -R www-data $dbstore
 chmod -R 770 $dbstore
+
+#Setup the python virtual environment
+virtualenv --no-site-packages /var/lib/databank/
+cd /var/lib/databank/
+. bin/activate
+# Get the version of python being used
+if [ -d /var/lib/databank/lib/python2.6/ ]
+then
+	py_rs='https://github.com/anusharanganathan/RecordSilo/raw/master/dist/RecordSilo-0.4.15-py2.6.egg'
+	py_who='/var/lib/databank/lib/python2.6/site-packages/repoze.who-1.0.19-py2.6.egg/'
+	py_site=databank_ve26_wsgi
+        py_webob='/var/lib/databank/lib/python2.6/site-packages/WebOb-1.2b3-py2.7.egg'
+else
+	py_rs='https://github.com/anusharanganathan/RecordSilo/raw/master/dist/RecordSilo-0.4.15-py2.7.egg'
+	py_who='/var/lib/databank/lib/python2.7/site-packages/repoze.who-1.0.19-py2.7.egg/'
+	py_site=databank_ve27_wsgi
+        py_webob='/var/lib/databank/lib/python2.7/site-packages/WebOb-1.2b3-py2.7.egg'        
+fi
+easy_install python-dateutil==1.5
+easy_install pairtree==0.7.1-T
+easy_install $py_rs
+easy_install solrpy==0.9.5
+easy_install rdflib==2.4.2
+easy_install redis==2.4.11
+easy_install MySQL-python
+easy_install pylons==1.0
+easy_install lxml==2.3.4
+easy_install web.py
+easy_install sqlalchemy==0.7.6
+easy_install webob==1.0.8
+easy_install repoze.what-pylons
+easy_install repoze.what-quickstart
+if [ -d $py_who ]
+then
+	rm -r $py_who
+fi
+if [ -d $py_webob ]
+then
+	rm -r $py_webob
+fi
+easy_install repoze.who==2.0a4 
+
+#Setup the database and add the user password
+cd /var/lib/databank
+paster setup-app production.ini
+python add_user.py admin $dbpasswd $dbemail
 
 #Configure SOLR and message workers in supervisor
 db_get databank/confsolr
@@ -132,7 +194,7 @@ fi
 #Enable site in apache
 a2dissite default
 a2dissite default-ssl
-a2ensite databank_wsgi
+a2ensite $py_site
 
 #Start Apache
 invoke-rc.d apache2 reload

@@ -1,0 +1,77 @@
+Indexing items in Databank for search and retreival using SOLR, Redis and Supervisor
+
+  * Records are indexed into SOLR from Databank asynchronously, using Redis and Supervisor to manage this process
+
+  * The items to be indexed are written into a queue (silochanges) in redis from Databank.
+    * The library broadcast.py adds the silo name and data package id along with a tiemstamap and the type of action (create, update or delete) into redis
+
+
+
+  * Supervisor manages the processes used to work on the items queued in redis
+
+    * The configuration file for each of the processes maintained by supervisor is available at workers_available.
+
+    * These are symlinked to /etc/supervisor/conf.d/---
+
+
+
+  * Managing the queue in redis - the queue workflow (redisqueue.py)
+
+    * For each of the workers, when an item is popped out of a queue it is written into another temporary queue (for example temp:broker, temp:logger, temp:solr) recording the item currently being processed
+
+    * When the worker marks the task as completed the item is deleted from the temporary queue
+
+    * When the worker marks the task as failed, it is moved from the temporary queue into another queue (or back to the same queue if another queue isn't configured). For example: it is moved into the queue solrindexerror in worker_solr.
+
+
+
+  * There are three workers working off the redis queue - worker_broker, worker_auditlogger and worker_solr
+
+    * loglines.cfg has the configuration options which are parsed by LogConfigParser.py
+
+    * worker_broker works off the items queued in the silochanges queue. It copies each item to two other queues - auditlog and solrindex
+
+    * worker_solr works off the items queued in the solrindex queue. It is used to index documents / delete documents from solr
+      * For each item, it gets the manifest from for the item the granary store, walks through the triples, genrates a solr document and adds the document to solr. It commits the index every hour or when no futher items are queued for indexing. If there is an error, the item is pushed to the queue solrindexerror and the error is logged in the file /var/log/databank/solr_error.log. 
+
+
+
+The following is the python code to query redis 
+
+{{{
+from redis import Redis
+r = Redis()
+all_keys = r.keys()
+
+#Have a look at all the keys associated with supervisor workers
+r.llen('silochanges')
+
+r.llen('solrindex')
+r.lindex('solrindex', 0)
+
+r.llen('solrindexerror')
+
+r.llen('temp:broker_0')
+r.llen('temp:broker_1')
+
+r.llen('temp:solr_0')
+r.llen('temp:solr_1')
+
+#Have a look at all the embargoed and embargoed_until keys
+em_keys = r.keys('*:*:embargoed')
+if type(em_keys).__name__ != 'list':
+    em_keys = em_keys.split(' ')
+len(em_keys)
+
+emu_keys = r.keys('*:*:embargoed_until')
+if type(emu_keys).__name__ != 'list':
+    emu_keys = emu_keys.split(' ')
+len(emu_keys)
+
+#To delete the embargoed keys
+for i in em_keys:
+    r.delete(i)
+
+for i in emu_keys:
+    r.delete(i)
+}}}

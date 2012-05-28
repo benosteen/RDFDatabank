@@ -1,3 +1,22 @@
+databank (0.3rc3) unstable; urgency=low
+
+  * Mod-wsgi and metadata update fixes to Sword server 
+  * Minor user interface changes
+
+ -- Anusha Ranganathan <anusha.ranganathan@ieee.org>  Thu, 03 May 2012 09:08:50 +0000
+
+databank (0.3rc2) unstable; urgency=low
+
+  * Extended API to post a file without first having to create a data package
+  * New Databank authentication and authorization module. 
+    - Designed to work with repoze.what and sqlalchemy.
+    - User and membership information stored in a mysql database
+  * Databank API extended to administer silos, users, and user membership
+    - Databank ui has new adminstration pages in line with api functionality
+  * Sword server packaged with databank
+
+ -- Anusha Ranganathan <anusha.ranganathan@ieee.org>  Fri, 27 Apr 2012 09:08:50 +0000
+
 databank (0.3rc1) unstable; urgency=low
 
   * Basic support for sword deposit 

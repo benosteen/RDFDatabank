@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF 
+    xmlns:dcterms="http://purl.org/dc/terms/" 
+    xmlns:dcmitype="http://purl.org/dc/dcmitype/"
+    xmlns:oxds="http://vocab.ox.ac.uk/dataset/schema#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+>
+  <oxds:DataSet rdf:about="">
+    <dcterms:title>Some verses in Sanskrit</dcterms:title>
+    <rdf:value>The following is one stanza of canto Ⅵ of the Kumāra-saṃbhava (“the birth of Kumāra”) by the great Sanskrit poet Kālidāsa: &lt;br&gt;
+ &lt;br&gt;
+    पशुपतिरपि तान्यहानि कृच्छ्राद् &lt;br&gt;
+    अगमयदद्रिसुतासमागमोत्कः । &lt;br&gt;
+    कमपरमवशं न विप्रकुर्युर् &lt;br&gt;
+    विभुमपि तं यदमी स्पृशन्ति भावाः ॥ &lt;br&gt;
+ &lt;br&gt;
+And here is the transcription of it: &lt;br&gt;
+ &lt;br&gt;
+    Paśupatirapi tānyahāni kṛcchrād &lt;br&gt;
+    agamayadadrisutāsamāgamotkaḥ; &lt;br&gt;
+    kamaparamavaśaṃ na viprakuryur &lt;br&gt;
+    vibhumapi taṃ yadamī spṛśanti bhāvāḥ? &lt;br&gt;
+ &lt;br&gt;
+A rough translation might be: &lt;br&gt;
+ &lt;br&gt;
+    And Paśupati passed those days with hardship, / eager for union with the daughter of the mountain. / Which other powerless [creature] would they not torment, / such emotions, when they affect even the powerful [Śiva]?</rdf:value>
+    <dcterms:source>http://www.madore.org/~david/misc/unitest/</dcterms:source>
+  </oxds:DataSet>
+</rdf:RDF>

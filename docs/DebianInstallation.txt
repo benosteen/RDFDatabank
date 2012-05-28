@@ -1,0 +1,112 @@
+-------------------------------------------------------------------------------
+Installing Databank from the Debian package
+-------------------------------------------------------------------------------
+The debian package fro Databank is available at 
+http://apt-repo.bodleian.ox.ac.uk/databank/ 
+
+To be able to install Databank using apt or aptitude, 
+
+1. Add the repository to the file sources.list. 
+Add the following line to your /etc/apt/sources.list file:
+
+deb http://apt-repo.bodleian.ox.ac.uk/databank/ unstable main
+
+2. Import the following signing key:
+wget http://apt-repo.bodleian.ox.ac.uk/datastage/dataflow.gpg
+apt-key add dataflow.gpg
+
+3. Update the package index
+sudo apt-get update
+
+4. Install Databank
+sudo apt-get install databank
+
+-------------------------------------------------------------------------------
+Questions asked during Databank's installation
+-------------------------------------------------------------------------------
+1. Adminstrator Email Id - 
+This will be used to send error messages from Databank to the administrator.
+
+2. SMTP Server used to send email messages. The default value is localhost
+
+3. Data storage location - the location where the data will be stored by Databank. 
+	The default value is /silos
+
+4. The base uri (domain name) of Databank
+	Examples for this are: 
+	Server name like                              http://example.com/databank/ or
+	Ip address of the machine, if it has no cname http://192.168.23.131/  or
+	Using localhost (development / evaluation)    http://localhost/ or 
+
+	The default value is 'http://databank/'   
+
+	This value is used in the following:
+	* Each of the silos created in Databank will be intialized with the base URI
+	* In each of the data packages, the metadata (held in the manifest.rdf) will 
+	use this base URI in creating the URI for the data package
+	* The links to each data item in the package will be created using this base 
+	uri (aggregate map for each data package)
+
+	If this base uri doesn't resolve, the links for each of the items in the 
+	data package will not resolve
+
+	The base uri is regarded to be permanent. Modifying the base uri at some
+	point in the future will create all new silos and the data packages within 
+	the new silos with the new base uri, but the existing silos and data packages 
+	will continue to have the old uri.
+	
+5. The password for the administrator user of databank used by the web interface 
+	for authentication and authorization.
+	* The administrator has a default username as 'admin'. 
+	* This user is the root administrator for Databank and has access to all the silos in Databank.
+	* Please choose a strong password for the user
+
+6. Choosing a password for the MySQL user
+	Databank will install the MySQL database if it isn't alredy installed.
+	A database with the name 'databank' will be create  during installation. 
+	The database user 'databank' will also be craeted.
+	You will be asked for a password for the user 'databank' and the credentials
+	of the admin user of MySQL itself, so that the database and user can be created.
+
+7. Confirmation if Databank can be configured for SOLR
+	The search facility in Databank is powered by SOLR.
+ 
+	If you choose to configure SOLR now, the existing schema 
+	at /etc/solr/conf/schema.xml will be replaced with Databank's schema
+
+	If you choose to configure SOLR at a later time, 
+	the instructions to do so are at /usr/share/doc/databank/ConfiguringSOLR.txt
+	
+-------------------------------------------------------------------------------
+After installing Databank
+-------------------------------------------------------------------------------
+Visit http://localhost from the local browser to get started. 
+
+-------------------------------------------------------------------------------
+Customizing or debugging Databank 
+-------------------------------------------------------------------------------
+Please read the document available at 
+/usr/share/doc/databank/Databank_VM_Installation.txt
+or online at
+https://github.com/dataflow/RDFDatabank/blob/master/docs/Databank_VM_Installation.txt 
+
+If you are not interested in installing Databank from source, skip to Section V. 
+Section V and later sections describe the various settings for Databank.
+
+-------------------------------------------------------------------------------
+Databank Documentation 
+-------------------------------------------------------------------------------
+The databank source code is at https://github.com/dataflow/RDFDatabank
+
+Databank is provided to you as a part of the datafalow project. 
+You can find more information about Databank and Dataflow at 
+http://www.dataflow.ox.ac.uk/
+
+The API documentation is available at https://databank-vm1.oerc.ox.ac.uk/api/ 
+or in your local instance of databank at http://localhost/api
+
+There are some notes on using the API at the following link, https://github.com/dataflow/RDFDatabank/tree/master/docs/using_databank_api
+
+The Databank wiki at https://github.com/dataflow/RDFDatabank/wiki has notes on the 
+current DataBank feature set, architecture, policies and the development roadmap 
+for the near future. 

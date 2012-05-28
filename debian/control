@@ -12,26 +12,33 @@ XS-Python-Version: >= 2.6
 Package: databank
 Architecture: all
 Depends: python,
-         python-pylons,
-         python-repoze.who,
-         python-repoze.who-friendlyform,
+         python-dev,
+         python-setuptools,
+         python-virtualenv,
          python-rdflib,
          python-dateutil,
-         python-libxml2,
-         python-libxslt1,
          python-pairtree,
          python-recordsilo,
          python-solrpy,
          python-redis,
+         mysql-server,
+         libmysql++-dev,
+         git-core,
          unzip,
+         libxml2,
+         libxml2-dev,
+         libxslt1.1,
+         libxslt-dev,
          apache2,
          apache2-utils,
          libapache2-mod-wsgi,
          redis-server,
          supervisor,
          openjdk-6-jre,
-         debconf
-Recommends: solr-tomcat
+         debconf,
+         dbconfig-common
+Recommends: solr-tomcat, 
+            mysql-client
 Description: RDF-enhanced, pairtree-backed storage API
  Databank is a simple, RDF-enhanced storage API which is backed by pairtree,
  for the safe storage of and access to data. 
