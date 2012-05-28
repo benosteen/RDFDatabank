@@ -6,18 +6,26 @@
   else:
     subpath = ""
   if c.version:
-    ver = "?version=%s" % c.version
+    urlext = "?version=%s" % c.version
   else:
-    ver = ""
+    urlext = ""
   %>
 
   % for part in c.parts:
+<%
+if type(c.parts).__name__ == 'dict' and c.parts[part]:
+    sz = h.bytes_to_english(c.parts[part].st_size)
+    ext = "(%s)"%sz
+else:
+    ext = ""
+%>
     % if not part.startswith('3=') and not part.startswith('4='):
-      % if type(c.parts).__name__ == 'dict' and c.parts[part]:
-        <li><a href="/${c.silo_name}/datasets/${c.id}${subpath}/${part}${ver}">${part}</a> ${h.bytes_to_english(c.parts[part].st_size)} </li>
-      % else:
-        <li><a href="/${c.silo_name}/datasets/${c.id}${subpath}/${part}${ver}">${part}</a> </li>
-      % endif
+<li>${part} ${ext}
+<a href="/${c.silo_name}/datasets/${c.id}${subpath}/${part}${urlext}"><img src="/static/styles/images/download_zip_icon_32.png" title="download file"></a>
+%     if part.endswith('.zip'):
+    <a href="/${c.silo_name}/items/${c.id}${subpath}/${part}${urlext}"><img src="/static/styles/images/view_zip_icon_32.png" title="View zip file"></a>
+%     endif
+</li>
     % endif
   % endfor
   </ul>

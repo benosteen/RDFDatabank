@@ -184,8 +184,7 @@ def setup_app(command, conf, vars):
         meta.Session.flush()
         meta.Session.commit()
     except IntegrityError:
-        print 'Warning, there was a problem adding your auth data, it may have already been added:'
-        import traceback
-        print traceback.format_exc()
+        log.error('there was a problem adding your auth data, it may have already been added. Continuing with bootstrapping...')
+        #import traceback
+        #print traceback.format_exc()
         meta.Session.rollback()
-        print 'Continuing with bootstrapping...'

@@ -42,9 +42,9 @@ header.pageHeader,
 footer.site {
 	
    		
-  	-webkit-box-shadow: #b9c8d5 0.5em 0.5em 0.5em; /* Chrome Safari */
-	-moz-box-shadow: #b9c8d5 0.5em 0.5em 0.5em; /* Firefox F3.5+ */
-	 box-shadow: #b9c8d5 0.5em 0.5em 0.5em; /* Opera 10.5, IE 9.0 */
+  	-webkit-box-shadow: #cccccc 0.5em 0.5em 0.5em; /* Chrome Safari */
+	-moz-box-shadow: #cccccc 0.5em 0.5em 0.5em; /* Firefox F3.5+ */
+	 box-shadow: #cccccc 0.5em 0.5em 0.5em; /* Opera 10.5, IE 9.0 */
 
 
 }

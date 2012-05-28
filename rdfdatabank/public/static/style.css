@@ -451,9 +451,13 @@ width: 40px;
 }
 
 .itemsppformchosen {
-color: black;
-border: 1px solid #666;
-background: #FFFF99;
+    color: black;
+    border: 1px solid #666;
+    background: #FFFF99;
+}
+
+.httperror h1{
+    font-size: 2em;
 }
 
 .create_silo label, .alter_silo label, .create_user label {

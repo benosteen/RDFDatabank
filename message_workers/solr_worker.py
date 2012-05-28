@@ -29,6 +29,7 @@ from solrFields import solr_fields_mapping
 
 import sys
 from time import sleep
+from datetime import datetime, timedelta
 from rdflib import URIRef
 import simplejson
 from collections import defaultdict
@@ -79,8 +80,9 @@ if __name__ == "__main__":
     rq = RedisQueue(c.get(worker_section, "listento"), "solr_%s" % worker_number,
                   db=c.get(redis_section, "db"), 
                   host=c.get(redis_section, "host"), 
-                  port=c.get(redis_section, "port")
-                  )
+                  port=c.get(redis_section, "port"),
+                  errorqueue=c.get(worker_section, "errorq")
+                 )
     DB_ROOT = c.get(worker_section, "dbroot")
     rdfdb_config = Config("%s/production.ini" % DB_ROOT)
     granary_root = rdfdb_config.get("app:main", "granary.store", 0, {'here':DB_ROOT})
@@ -90,19 +92,47 @@ if __name__ == "__main__":
     solr = SolrConnection(c.get(worker_section, "solrurl"))
 
     idletime = 2
-
+    commit_time = datetime.now() + timedelta(hours=1)
+    toCommit = False
     while(True):
         sleep(idletime)
+
+        if datetime.now() > commit_time and toCommit:
+            solr.commit()
+            commit_time = datetime.now() + timedelta(hours=1)
+            toCommit = False
+
         line = rq.pop()
+
         if not line:
+            if toCommit:
+                solr.commit()
+                toCommit = False
+                commit_time = datetime.now() + timedelta(hours=1)
             continue
+
+        logger.debug("Got message %s" %str(line))
+
+        toCommit = True
         msg = simplejson.loads(line)
         # solr switch
-        silo_name = msg['silo']
-        if silo_name not in g.silos:
-            raise NoSuchSilo
-        s = g.get_rdf_silo(silo_name)
+        try:
+            silo_name = msg['silo']
+        except:
+            logger.error("Msg badly formed %s\n"%str(msg))
+            rq.task_complete()
+            continue
+        if silo_name not in g.silos and not msg['type'] == "d":
+            g = Granary(granary_root)
+            g.state.revert()
+            g._register_silos()
+            if silo_name not in g.silos:
+                logger.error("Silo %s does not exist\n"%silo_name)
+                rq.task_complete()
+                #raise NoSuchSilo
+                continue
         if msg['type'] == "c" or msg['type'] == "u" or msg['type'] == "embargo":
+            s = g.get_rdf_silo(silo_name)
             # Creation, update or embargo change
             itemid = msg.get('id')
             logger.info("Got creation message on id:%s in silo:%s" % (itemid, silo_name))
@@ -110,20 +140,26 @@ if __name__ == "__main__":
                 item = s.get_item(itemid)
                 solr_doc = gather_document(silo_name, item)
                 try:
-                    solr.add(_commit=True, **solr_doc)
+                    solr.add(_commit=False, **solr_doc)
                 except Exception, e :
                     logger.error("Error adding document to solr id:%s in silo:%s\n" % (itemid, silo_name))
-                    #f = open('/var/log/databank/solr_error.log', 'a')
-                    #f.write("Error adding record (creating) id:%s in silo:%s\n" % (itemid, silo_name))
                     try:
                        logger.error("%s\n\n" %str(e))
                     except:
                        pass
+                    rq.task_failed()
+                    continue
             rq.task_complete()
         elif msg['type'] == "d":
             # Deletion
             itemid = msg.get('id')
-            if itemid and s.exists(itemid):
-                solr.delete(itemid)
-                solr.commit()
+            if itemid:
+                logger.info("Got deletion message on id:%s in silo:%s" % (itemid, silo_name))
+                query='silo:"%s" AND id:"%s"'%(silo_name, itemid)
+                solr.delete_query(query)
+            elif silo_name:
+                logger.info("Got deletion message on silo:%s" %silo_name)
+                query='silo:"%s"'%silo_name
+                solr.delete_query(query)
+                #solr.commit()
             rq.task_complete()

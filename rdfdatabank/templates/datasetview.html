@@ -3,7 +3,7 @@
 <%def name="head_tags()">
   <link rel="meta" type="application/rdf+xml" title="RDF Manifest"
                href="/${c.silo_name}/datasets/${c.id}/manifest.rdf"/>
-  <title> Dataset ${c.id} </title>
+  <title> Data package ${c.id} </title>
 <script type="text/javascript">
 <!--
     function showhide(id) {
@@ -21,7 +21,7 @@
 <%
 c.current = c.id
 %>
-<h1>Dataset ${c.id}</h1>
+<h1>Data package ${c.id}</h1>
 % if c.version:
 <h2>Version ${c.version}</h2>
 % elif c.versions:
@@ -62,10 +62,8 @@ c.current = c.id
     <img src="/static/styles/images/file-add-icon-24.png"/>Add metadata</a></li>
   <li><a href="#upload_file" onclick="showhide('upload_file');">
     <img src="/static/styles/images/file-new-icon-24.png"/>Upload file</a></li>
-  <!-- <li><a href="#delete_dataset" onclick="showhide('delete_dataset');">
-    <img src="/static/styles/images/delete-icon-24.png"/>Delete dataset</a></li> -->
-  <li><a class="delete" href="/${c.silo_name}/datasets/${c.id}" data-remove="${"_".join(c.silo_name.split("."))}_${"_".join(c.id.split(":"))}">
-    <img src="/static/styles/images/delete-icon-24.png"/>Delete dataset</a></li>
+  <li><a class="delete" href="/${c.silo_name}/datasets/${c.id}" data-remove="${"_".join(c.silo_name.split("."))}_${"_".join(c.id.split(":"))}" data-url="/${c.silo_name}/datasets">
+    <img src="/static/styles/images/delete-icon-24.png"/>Delete data package</a></li>
   % if c.zipfiles:
   <li><a href="#unpack_endpoints" onclick="showhide('unpack_endpoints');">
     <img src="/static/styles/images/unzip-icon-32.png"/>Unpack zip files</a></li>
@@ -108,10 +106,18 @@ c.current = c.id
 <h2>Access Information</h2>
 <div class="dataset_info">
 % if c.embargos and c.current in c.embargos and c.embargos[c.current]:
- <% c.emb = c.embargos[c.current] %>
+  <%
+   from dateutil.parser import parse
+   from time import strftime
+   c.emb = c.embargos[c.current] 
+   dt_human = c.emb[1]
+   if c.emb[1] and c.emb[1].strip():
+       dt_obj = parse(c.emb[1].strip(), dayfirst=True, yearfirst=False)
+       dt_human = dt_obj.strftime('%B %d %Y, %I:%M %p')
+  %>
   % if c.emb[0] == True or c.emb[0] == 1 or (isinstance(c.emb[0], basestring) and c.emb[0].strip().lower() in ['true', '1']):
      % if (isinstance(c.emb[1], basestring) and c.emb[1].strip()):
-        Data package is embargoed until ${c.emb[1]}. Only the metadata is openly accessible.
+        Data package is embargoed until ${dt_human}. Only the metadata is openly accessible.
      % else:
         Data package is embargoed indefinitely. Only the metadata is openly accessible.
      % endif
@@ -179,14 +185,6 @@ c.current = c.id
     <%include file="/file_upload.html"/>
     <div class="top"><a href="#top" onclick="showhide('upload_file');" title="Back to top"><img src="/static/styles/images/go-up-icon-24.png"/></a></div>
     </div>
-    <!-- Link to delete the dataset -->
-    <!--
-    <div id="delete_dataset" class="edit_section" style="display: none;">
-    <a name="delete_dataset"></a>
-    <h2><a class="delete" href="/${c.silo_name}/datasets/${c.id}" data-remove="${"_".join(c.silo_name.split("."))}_${"_".join(c.id.split(":"))}">Delete dataset</a></h2>
-    <div class="top"><a href="#top" onclick="showhide('delete_dataset');" title="Back to top"><img src="/static/styles/images/go-up-icon-24.png"/></a>
-    </div>
-    -->
     <!-- Unpack zipfiles -->
     % if c.zipfiles:
       <div id="unpack_endpoints" class="edit_section" style="display: none;">

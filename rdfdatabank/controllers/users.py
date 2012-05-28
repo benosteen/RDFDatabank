@@ -33,7 +33,7 @@ from rdfdatabank.lib.base import BaseController, render
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 from rdfdatabank.lib.utils import allowable_id2
 from rdfdatabank.lib.auth_entry import add_user, update_user, delete_user, add_group_users, delete_group_users
-from rdfdatabank.lib.auth_entry import list_users, list_usernames, list_user_groups, list_group_users, list_user
+from rdfdatabank.lib.auth_entry import list_users, list_usernames, list_user_groups, list_group_users, list_user, list_group_usernames
 
 #from rdfdatabank.config import users
 
@@ -51,8 +51,7 @@ class UsersController(BaseController):
             abort(403, "Do not have administrator or manager credentials")
 
         c.ident = ident
-        #granary_list = ag.granary.silos
-        #silos = ag.authz(granary_list, ident, permission=['administrator', 'manager'])
+        #silos = ag.authz(ident, permission=['administrator', 'manager'])
         c.users = list_users()
         if 'administrator' in ident['permissions']:
             c.roles = ["admin", "manager", "user"]
@@ -242,8 +241,7 @@ class UsersController(BaseController):
             abort(404)
         ident = request.environ.get('repoze.who.identity')
         c.ident = ident
-        granary_list = ag.granary.silos
-        silos = ag.authz(granary_list, ident, permission=['administrator', 'manager'])
+        silos = ag.authz(ident, permission=['administrator', 'manager'])
         if not silo in silos:
             abort(403, "Do not have administrator or manager credentials for silo %s"%silo)
         user_groups = list_user_groups(ident['user'].user_name)
@@ -298,18 +296,16 @@ class UsersController(BaseController):
 
         ident = request.environ.get('repoze.who.identity')
 
-        granary_list = ag.granary.silos
-
         http_method = request.environ['REQUEST_METHOD']        
         if http_method == 'GET':
-            silos = ag.authz(granary_list, ident)
+            silos = ag.authz(ident)
             if not silo in silos:
                 abort(403, "User is not a member of the silo %s"%silo)
             if not ('administrator' in ident['permissions'] or \
                     'manager' in ident['permissions'] or ident['user'].user_name == username):
                 abort(403, "Do not have administrator or manager credentials to view profiles of other users")
         else:
-            silos = ag.authz(granary_list, ident, permission=['administrator', 'manager'])
+            silos = ag.authz(ident, permission=['administrator', 'manager'])
             if not silo in silos:
                 abort(403, "Do not have administrator or manager credentials for silo %s"%silo)
             if not ('administrator' in ident['permissions'] or 'manager' in ident['permissions']):
@@ -324,11 +320,14 @@ class UsersController(BaseController):
         c.username = username
 
         if http_method == "GET":
+            a, m, s = list_group_usernames(silo)
+            if not (username in a or username in m or username in s):
+                abort(404, "User not found in silo")
             c.user = list_user(username)
-            if 'groups' in c.user and c.user['groups']:
-                for i in c.user['groups']:
-                    if i[0] != silo:
-                        c.user['groups'].remove(i)
+            #if 'groups' in c.user and c.user['groups']:
+            #    for i in c.user['groups']:
+            #        if i[0] != silo:
+            #            c.user['groups'].remove(i)
             accept_list = None
             if 'HTTP_ACCEPT' in request.environ:
                 try:
@@ -452,9 +451,9 @@ class UsersController(BaseController):
                     response.status = "204 Updated"
                     response_message = None
             else:
-                response.status_int = 200
-                response.status = "200 OK"
-                response_message = "User role not updated"
+                response.status_int = 400
+                response.status = "400 Bad Request"
+                response_message = "No updates to user role"
 
             #Conneg return
             accept_list = None

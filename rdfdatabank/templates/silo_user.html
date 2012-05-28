@@ -28,12 +28,18 @@
   <ul class="stateInfo">
   <li><a href="#edit_role" onclick="showhide('edit_role');">
     <img src="/static/styles/images/user-group-edit-24.png"/>Update user role</a></li>
-  <li><a class="delete" href="/${c.silo}/users/${c.username}" data-remove="delete_${c.silo}_${c.username}">
+  <li><a class="delete" href="/${c.silo}/users/${c.username}" data-remove="delete_${c.silo}_${c.username}" data-url="/${c.silo}/users">
     <img src="/static/styles/images/user-delete-icon-24.png" alt="Delete user" title="Delete ${c.username} from ${c.silo}"/>Delete user from silo</a>
   % if c.ident['user'].user_name == c.username:
     <li><a href="#edit_user" onclick="showhide('edit_user');">
     <img src="/static/styles/images/user-edit-icon-24.png"/>Update user details</a></li>
   % endif
+  <li><a href="/${c.silo}/admin">
+    <img src="/static/styles/images/silo-edit-icon-24.png"/>Edit silo metadata</a></li>
+  <li><a href="/users">
+    <img src="/static/styles/images/user-group-icon-24.png"/>View users</a></li>
+  <li><a href="/admin">
+    <img src="/static/styles/images/silo-view-icon-24.png"/>View silos</a></li>
   </ul>
 </div>
 
@@ -48,7 +54,7 @@
     <li><label for="lastname">Lastname:</label>${c.user['lastname']}</li>
   % endif
   % if 'name' in c.user and c.user['name']:
-    <li><label for="name">Name:</label>${c.user['name']}</li>
+    <li><label for="name">Display name:</label>${c.user['name']}</li>
   % endif
   % if 'email' in c.user and c.user['email']:
     <li><label for="email">Email:</label>${c.user['email']}</li>
@@ -57,7 +63,11 @@
     <li><label for="roles">Roles:</label></li>
     <ul>
     % for g, p in c.user['groups']:
-        <li>${p}</li>
+        % if g == '*':
+            <li>Databank administrator</li>
+        % else:    
+            <li>${p} for <a href="/${g}">${g}</a></li>
+        % endif
     % endfor
     </ul>
   % endif

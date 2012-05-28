@@ -24,6 +24,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 from rdfdatabank.model import meta, User, Group, Permission
 from sqlalchemy.exc import IntegrityError
+#import traceback
+#import logging
+#log = logging.getLogger(__name__)
 
 def add_silo(silo_name):
     try:
@@ -64,9 +67,8 @@ def add_silo(silo_name):
 
         meta.Session.commit()
     except IntegrityError:
-        print 'Warning, there was a problem adding silo data, it may have already been added'
-        import traceback
-        print traceback.format_exc()
+        #log.error('Error adding new silo %s'%silo_name)
+        #print traceback.format_exc()
         meta.Session.rollback()
     return True
 
@@ -86,9 +88,8 @@ def delete_silo(silo_name):
         meta.Session.delete(g_q_group3)
         meta.Session.commit()
     except IntegrityError:
-        print 'Warning, there was a problem deleting silo data, it may have already been deleted'
-        import traceback
-        print traceback.format_exc()
+        #log.error('Error deleting silo %s'%silo_name)
+        #print traceback.format_exc()
         meta.Session.rollback()
     return True
 
@@ -112,9 +113,8 @@ def add_user(user_details):
         meta.Session.add(u)
         meta.Session.commit()
     except IntegrityError:
-        print 'Warning, there was a problem adding user data. The user may have already been added'
-        import traceback
-        print traceback.format_exc()
+        #log.error('Error adding user %s'%user_details['username'])
+        #print traceback.format_exc()
         meta.Session.rollback()
     return True
 
@@ -142,9 +142,8 @@ def update_user(user_details):
 
         meta.Session.commit()
     except IntegrityError:
-        print 'Warning, there was a problem updating user data. Does the user exist?'
-        import traceback
-        print traceback.format_exc()
+        #log.error('Error updating user data for user %s'%user_details['username'])
+        #print traceback.format_exc()
         meta.Session.rollback()
     return True
 
@@ -155,9 +154,8 @@ def delete_user(username):
         meta.Session.delete(u)
         meta.Session.commit()
     except IntegrityError:
-        print 'Warning, there was a problem deleting user data. Does the user exist?'
-        import traceback
-        print traceback.format_exc()
+        #log.error('Error deleting user %s. Does the user exist?'%username)
+        #print traceback.format_exc()
         meta.Session.rollback()
     return True
 
@@ -175,9 +173,8 @@ def add_user_groups(username, groups):
             u.groups.append(g_q_group)
         meta.Session.commit()
     except IntegrityError:
-        print 'Warning, there was a problem adding user to group. Does the user and group exist?'
-        import traceback
-        print traceback.format_exc()
+        #log.error('Error adding user %s to group %s'%(username, unicode(groups)))
+        #print traceback.format_exc()
         meta.Session.rollback()
     return True
 
@@ -196,9 +193,8 @@ def delete_user_groups(username, groups):
             meta.Session.execute(query)
         meta.Session.commit()
     except IntegrityError:
-        print 'Warning, there was a problem deleting user from group. Does the user and group exist and is the user a member of the group?'
-        import traceback
-        print traceback.format_exc()
+        #log.error('Error deleting user %s from group %s'%(username, unicode(groups)))
+        #print traceback.format_exc()
         meta.Session.rollback()
     return True
 
@@ -217,9 +213,8 @@ def add_group_users(silo_name, user_groups):
                 u.groups.append(g_q_group)
         meta.Session.commit()
     except IntegrityError:
-        print 'Warning, there was a problem adding users to group. Does the user and group exist?'
-        import traceback
-        print traceback.format_exc()
+        #log.error( 'Error adding users %s to group %s'%(unicode(user_groups), silo_name))
+        #print traceback.format_exc()
         meta.Session.rollback()
     return True
 
@@ -238,9 +233,8 @@ def delete_group_users(silo_name, user_groups):
             meta.Session.execute(query)
         meta.Session.commit()
     except IntegrityError:
-        print 'Warning, there was a problem deleting users from group. Does the user and group exist and is the user a member of the group?'
-        import traceback
-        print traceback.format_exc()
+        #log.error('Error deleting users %s from group %s'%(unicode(user_groups), silo_name))
+        #print traceback.format_exc()
         meta.Session.rollback()
     return True
 

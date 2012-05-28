@@ -55,8 +55,7 @@ class SearchController(BaseController):
         if ag.metadata_embargoed:
             if not ident:
                 abort(401, "Not Authorised")
-            granary_list = ag.granary.silos
-            silos = ag.authz(granary_list, ident)
+            silos = ag.authz(ident)
 
         if silos and not isinstance(silos, basestring) and type(silos).__name__ == 'list':
             silos = ' '.join(silos)

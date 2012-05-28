@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 <%inherit file="/base.html" />
 <%def name="head_tags()">
-  <title> List of Datasets </title>
+  <title> List of Data packages </title>
 </%def>
 % if c.silo_name:
-<h1>List of Datasets in Silo <span class="name" >${c.silo_name}</span></h1>
+<h1>List of Data packages in Silo <span class="name" >${c.silo_name}</span></h1>
 % else:
-<h1>List of Datasets in Silo</h1>
+<h1>List of Data packages in Silo</h1>
 % endif
 <%include file="list_of_datasets.html"/>
 % if c.editor:
-  <h2> Create new empty dataset: </h2>
+  <h2> Create new empty data package: </h2>
   <%include file="create_new_item.html"/>
 % endif

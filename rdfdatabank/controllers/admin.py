@@ -47,8 +47,7 @@ class AdminController(BaseController):
             abort(401, "Not Authorised")
         ident = request.environ.get('repoze.who.identity')
         c.ident = ident
-        granary_list = ag.granary.silos
-        c.granary_list = ag.authz(granary_list, ident, permission=['administrator', 'manager'])
+        c.granary_list = ag.authz(ident, permission=['administrator', 'manager'])
 
         http_method = request.environ['REQUEST_METHOD']
 
@@ -157,6 +156,9 @@ class AdminController(BaseController):
                 for a in submitters:
                     all_silo_users.append((a, 'submitter'))
                 add_group_users(params['silo'], all_silo_users)
+
+                ag.granary.state.revert()
+                ag.granary._register_silos()
  
                 # conneg return
                 accept_list = None
@@ -201,8 +203,8 @@ class AdminController(BaseController):
             abort(404)
         ident = request.environ.get('repoze.who.identity')
         c.ident = ident
-        granary_list = ag.granary.silos
-        silos = ag.authz(granary_list, ident, permission=['administrator', 'manager'])
+        c.silo = silo
+        silos = ag.authz(ident, permission=['administrator', 'manager'])
         if not silo in silos:
             abort(403, "Do not have administrator or manager credentials for silo %s"%silo)
         user_groups = list_user_groups(ident['user'].user_name)
@@ -362,14 +364,14 @@ class AdminController(BaseController):
             # Walk through all the items, emit a delete msg for each
             # and then remove the silo
             todelete_silo = ag.granary.get_rdf_silo(silo)
-            for item in todelete_silo.list_items():
-                try:
-                    ag.b.deletion(silo_name, item, ident=ident['repoze.who.userid'])
-                except:
-                    pass
+            #for item in todelete_silo.list_items():
+            #    try:
+            #        ag.b.deletion(silo, item, ident=ident['repoze.who.userid'])
+            #    except:
+            #        pass
             ag.granary.delete_silo(silo)
             try:
-                ag.b.silo_deletion(silo_name, ident=ident['repoze.who.userid'])
+                ag.b.silo_deletion(silo, ident=ident['repoze.who.userid'])
             except:
                 pass
             try:

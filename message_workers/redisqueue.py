@@ -49,7 +49,7 @@ logger.addHandler(ch)
 """Simple wrapper around a redis queue that gives methods in line with the other Queue-style classes"""
 
 class RedisQueue(object):
-  def __init__(self, queuename, workername, db=DB, host=HOST, port=PORT, workerprefix=WORKERPREFIX):
+  def __init__(self, queuename, workername, db=DB, host=HOST, port=PORT, workerprefix=WORKERPREFIX, errorqueue=None):
     self.host = host
     if isinstance(port, str):
       try:
@@ -61,6 +61,9 @@ class RedisQueue(object):
     self.queuename = queuename
     self.workername = workername
     self.workeritem = ":".join([workerprefix, workername])
+    self.errorqueue = errorqueue
+    if not errorqueue:
+        self.errorqueue = queuename
     self.db = db
     self._initclient()
 
@@ -107,7 +110,7 @@ class RedisQueue(object):
     #self.check_connection()
     logger.error("Task FAILED by worker %s" % self.workername)
     logger.debug(self.inprogress())
-    return self._r.rpoplpush(self.workeritem, self.queuename)
+    return self._r.rpoplpush(self.workeritem, self.errorqueue)
 
   def push(self, item, to_queue=None):
     #sleep(1)
@@ -124,7 +127,9 @@ class RedisQueue(object):
     #self.check_connection()
     logger.debug("In pop - Queuename: %s, workeritem:%s"%(self.queuename, self.workeritem))
     if self._r.llen(self.workeritem) == 0:
-      self._r.rpoplpush(self.queuename, self.workeritem)
+      itemid = self._r.rpoplpush(self.queuename, self.workeritem)
+      if self.queuename != self.errorqueue:
+          self._r.lrem(self.errorqueue, itemid)
       logger.debug("{%s} pulled from queue %s by worker %s" % (self.inprogress(), self.queuename,self.workername))
     else:
       logger.debug("{%s} pulled from temporary worker queue by worker %s" % (self.inprogress(), self.workername))

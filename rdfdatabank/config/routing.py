@@ -60,6 +60,7 @@ def make_map():
    
     map.connect('/keywords', controller='keywords', action='index')
     map.connect('/about', controller='about', action='index')
+    map.connect('/cookies', controller='cookies', action='index')
     map.connect('/searching', controller='searching', action='index')
 
     map.connect('/admin', controller='admin', action='index')

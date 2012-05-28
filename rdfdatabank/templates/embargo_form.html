@@ -14,7 +14,15 @@
   % endif
   % if c.embargos[c.current][1]:
     <label for="embargoed_until">Embargoed until (date)</label>
-    <input type="text" name="embargoed_until" value="${c.embargos[c.current][1]}" />
+    <%
+     from dateutil.parser import parse
+     from time import strftime
+     dt_human = c.embargos[c.current][1]
+     if c.embargos[c.current][1].strip():
+       dt_obj = parse(c.embargos[c.current][1].strip(), dayfirst=True, yearfirst=False)
+       dt_human = dt_obj.strftime('%Y-%m-%d %H:%M:%S')
+    %>
+    <input type="text" name="embargoed_until" value="${dt_human}" />
     <br/><br/>
   % else:
     <label for="embargoed_until">Embargoed until (date)</label>

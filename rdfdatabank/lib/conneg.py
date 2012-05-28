@@ -286,5 +286,4 @@ if __name__ == '__main__':
     mts2 = p2.process()
 
     b = best(mts, mts2)
-    #print b
 

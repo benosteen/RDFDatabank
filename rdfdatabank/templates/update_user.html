@@ -18,9 +18,9 @@
 % endif
 
 % if c.user and 'name' in c.user:
-  <div><label for="name">Name:</label><input type="textbox" name="name" value="${c.user['name']}" /></div>
+  <div><label for="name">Display name:</label><input type="textbox" name="name" value="${c.user['name']}" /></div>
 % else:
-  <div><label for="name">Name:</label><input type="textbox" name="name" value="" /></div>
+  <div><label for="name">Display name:</label><input type="textbox" name="name" value="" /></div>
 % endif
 
 % if c.user and 'email' in c.user:

@@ -32,6 +32,7 @@ from rdfdatabank.lib.base import BaseController, render
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
 from rdfdatabank.lib.HTTP_request import HTTPRequest
 from rdfdatabank.lib import short_pid
+from rdfdatabank.lib.auth_entry import list_silos
 from rdfdatabank.lib.doi_helper import get_doi_metadata, doi_count
 
 from rdfdatabank.config.doi_config import OxDataciteDoi
@@ -50,7 +51,7 @@ class DoiController(BaseController):
 
         http_method = request.environ['REQUEST_METHOD']
 
-        granary_list = ag.granary.silos
+        granary_list = list_silos()
         if not silo in granary_list:
             abort(404)
 
@@ -59,7 +60,7 @@ class DoiController(BaseController):
             abort(404)
 
         if ag.metadata_embargoed:
-            abort(403, "DOIs cannot be issued to datasets whose metadata ia also under embargo")
+            abort(403, "DOIs cannot be issued to data packages whose metadata ia also under embargo")
 
         ident = request.environ.get('repoze.who.identity')  
         c.ident = ident
@@ -80,24 +81,24 @@ class DoiController(BaseController):
         if vnum:
             vnum = str(vnum)
             if not vnum in item.manifest['versions']:
-                abort(404, "Version %s of dataset %s not found"%(vnum, c.silo_name))
+                abort(404, "Version %s of data package %s not found"%(vnum, c.silo_name))
             c.version = vnum
 
         if not (http_method == "GET"):
             #identity management of item 
             if not request.environ.get('repoze.who.identity'):
                 abort(401, "Not Authorised")
-            silos = ag.authz(granary_list, ident)      
+            silos = ag.authz(ident)      
             if silo not in silos:
                 abort(403, "Forbidden")
-            silos_admin = ag.authz(granary_list, ident, permission='administrator')
-            silos_manager = ag.authz(granary_list, ident, permission='manager')
+            silos_admin = ag.authz(ident, permission='administrator')
+            silos_manager = ag.authz(ident, permission='manager')
             #if not (ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]):
             if not (ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager):
                 abort(403, "Forbidden")
         elif http_method == "GET":
-            silos_admin = ag.authz(granary_list, ident, permission='administrator')
-            silos_manager = ag.authz(granary_list, ident, permission='manager')
+            silos_admin = ag.authz(ident, permission='administrator')
+            silos_manager = ag.authz(ident, permission='manager')
             #if ident['repoze.who.userid'] == creator or ident.get('role') in ["admin", "manager"]:
             if ident['repoze.who.userid'] == creator or silo in silos_admin or silo in silos_manager:
                 c.editor = True
@@ -129,7 +130,7 @@ class DoiController(BaseController):
         c.metadata = None
 
         if http_method == "GET":
-            #Get a list of all dois registered for this dataset
+            #Get a list of all dois registered for this data package
             c.dois = {}
             for v in item.manifest['versions']:
                 doi_ans = None
@@ -151,7 +152,7 @@ class DoiController(BaseController):
                         mimetype = accept_list.pop(0)
                     except IndexError:
                         mimetype = None
-                c.message = 'DOI not registered for version %s of dataset %s'%(c.version, c.silo_name)
+                c.message = 'DOI not registered for version %s of data package %s'%(c.version, c.silo_name)
                 return render('/doiview.html')
 
             resource = "%s?doi=%s"%(doi_conf.endpoint_path_metadata, c.version_doi)
@@ -165,11 +166,11 @@ class DoiController(BaseController):
                 c.metadata = ''
                 if resp.status == 403:
                     #TODO: Confirm 403 is not due to authorization
-                    msg = "403 Forbidden - login error with Datacite or dataset belongs to another party at Datacite."
+                    msg = "403 Forbidden - login error with Datacite or data package belongs to another party at Datacite."
                 elif resp.status == 404:
                     msg = "404 Not Found - DOI does not exist in DatCite's database"
                 elif resp.status == 410:
-                    msg = "410 Gone - the requested dataset was marked inactive (using DELETE method) at Datacite"
+                    msg = "410 Gone - the requested data package was marked inactive (using DELETE method) at Datacite"
                 elif resp.status == 500:
                     msg = "500 Internal Server Error - Error retreiving the metadata from Datacite."
                 else:

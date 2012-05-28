@@ -28,7 +28,7 @@
           <li><h4><a href="/${c.silo}/users/${o}">${o}</a></h4>
           <a href="/${c.silo}/users/${o}">
             <img src="/static/styles/images/user-edit-icon-16.png" alt="Edit user details" title="edit ${o}"/></a>
-          <a class="delete" href="/${c.silo}/users/${o}" data-remove="delete_${c.silo}_${o}">
+          <a class="delete" href="/${c.silo}/users/${o}" data-remove="delete_${c.silo}_${o}" data-url="/${c.silo}/users">
             <img src="/static/styles/images/delete-icon-16.png" alt="Delete user from silo" title="Delete ${o} from ${c.silo}"/></a>
           </li>
         % endfor
@@ -46,7 +46,7 @@
       <li><h4><a href="/${c.silo}/users/${o}">${o}</a></h4>
       <a href="/${c.silo}/users/${o}">
         <img src="/static/styles/images/user-edit-icon-16.png" alt="Edit user details" title="edit ${o}"/></a>
-      <a class="delete" href="/${c.silo}/users/${o}" data-remove="delete_${c.silo}_${o}">
+      <a class="delete" href="/${c.silo}/users/${o}" data-remove="delete_${c.silo}_${o}" data-url="/${c.silo}/users">
         <img src="/static/styles/images/delete-icon-16.png" alt="Delete user from silo" title="Delete ${o} from ${c.silo}"/></a>
       </li>
     % endfor

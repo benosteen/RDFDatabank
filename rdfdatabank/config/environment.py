@@ -58,6 +58,7 @@ def load_environment(global_conf, app_conf):
     config['pylons.app_globals'] = app_globals.Globals()
     config['pylons.h'] = rdfdatabank.lib.helpers
     config [ 'pylons.response_options' ][ 'charset' ] = 'utf-8'
+    config['pylons.strict_tmpl_context'] = False
 
     # Create the Mako TemplateLookup, with the default auto-escaping
     config['pylons.app_globals'].mako_lookup = TemplateLookup(

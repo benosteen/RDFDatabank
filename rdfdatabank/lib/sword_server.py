@@ -1,4 +1,5 @@
 from rdfdatabank.lib.utils import allowable_id2, create_new
+from rdfdatabank.lib.auth_entry import list_silos
 from sss import SwordServer, Authenticator, Auth, ServiceDocument, SDCollection, DepositResponse, SwordError, EntryDocument, Statement, Namespaces, AuthException
 from sss.negotiator import AcceptParameters, ContentType
 
@@ -34,8 +35,7 @@ class SwordDataBank(SwordServer):
             return False
 
         # is this an authorised silo?
-        granary_list = ag.granary.silos
-        silos = ag.authz(granary_list, self.auth_credentials.identity)
+        silos = ag.authz(self.auth_credentials.identity)
         if silo not in silos:
             return False
         
@@ -62,8 +62,7 @@ class SwordDataBank(SwordServer):
                                     max_upload_size=self.config.max_upload_size)
         
         # get the authorised list of silos
-        granary_list = ag.granary.silos
-        silos = ag.authz(granary_list, self.auth_credentials.identity)
+        silos = ag.authz(self.auth_credentials.identity)
         
         # now for each collection create an sdcollection
         collections = []
@@ -111,8 +110,9 @@ class SwordDataBank(SwordServer):
             return SwordError(status=404, empty=True)
     
         # get the authorised list of silos
-        granary_list = ag.granary.silos
-        silos = ag.authz(granary_list, self.auth_credentials.identity)
+        #granary_list = ag.granary.silos
+        granary_list = list_silos()
+        silos = ag.authz(self.auth_credentials.identity)
         
         # does the collection/silo exist?  If not, we can't do a deposit
         if silo not in silos:
@@ -290,7 +290,7 @@ class SwordDataBank(SwordServer):
             #self.dao.remove_content(collection, id, True, keep_atom)
             #Increment the version, but do not clone the previous version.
             # An update will replace the entire contents of the container (if previously unpacked) with the bagit file
-            dataset.increment_version_delta(clone_previous_version=False, copy_filenames=['manifest.rdf'])
+            dataset.increment_version_delta(clone_previous_version=True, copy_filenames=['manifest.rdf'])
 
             # store the content file
             dataset.put_stream(deposit.filename, deposit.content)

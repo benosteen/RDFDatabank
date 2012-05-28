@@ -76,6 +76,11 @@ from RDFDatabankConfig import RDFDatabankConfig as RC
 RDFDatabankConfig = RC()
 
 logger = logging.getLogger('TestSubmission')
+#hdlr = logging.FileHandler('TestSubmission.log')
+#fmt = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+#hdlr.setFormatter(fmt)
+#logger.addHandler(hdlr)
+#logger.setLevel(logging.DEBUG)
 
 class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
     """
@@ -175,14 +180,13 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             expect_status=200, expect_reason="OK", expect_type="application/JSON")
         userExists = False
         for user in data:
-            if 'sandbox_user' in user['user_name']:
+            if RDFDatabankConfig.endpointuser in user['user_name']:
                 userExists = True
+        
         fields = [
-            ('username','sandbox_user'),
-            ('password','test'),
-            ('firstname','Sandbox'),
-            ('lastname','User'),
-            ('name','Sandbox User'),
+            ('username',RDFDatabankConfig.endpointuser),
+            ('password',RDFDatabankConfig.endpointpass),
+            ('name',RDFDatabankConfig.endpointuser),
         ]
         files = []
         (reqtype, reqdata) = SparqlQueryTestCase.encode_multipart_formdata(fields, files)
@@ -199,12 +203,12 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
                 resource="users/", 
                 expect_status=201, expect_reason="Created")
             LHobtained = resp.getheader('Content-Location', None)
-            LHexpected = "/users/sandbox_user"
+            LHexpected = "/users/%s"%RDFDatabankConfig.endpointuser
             self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
         #Access user details
         (resp, data) = self.doHTTP_GET(
             endpointpath="/",
-            resource="users/sandbox_user",
+            resource="users/%s"%RDFDatabankConfig.endpointuser,
             expect_status=200, expect_reason="OK", expect_type="application/JSON")
         return
 
@@ -261,10 +265,11 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         # Access user details, check response
         (resp, data) = self.doHTTP_GET(
             endpointpath="/",
-            resource="users/sandbox_user",
+            resource="users/%s"%RDFDatabankConfig.endpointuser,
             expect_status=200, expect_reason="OK", expect_type="application/JSON")
         membershipExists = False
-        if ['sandbox', 'submitter'] in data['groups']:
+        silo_name = RDFDatabankConfig.endpointpath.strip('/')
+        if [silo_name, 'submitter'] in data['groups']:
             membershipExists = True
         fields = [
             ('role','submitter')
@@ -274,28 +279,31 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         if membershipExists:
             (resp,respdata)= self.doHTTP_POST(
                 reqdata, reqtype, 
-                endpointpath="/sandbox/",
-                resource="users/sandbox_user", 
-                expect_status=200, expect_reason="OK")
+                endpointpath=RDFDatabankConfig.endpointpath,
+                resource="users/%s"%RDFDatabankConfig.endpointuser, 
+                expect_status=400, expect_reason="Bad Request")
         else:
             (resp,respdata)= self.doHTTP_POST(
                 reqdata, reqtype, 
-                endpointpath="/sandbox/",
-                resource="users/sandbox_user", 
+                endpointpath=RDFDatabankConfig.endpointpath,
+                resource="users/%s"%RDFDatabankConfig.endpointuser, 
                 expect_status=201, expect_reason="Created")
             LHobtained = resp.getheader('Content-Location', None)
-            LHexpected = "/users/sandbox_user"
+            LHexpected = "/%s/users/%s"%(silo_name, RDFDatabankConfig.endpointuser)
             self.assertEquals(LHobtained, LHexpected, 'Content-Location not correct')
         #Access user details
         (resp, data) = self.doHTTP_GET(
             endpointpath="/",
-            resource="users/sandbox_user",
+            resource="users/%s"%RDFDatabankConfig.endpointuser,
             expect_status=200, expect_reason="OK", expect_type="application/JSON")
-        self.assertEquals(data['user_name'], 'sandbox_user', "user info: username")
-        self.assertEquals(data['name'], 'Sandbox User', "user info: name")
-        self.assertEquals(data['firstname'], 'Sandbox', "user info: firstname")
-        self.assertEquals(data['lastname'], 'User', "user info: lastname")
-        self.assertEquals(data['groups'], [['sandbox', 'submitter']], "user info: membership")
+        self.assertEquals(data['user_name'], RDFDatabankConfig.endpointuser, "user info: username")
+        try:
+            self.assertEquals(data['name'], RDFDatabankConfig.endpointuser, "user info: name")
+        except:
+            pass
+        #self.assertEquals(data['firstname'], 'Sandbox', "user info: firstname")
+        #self.assertEquals(data['lastname'], 'User', "user info: lastname")
+        self.failUnless([silo_name, 'submitter'] in data['groups'], "user info: membership")
         return
 
     def testListSilos(self):
@@ -446,7 +454,7 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         (resp,respdata) = self.doHTTP_POST(
             reqdata, reqtype, 
             resource="datasets",
-            expect_status=409, expect_reason="Conflict: Dataset Already Exists")
+            expect_status=409, expect_reason="Conflict: Data package already exists")
         #Recreate the dataset, check response
         fields = []
         files =[]
@@ -486,17 +494,17 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
         names = [("TestSubmission-1", 201, "Created")
             ,("TestSubmission_2", 201, "Created")
             ,("TestSubmission:3", 201, "Created")
-            ,("TestSubmission*4", 400, "Bad request. Dataset name not valid")
-            ,("TestSubmission/5", 400, "Bad request. Dataset name not valid")
-            ,("TestSubmission\6", 400, "Bad request. Dataset name not valid")
-            ,("TestSubmission,7", 400, "Bad request. Dataset name not valid")
-            ,("TestSubmission&8", 400, "Bad request. Dataset name not valid")
-            ,("TestSubmission.9", 400, "Bad request. Dataset name not valid")
-            ,("""Test"Submission""", 400, "Bad request. Dataset name not valid")
-            ,("Test'Submission", 400, "Bad request. Dataset name not valid")
+            ,("TestSubmission*4", 400, "Bad request. Data package name not valid")
+            ,("TestSubmission/5", 400, "Bad request. Data package name not valid")
+            ,("TestSubmission\6", 400, "Bad request. Data package name not valid")
+            ,("TestSubmission,7", 400, "Bad request. Data package name not valid")
+            ,("TestSubmission&8", 400, "Bad request. Data package name not valid")
+            ,("TestSubmission.9", 400, "Bad request. Data package name not valid")
+            ,("""Test"Submission""", 400, "Bad request. Data package name not valid")
+            ,("Test'Submission", 400, "Bad request. Data package name not valid")
             #,("""Test Submission""", 400, "Bad request. Dataset name not valid") #The name is truncated to Test and dataset is created. This does not happen when using the form
-            ,("TestSubmission$", 400, "Bad request. Dataset name not valid")
-            ,("T", 400, "Bad request. Dataset name not valid")
+            ,("TestSubmission$", 400, "Bad request. Data package name not valid")
+            ,("T", 400, "Bad request. Data package name not valid")
         ]
         files =[]
         for name, status, reason in names:
@@ -4288,6 +4296,134 @@ class TestSubmission(SparqlQueryTestCase.SparqlQueryTestCase):
             resource="datasets/TestSubmission", 
             expect_status="*", expect_reason="*")
 
+    def testZ1DeleteUserMembership(self):
+        self.setRequestUserPass(
+            endpointuser=RDFDatabankConfig.endpointadminuser,
+            endpointpass=RDFDatabankConfig.endpointadminpass)
+        # Access user details, check response
+        (resp, data) = self.doHTTP_GET(
+            endpointpath="/",
+            resource="users/%s"%RDFDatabankConfig.endpointuser,
+            expect_status=200, expect_reason="OK", expect_type="application/JSON")
+        membershipExists = False
+        silo_name = RDFDatabankConfig.endpointpath.strip('/')
+        if [silo_name, 'submitter'] in data['groups']:
+            membershipExists = True
+        if membershipExists:
+            resp = self.doHTTP_DELETE(
+                endpointpath=RDFDatabankConfig.endpointpath,
+                resource="users/%s"%RDFDatabankConfig.endpointuser, 
+                expect_status=200, expect_reason="OK")
+        else:
+            resp = self.doHTTP_DELETE(
+                endpointpath=RDFDatabankConfig.endpointpath,
+                resource="users/%s"%RDFDatabankConfig.endpointuser, 
+                expect_status=400, expect_reason="Bad Request")
+        #Access user details
+        (resp, data) = self.doHTTP_GET(
+            endpointpath=RDFDatabankConfig.endpointpath,
+            resource="users/%s"%RDFDatabankConfig.endpointuser,
+            expect_status=404, expect_reason="Not Found")
+        # Access user details, check response
+        (resp, data) = self.doHTTP_GET(
+            endpointpath="/",
+            resource="users/%s"%RDFDatabankConfig.endpointuser,
+            expect_status=200, expect_reason="OK", expect_type="application/JSON")
+        self.failUnless([silo_name, 'submitter'] not in data['groups'], "User membership to silo not deleted")
+        return
+
+    def testZ2DeleteSilo(self):
+        """List all silos your account has access to - GET /admin. If the silo 'sandbox' does not exist, create it"""
+        self.setRequestUserPass(
+            endpointuser=RDFDatabankConfig.endpointadminuser,
+            endpointpass=RDFDatabankConfig.endpointadminpass)
+        # Access list silos, check response
+        (resp, data) = self.doHTTP_GET(
+            endpointpath="/",
+            resource="admin/",
+            expect_status=200, expect_reason="OK", expect_type="application/JSON")
+        silo_name = RDFDatabankConfig.endpointpath.strip('/')
+        silolist = data
+        oldlen = len(silolist) 
+        if silo_name in silolist:
+            resp = self.doHTTP_DELETE(
+                endpointpath="/",
+                resource="%s/admin"%silo_name, 
+                expect_status=200, expect_reason="OK")
+            lenexpected = oldlen - 1
+        else:
+            resp = self.doHTTP_DELETE(
+                endpointpath="/",
+                resource="%s/admin"%silo_name, 
+                expect_status=404, expect_reason="Not Found")
+            lenexpected = oldlen
+        # Access list silos, check response
+        (resp, data) = self.doHTTP_GET(
+            endpointpath="/",
+            resource="silos/",
+            expect_status=200, expect_reason="OK", expect_type="application/json")
+        newsilolist = data
+        self.assertEquals(len(newsilolist), lenexpected, "number fo silos do not match")
+        for s in newsilolist: self.failUnless(s in silolist, "Silo "+s+" in new list, not in original list")
+        self.failUnless(silo_name not in newsilolist, "Silo '%s' is in new list"%silo_name)
+        return
+
+    def testZ3DeleteUser(self):
+        """Create user sandbox_user"""
+        self.setRequestUserPass(
+            endpointuser=RDFDatabankConfig.endpointadminuser,
+            endpointpass=RDFDatabankConfig.endpointadminpass)
+        # Access list silos, check response
+        (resp, data) = self.doHTTP_GET(
+            endpointpath="/",
+            resource="users/",
+            expect_status=200, expect_reason="OK", expect_type="application/JSON")
+        silo_name = RDFDatabankConfig.endpointpath.strip('/')
+        userExists = False
+        membershipExists = False
+        for user in data:
+            if RDFDatabankConfig.endpointuser in user['user_name']:
+                userExists = True
+        if userExists:
+            # Access user details, check response
+            (resp, data) = self.doHTTP_GET(
+                endpointpath="/",
+                resource="users/%s"%RDFDatabankConfig.endpointuser,
+                expect_status=200, expect_reason="OK", expect_type="application/JSON")
+            if len(data['groups']) > 0:
+                membershipExists = True
+            if membershipExists:
+                resp = self.doHTTP_DELETE(
+                    endpointpath="/",
+                    resource="users/%s"%RDFDatabankConfig.endpointuser, 
+                    expect_status=403, expect_reason="Forbidden")
+                #Access user details
+                (resp, data) = self.doHTTP_GET(
+                    endpointpath="/",
+                    resource="users/%s"%RDFDatabankConfig.endpointuser,
+                    expect_status=200, expect_reason="OK")
+            else:
+                resp = self.doHTTP_DELETE(
+                    endpointpath="/",
+                    resource="users/%s"%RDFDatabankConfig.endpointuser, 
+                    expect_status=200, expect_reason="OK")
+                #Access user details
+                (resp, data) = self.doHTTP_GET(
+                    endpointpath="/",
+                    resource="users/%s"%RDFDatabankConfig.endpointuser,
+                    expect_status=404, expect_reason="Not Found")
+        else:
+            resp = self.doHTTP_DELETE(
+                endpointpath="/",
+                resource="users/%s"%RDFDatabankConfig.endpointuser, 
+                expect_status=400, expect_reason="Bad Request")
+            #Access user details
+            (resp, data) = self.doHTTP_GET(
+                endpointpath="/",
+                resource="users/%s"%RDFDatabankConfig.endpointuser,
+                expect_status=404, expect_reason="Not Found")
+        return
+
     # Sentinel/placeholder tests
 
     def testUnits(self):
@@ -4359,6 +4495,9 @@ def getTestSuite(select="unit"):
             , "testUpdateUnpackedDataset"
             , "testReferencedMetadataMerging"
             , "testReferencedMetadataMerging2"
+            , "testZ1DeleteUserMembership"
+            , "testZ2DeleteSilo"
+            , "testZ3DeleteUser"
             ],
         "component":
             [ "testComponents"

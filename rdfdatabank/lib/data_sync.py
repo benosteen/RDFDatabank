@@ -51,37 +51,46 @@ def sync_members(g):
         if 'submitters' in kw and kw['submitters']:
             submitters = [x.strip() for x in kw['submitters'].split(",") if x]
 
-        #Synchronize members in silo metadata with database 
+        # Check users in silo metadata are valid users
+        owners = [x for x in owners if x in usernames]
+        admins = [x for x in admins if x in usernames]
+        managers = [x for x in managers if x in usernames]
+        submitters = [x for x in submitters if x in usernames]
+
+        #Synchronize members in silo metadata with users in database 
+        d_admins = []
+        d_managers = []
+        d_sunbmitters = []
         if silo in granary_list_database:
             d_admins, d_managers, d_submitters = list_group_usernames(silo)
-            admins = [x for x in admins if x in d_admins]
-            managers = [x for x in managers if x in d_managers]
-            submitters = [x for x in submitters if x in d_submitters]
-        else:
-            admins = [x for x in admins if x in usernames]
-            managers = [x for x in managers if x in usernames]
-            submitters = [x for x in submitters if x in usernames]
+            admins.extend(d_admins)
+            managers.extend(d_managers)
+            submitters.extend(d_submitters)
 
-            new_silo_users = []
-            for a in admins:
-                new_silo_users.append((a, 'administrator'))
-            for a in new_managers:
-                new_silo_users.append((a, 'manager'))
-            for a in new_submitters:
-                new_silo_users.append((a, 'submitter'))
-            if new_silo_users:
-                add_group_users(silo, new_silo_users)
-
-        #Write members into silo 
+        # Ensure users are listed just once in silo metadata and owner is superset
         owners.extend(admins)
         owners.extend(managers)
         owners.extend(submitters)        
-
         admins = list(set(admins))
         managers = list(set(managers))
         submitters = list(set(submitters))
         owners = list(set(owners))
 
+        # Add users in silo metadata to the database
+        new_silo_users = []
+        for a in admins:
+            if not a in d_admins:
+                new_silo_users.append((a, 'administrator'))           
+        for a in managers:
+            if not a in d_managers:
+                new_silo_users.append((a, 'manager'))
+        for a in new_submitters:
+            if not a in d_submitters:
+                new_silo_users.append((a, 'submitter'))
+        if new_silo_users:
+            add_group_users(silo, new_silo_users)
+
+        #Write members into silo 
         kw['owners'] = ','.join(owners)
         kw['administrators'] = ','.join(admins)
         kw['managers'] = ','.join(managers)

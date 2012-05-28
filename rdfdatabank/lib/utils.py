@@ -25,7 +25,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 from datetime import datetime, timedelta
 from dateutil.relativedelta import *
 from dateutil.parser import parse
-from time import sleep
+from time import sleep, strftime
 import os
 import simplejson
 
@@ -40,21 +40,21 @@ from uuid import uuid4
 import re
 from collections import defaultdict
 
-from rdfdatabank.lib.auth_entry import list_silos
+from rdfdatabank.lib.auth_entry import list_silos, list_user_groups
 
 ID_PATTERN = re.compile(r"^[0-9A-z\-\:]+$")
 
-def authz(granary_list, ident, permission=None):
+def authz(ident, permission=[]):
     #NOTE: g._register_silos() IS AN EXPENSIVE OPERATION. LISTING SILOS FROM DATABASE INSTEAD
     #g = ag.granary
     #g.state.revert()
     #g._register_silos()
     #granary_list = g.silos
     granary_list = list_silos()
-
     if permission and not type(permission).__name__ == 'list':
         permission = [permission]
-
+    if not permission:
+        permission = [] 
     silos = []
     for i in ident['user'].groups:
         if i.silo == '*':
@@ -65,7 +65,30 @@ def authz(granary_list, ident, permission=None):
             else:
                  for p in i.permissions:
                      if p.permission_name in permission:
-                         silos.append(i.silo)    
+                         silos.append(i.silo)
+    """
+    user_groups = list_user_groups(ident['repoze.who.userid'])
+    for g,p in user_groups:
+        if g == '*':
+            f = open('/var/log/databank/authz.log', 'a')
+            f.write('List of all Silos: %s\n'%str(granary_list))
+            f.write('List of user groups: %s\n'%str(user_groups))
+            f.write('Permissions to match: %s\n'%str(permission))
+            f.write('Group is *. Returning all silos\n\n')
+            f.close()
+            return granary_list
+        if g in granary_list and not g in silos:
+            if not permission:
+                silos.append(g)
+            elif p in permission:
+                silos.append(g)
+    f = open('/var/log/databank/authz.log', 'a')
+    f.write('List of all Silos: %s\n'%str(granary_list))
+    f.write('List of user groups: %s\n'%str(user_groups))
+    f.write('Permissions to match: %s\n'%str(permission))
+    f.write('List of auth Silos: %s\n\n'%str(silos))
+    f.close()
+    """
     return silos
 
 def allowable_id(identifier):
@@ -378,7 +401,11 @@ def extract_metadata(item):
     for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dcterms']['abstract']):
         m['abstract'].append(o)
     for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dcterms']['created']):
-        m['created'].append(o)
+        try:
+            dt = formatDate(str(o))
+        except:
+            dt = o
+        m['created'].append(dt)
     for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dcterms']['description']):
         m['description'].append(o)
     for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dcterms']['hasVersion']):
@@ -392,7 +419,11 @@ def extract_metadata(item):
     for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dcterms']['mediator']):
         m['mediator'].append(o)
     for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dcterms']['modified']):
-        m['modified'].append(o)
+        try:
+            dt = formatDate(str(o))
+        except:
+            dt = o
+        m['modified'].append(dt)
     for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dcterms']['publisher']):
         m['publisher'].append(o)
     for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dcterms']['rights']):
@@ -401,11 +432,14 @@ def extract_metadata(item):
         m['subject'].append(o)
     for o in g.objects(URIRef(item.uri), ag.NAMESPACES['dcterms']['title']):
         m['title'].append(o)
-
     for o in g.objects(URIRef(item.uri), ag.NAMESPACES['oxds']['isEmbargoed']):
         m['isEmbargoed'].append(o)
     for o in g.objects(URIRef(item.uri), ag.NAMESPACES['oxds']['embargoedUntil']):
-        m['embargoedUntil'].append(o)
+        try:
+            dt = formatDate(str(o))
+        except:
+            dt = o
+        m['embargoedUntil'].append(dt)
     for o in g.objects(URIRef(item.uri), ag.NAMESPACES['oxds']['currentVersion']):
         m['currentVersion'].append(o)
     for o in g.objects(URIRef(item.uri), ag.NAMESPACES['bibo']['doi']):
@@ -413,3 +447,9 @@ def extract_metadata(item):
     for o in g.objects(URIRef(item.uri), ag.NAMESPACES['ore']['aggregates']):
         m['aggregates'].append(o)
     return dict(m)
+
+def formatDate(dt):
+    dt_obj = parse(dt, dayfirst=True, yearfirst=False)
+    dt_human = dt_obj.strftime("%B %d %Y, %I:%M %p") 
+    return dt_human
+
