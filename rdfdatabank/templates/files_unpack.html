@@ -1,20 +1,21 @@
 # -*- coding: utf-8 -*-
 % if c.zipfile:
-<form style="margin:0px;" method="POST" action="/${c.silo_name}/items/${c.id}" accept-charset="UTF-8">
-<table style="margin:0px 0px 5px 0px; padding: 0px 5px 0px 0px;"><tr>
+<form style="margin:0px;" method="POST" action="/${c.silo_name}/items/${c.id}" accept-charset="UTF-8" class="unpackForm">
 <% 
 c.disp = c.zipfile.strip().strip('/').split('/')[-1]
 if len(c.disp) > 50:
     c.disp = "...%s"%c.disp[-50:]
 %>
-<td align="left" width="150px"><b><a href="/${c.silo_name}/datasets/${c.id}/${c.zipfile}">${c.disp}</a></b></td>
+<fieldset><legend><a href="/${c.silo_name}/datasets/${c.id}/${c.zipfile}">${c.disp}</a></legend>
+<input type="hidden" id="zipFilename${c.zipFileCount}" name="filename" value="${c.zipfile}"/>
 % if c.newid:
-<td align="left" width="500px">Id (optional) :<input type="text" name="id" value="${c.newid}" style="width:400px"/></td>
+<label for="newPackageId${c.zipFileCount}">Data package Id to unpack to (optional) :</label>
+<input type="text" id="newPackageId${c.zipFileCount}" name="id" value="${c.newid}" style="width:200px"/>
 % else:
-<td align="left" width="500px">Id (optional) :<input type="text" name="id" style="width:400px"/></td>
+<label for="newPackageId${c.zipFileCount}">Data package Id to unpack to (optional) :</label>
+<input type="text" id="newPackageId${c.zipFileCount}" name="id" style="width:200px"/>
 %endif
-<td align="left" width="80px"><input type="submit" name="Unpack" value="Unpack"/>
-<input type="hidden" name="filename" value="${c.zipfile}"/></td>
-</tr></table>
+<input type="submit" name="Unpack" value="Unpack"/>
+</fieldset>
 </form>
 %endif

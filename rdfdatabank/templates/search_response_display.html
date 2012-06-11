@@ -49,20 +49,44 @@ ${options.numresultspp("itemsppt")}
 ##Search results
 % if c.docs:
 <div class="clear">&nbsp;</div>
-
-%   for doc_index in xrange(len(c.docs)):
 <div class="response_doc">
-<div class="silotitle"><a href="/${c.docs[doc_index]['silo']}/datasets/${c.docs[doc_index]['id']}">${c.docs[doc_index]['id']}</a></div>
-<dl>
-<dt>Silo </dt><dd>${c.docs[doc_index]['silo']}</dd>
+<% cnt = 0 %>
+%   for doc_index in xrange(len(c.docs)):
+<% 
+cnt += 1 
+isSilo = False
+if 'type' in c.docs[doc_index] and c.docs[doc_index]['type']:
+    if not isinstance(c.docs[doc_index]['type'], list):
+        c.docs[doc_index]['type'] = [c.docs[doc_index]['type']]
+for typ in c.docs[doc_index]['type']:
+    if typ.lower() == 'silo':
+        isSilo = True
+%>
+<h2 class="resultTitle">
+% if isSilo == True:
+<a href="/${c.docs[doc_index]['silo']}" title="Silo"><img title="Silo" alt="Silo" src="/static/styles/images/silo-view-icon-24.png">
+% else:
+<a href="/${c.docs[doc_index]['silo']}/datasets/${c.docs[doc_index]['id']}" title="Data package">
+<img title="Data package" alt="Data package" src="/static/styles/images/datapackage-24.png">
+% endif
+% if 'title' in c.docs[doc_index] and c.docs[doc_index]['title'] and c.docs[doc_index]['title'][0]:
+${c.docs[doc_index]['title'][0]}
+% else:
+${c.docs[doc_index]['id']}
+% endif
+</a></h2>
+<table class="searchresult" summary="Search result ${cnt}">
+% if isSilo == False:
+<tr><th>Identifier </th><td>${c.docs[doc_index]['id']}</td></tr>
+<tr><th>Silo </th><td>${c.docs[doc_index]['silo']}</td></tr>
 %     for field in c.chosen_fields:
-%       if field in c.docs[doc_index] and field not in ['silo', 'id']:
+%       if field in c.docs[doc_index] and field not in ['silo', 'id', 'title']:
 <% 
 lbl = field
 if field in c.field_names:
     lbl = c.field_names[field]
 %>
-<dt>${lbl}</dt><dd>
+<tr><th>${lbl}</th><td>
 %         if isinstance(c.docs[doc_index][field], list):
 %           for txt in c.docs[doc_index][field]:
 %             if isinstance(txt, basestring):
@@ -99,13 +123,38 @@ ${str(c.docs[doc_index][field])}
 ${c.docs[doc_index][field] |n}
 %         endif
 
-</dd>
+</td></tr>
 %       endif
 %     endfor
-</dl>
+% else:
+<tr><th>Silo identifier</th><td>${c.docs[doc_index]['silo']}</td></tr>
+% if 'description' in c.docs[doc_index] and c.docs[doc_index]['description'] and c.docs[doc_index]['description']:
+<tr>
+<th>Description</th><td>
+%   if isinstance(c.docs[doc_index]['description'], list):
+%     for txt in c.docs[doc_index]['description']:
+<%
+todisplay = txt
+if c.truncate and len(txt) > c.truncate:
+    todisplay = txt[:c.truncate] + ' ...'
+%>
+${ todisplay |n}
+%     endfor
+%   else:
+<%
+todisplay = c.docs[doc_index]['description']
+if c.truncate and len(todisplay) > c.truncate:
+    todisplay = todisplay[:c.truncate] + ' ...'
+%>
+${ todisplay |n}
+</td></tr>
+%   endif
+% endif
+% endif
+</table>
+%   endfor
 </div>
 <div class="clear"></div>
-%   endfor
 % endif 
 ##=============================================================================
 ## Pagination and sort options

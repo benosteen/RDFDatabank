@@ -264,6 +264,7 @@
    <field name="currentVersion" type="int" indexed="true" stored="true" />
    <field name="doi" type="text" multiValued="true" indexed="true" stored="true" />
    <field name="aggregatedResource" type="text" multiValued="true" indexed="true" stored="true" />
+   <field name="filename" type="text" multiValued="true" indexed="true" stored="true" />
    <field name="publicationDate" type="text" indexed="true" stored="true" />
    <field name="abstract" type="text" multiValued="true" indexed="true" stored="true" />
    <field name="accessRights" type="text" multiValued="true" indexed="true" stored="true" />

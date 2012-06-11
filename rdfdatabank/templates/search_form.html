@@ -1,44 +1,43 @@
 # -*- coding: utf-8 -*-
 <div id="search">
 <form method="GET" enctype="multipart/form-data" action="/search/detailed" accept-charset="UTF-8">
-<p>
-<label for="q">Search</label>
+<label for="q" class="searchterm">Search term</label>
 % if c.q and c.q != "*:*":
 <input id="q" type="text" name="q" value="${c.q}"/>
 % else:
 <input id="q" type="text" name="q" placeholder="search data packages"/>
 % endif
-<input type="submit" value="Search"/>
-</p>
-<p>
-% if c.typ:
-%   if 'silo' in c.typ:
-<input type="radio" name="type" value="silo" checked="checked"/> Silo
-%   else:
-<input type="radio" name="type" value="silo"/> Silo
-%   endif
-%   if 'dataset' in c.typ:
-<input type="radio" name="type" value="dataset" checked="checked"/> Data packages
-%   else:
-<input type="radio" name="type" value="dataset" /> Data packages
-%   endif
-%   if 'item' in c.typ:
-<input type="radio" name="type" value="item" checked="checked"/> File names 
-%   else:
-<input type="radio" name="type" value="item" /> File names 
-%   endif
-%   if 'all' in c.typ:
-<input type="radio" name="type" value="all" checked="checked"/>Any
-%   else:
-<input type="radio" name="type" value="all"/> Any
-%   endif
+<input type="submit" value="Search"/><br/>
+<fieldset id="searchType" >
+% if c.typ and 'silo' in c.typ:
+<label for="s_silo">Silo </label>
+<input type="radio" id="s_silo" name="type" value="silo" checked="checked" title="Search for silo"/> 
 % else:
-<input type="radio" name="type" value="silo" /> Silo
-<input type="radio" name="type" value="dataset" /> Data packages
-<input type="radio" name="type" value="item" /> File names 
-<input type="radio" name="type" value="all" checked="checked"/>Any
+<label for="s_silo">Silo</label>
+<input type="radio" id="s_silo" name="type" value="silo" title="Search for silo"/>
 % endif
-</p>
+% if c.typ and 'dataset' in c.typ:
+<label for="s_dataset">Data packages</label>
+<input type="radio" id="s_dataset" name="type" value="dataset" checked="checked" title="Search within data package including names of files"/>
+% else:
+<label for="s_dataset">Data packages</label>
+<input type="radio" id="s_dataset" name="type" value="dataset" title="Search within data package including names of files" />
+% endif
+% if c.typ and 'item' in c.typ:
+<label for="s_item">File names</label>
+<input type="radio" id="s_item" name="type" value="item" checked="checked" title="Search for files by their names"/>
+% else:
+<label for="s_item">File names</label>
+<input type="radio" id="s_item" name="type" value="item" title="Search for files by their names" />
+% endif
+% if c.typ and 'all' in c.typ:
+<label for="s_all">Any</label>
+<input type="radio" id="s_all" name="type" value="all" checked="checked" title="search for silos or data packages, including names of files"/>
+% else:
+<label for="s_all">Any</label>
+<input type="radio" id="s_all" name="type" value="all" title="search for silos or data packages, including names of files"/>
+% endif
+</fieldset>
 <input type="hidden" name="fl" value="*,score"/>
 <input type="hidden" name="format" value="html"/>
 </form>

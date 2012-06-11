@@ -1,5 +1,5 @@
 from rdfdatabank.lib.utils import allowable_id2, create_new
-from rdfdatabank.lib.auth_entry import list_silos
+from rdfdatabank.lib.auth_entry import list_silos, add_dataset
 from sss import SwordServer, Authenticator, Auth, ServiceDocument, SDCollection, DepositResponse, SwordError, EntryDocument, Statement, Namespaces, AuthException
 from sss.negotiator import AcceptParameters, ContentType
 
@@ -154,6 +154,7 @@ class SwordDataBank(SwordServer):
         # NOTE: we pass in an empty dictionary of metadata on create, and then run
         # _ingest_metadata to augment the item from the deposit
         item = create_new(rdf_silo, deposit.slug, self.auth_credentials.username, {})
+        add_dataset(silo, deposit.slug)
         self._ingest_metadata(item, deposit)
         
         # NOTE: left in for reference for the time being, but deposit_new 

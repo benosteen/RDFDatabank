@@ -75,6 +75,14 @@ class BroadcastToRedis(object):
                 msg['filepath'] = filepath
         self.lpush(simplejson.dumps(msg))
 
+    def silo_creation(self, silo, **kw):
+        msg = {}
+        msg.update(kw)
+        msg['_timestamp'] = datetime.now().isoformat()
+        msg.update({'type':'c',
+                   'silo':silo})
+        self.lpush(simplejson.dumps(msg))
+
     def silo_deletion(self, silo, **kw):
         msg = {}
         msg.update(kw)
@@ -83,6 +91,14 @@ class BroadcastToRedis(object):
                    'silo':silo})
         self.lpush(simplejson.dumps(msg))
 
+    def silo_change(self, silo, **kw):
+        msg = {}
+        msg.update(kw)
+        msg['_timestamp'] = datetime.now().isoformat()
+        msg.update({'type':'u',
+                   'silo':silo})
+        self.lpush(simplejson.dumps(msg))
+        
     def embargo_change(self, silo, id, embargoed=None, until=None, **kw):
         msg = {}
         msg.update(kw)

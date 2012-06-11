@@ -453,3 +453,28 @@ def formatDate(dt):
     dt_human = dt_obj.strftime("%B %d %Y, %I:%M %p") 
     return dt_human
 
+def getSiloModifiedDate(silo_name):
+    solr_params = {}
+    solr_params['q'] = "silo:%s"%silo_name
+    solr_params['wt'] = 'json'
+    solr_params['start'] = 0
+    solr_params['rows'] = 1
+    solr_params['sort'] = "timestamp desc"
+    solr_params['fl'] = 'timestamp'
+    solr_response = None
+    try:
+        solr_response = ag.solr.raw_query(**solr_params)
+    except:
+        pass
+    if not solr_response:
+        return ''
+    result = simplejson.loads(solr_response)
+    docs = result['response'].get('docs',None)
+    numFound = result['response'].get('numFound',None)
+    if docs and len(docs) > 0 and docs[0]:
+        dt = docs[0]['timestamp']
+    else:
+        return ''
+    dt = formatDate(dt)
+    return dt 
+

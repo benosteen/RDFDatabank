@@ -7,20 +7,23 @@
 %>
 <form class="update_role" method="POST" enctype="multipart/form-data" action="/${c.silo}/users/${c.username}" accept-charset="UTF-8">
 <div class="role">
+<label for="r_a">
 % if "administrator" in roles:
-    <input type="radio" name="role" value="administrator" checked="checked"/>Administrator 
+    <input type="radio" id="r_a" name="role" value="administrator" checked="checked"/>Administrator </label>
 % else:
-    <input type="radio" name="role" value="administrator" />Administrator 
+    <input type="radio" id="r_a" name="role" value="administrator" />Administrator </label>
 % endif
+<label for="r_m">
 % if "manager" in roles:
-    <input type="radio" name="role" value="manager" checked="checked" />Manager 
+    <input type="radio" id="r_m" name="role" value="manager" checked="checked" />Manager </label>
 % else:
-    <input type="radio" name="role" value="manager" />Manager 
+    <input type="radio" id="r_m" name="role" value="manager" />Manager </label>
 % endif
+<label for="r_s">
 % if "submitter" in roles:
-    <input type="radio" name="role" value="submitter" checked="checked" />Submitter
+    <input type="radio" id="r_s" name="role" value="submitter" checked="checked" />Submitter</label>
 % else:
-    <input type="radio" name="role" value="submitter" />Submitter
+    <input type="radio" id="r_s" name="role" value="submitter" />Submitter</label>
 % endif
 </div>
 <div><input type="submit" value="Modify user role"/></div>

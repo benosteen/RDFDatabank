@@ -22,7 +22,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-from rdfdatabank.model import meta, User, Group, Permission
+from rdfdatabank.model import meta, User, Group, Permission, Datasets
 from sqlalchemy.exc import IntegrityError
 #import traceback
 #import logging
@@ -70,6 +70,7 @@ def add_silo(silo_name):
         #log.error('Error adding new silo %s'%silo_name)
         #print traceback.format_exc()
         meta.Session.rollback()
+        return False
     return True
 
 def delete_silo(silo_name):
@@ -91,6 +92,7 @@ def delete_silo(silo_name):
         #log.error('Error deleting silo %s'%silo_name)
         #print traceback.format_exc()
         meta.Session.rollback()
+        return False
     return True
 
 def add_user(user_details):
@@ -116,6 +118,7 @@ def add_user(user_details):
         #log.error('Error adding user %s'%user_details['username'])
         #print traceback.format_exc()
         meta.Session.rollback()
+        return False
     return True
 
 def update_user(user_details):
@@ -145,6 +148,7 @@ def update_user(user_details):
         #log.error('Error updating user data for user %s'%user_details['username'])
         #print traceback.format_exc()
         meta.Session.rollback()
+        return False
     return True
 
 def delete_user(username):
@@ -157,6 +161,7 @@ def delete_user(username):
         #log.error('Error deleting user %s. Does the user exist?'%username)
         #print traceback.format_exc()
         meta.Session.rollback()
+        return False
     return True
 
 def add_user_groups(username, groups):
@@ -176,6 +181,7 @@ def add_user_groups(username, groups):
         #log.error('Error adding user %s to group %s'%(username, unicode(groups)))
         #print traceback.format_exc()
         meta.Session.rollback()
+        return False
     return True
 
 def delete_user_groups(username, groups): 
@@ -196,6 +202,7 @@ def delete_user_groups(username, groups):
         #log.error('Error deleting user %s from group %s'%(username, unicode(groups)))
         #print traceback.format_exc()
         meta.Session.rollback()
+        return False
     return True
 
 def add_group_users(silo_name, user_groups):
@@ -216,6 +223,7 @@ def add_group_users(silo_name, user_groups):
         #log.error( 'Error adding users %s to group %s'%(unicode(user_groups), silo_name))
         #print traceback.format_exc()
         meta.Session.rollback()
+        return False
     return True
 
 def delete_group_users(silo_name, user_groups):
@@ -236,6 +244,7 @@ def delete_group_users(silo_name, user_groups):
         #log.error('Error deleting users %s from group %s'%(unicode(user_groups), silo_name))
         #print traceback.format_exc()
         meta.Session.rollback()
+        return False
     return True
 
 def list_users():
@@ -377,3 +386,52 @@ def list_user(username):
         for p in g.permissions:
             user_details['groups'].append((g.silo, p.permission_name))
     return user_details
+
+def add_dataset(silo_name, id):
+    d = Datasets()
+    d.silo = u"%s"%silo_name
+    d.id = u"%s"%id
+    try:
+        meta.Session.add(d)
+        meta.Session.commit()
+    except IntegrityError:
+        #log.error('Error adding dataset %s in silo %s'%(id, silo_name))
+        #print traceback.format_exc()
+        meta.Session.rollback()
+        return False
+    return True
+
+def delete_dataset(silo_name, id):
+    try:
+        d_q = meta.Session.query(Datasets)
+        d_q_id = d_q.filter(Datasets.silo == u'%s'%silo_name).filter(Datasets.id == u'%s'%id).one()
+        meta.Session.delete(d_q_id)
+        meta.Session.commit()
+    except IntegrityError:
+        #log.error('Error deleting dataset %s in silo %s'%(id, silo_name))
+        #print traceback.format_exc()
+        meta.Session.rollback()
+        return False
+    return True
+
+def get_datasets_count(silo_name):
+    d_q = meta.Session.query(Datasets)
+    d_q_silo = d_q.filter(Datasets.silo == u'%s'%silo_name).count()
+    return d_q_silo
+
+def get_datasets(silo_name, start=0, rows=100):
+    d_q = meta.Session.query(Datasets)
+    try:
+        start = int(start)
+    except:
+        start = 0
+    try:
+        rows = int(rows)
+    except:
+        rows = 100
+    d_q_silo = d_q.filter(Datasets.silo == u'%s'%silo_name).limit(rows).offset(start).all()
+    datasets = []
+    for s in d_q_silo:
+        datasets.append(s.id)
+    return datasets
+

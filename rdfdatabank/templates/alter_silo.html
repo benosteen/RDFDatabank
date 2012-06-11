@@ -1,78 +1,70 @@
 # -*- coding: utf-8 -*-
 <form class="alter_silo" method="POST" enctype="multipart/form-data" action="/${c.silo}/admin" accept-charset="UTF-8">
 <div>
-<label for="silo">Silo label</label>
-<input type="hidden" name="silo" value="${c.silo}" /> ${c.silo}
+<label for="alterSilo">Silo label</label>
+<input id="alterSilo" type="text" name="silo" value="${c.silo}" readonly="readonly"/>
 </div>
 % if c.kw:
   <div>
-  <label for="title">Title:</label>
-  <input type="text" name="title" value="${c.kw.get('title')}"/>
+  <label for="alterTitle">Title:</label>
+  <input id="alterTitle" type="text" name="title" value="${c.kw.get('title')}"/>
   </div>
   <div>
-  <label for="description">Description:</label>
-  <input type="textbox" name="description"  value="${c.kw.get('description')}"/>
+  <label for="alterDescription">Description:</label>
+  <input id="alterDescription" type="textbox" name="description"  value="${c.kw.get('description')}"/>
   </div>
   <div>
-  <label for="notes">Notes:</label>
-  <input type="textbox" name="notes"  value="${c.kw.get('notes')}"/>
+  <label for="alterNotes">Notes:</label>
+  <input id="alterNotes" type="textbox" name="notes"  value="${c.kw.get('notes')}"/>
   </div>
-  ##<div>
-  ##  <label for="owners">Owners (comma separated userids):</label>
-  ##  <input type="textbox" name="owners"  value="${c.kw.get('owners')}"/>
-  ##</div>
   % if c.roles and "admin" in c.roles:
     <div>
-    <label for="administrators">Add Administrators (comma separated userids):</label>
-    <input type="textbox" name="administrators"/>
+    <label for="alterAdministrators">Add Administrators (comma separated userids):</label>
+    <input id="alterAdministrators" type="textbox" name="administrators"/>
     </div>
   % endif
   <div>
-  <label for="managers">Add Managers (comma separated userids):</label>
-  <input type="textbox" name="managers"/>
+  <label for="alterManagers">Add Managers (comma separated userids):</label>
+  <input id="alterManagers" type="textbox" name="managers"/>
   </div>
   <div>
-  <label for="submitters">Add Submitters (comma separated userids):</label>
-  <input type="textbox" name="submitters"/>
+  <label for="alterSubmitters">Add Submitters (comma separated userids):</label>
+  <input id="alterSubmitters" type="textbox" name="submitters"/>
   </div>
   <div>
-  <label for="disk_allocation">Disk Allocation (in Kb):</label>
-  <input type="textbox" name="disk_allocation"  value="${c.kw.get('disk_allocation')}"/>
+  <label for="alterAllocation">Disk Allocation (in Kb):</label>
+  <input id="alterAllocation" type="textbox" name="disk_allocation"  value="${c.kw.get('disk_allocation')}"/>
   </div>
 % else:
   <div>
-  <label for="title">Title:</label>
-  <input type="text" name="title" />
+  <label for="alterTitle">Title:</label>
+  <input id="alterTitle" type="text" name="title" />
   </div>
   <div>
-  <label for="description">Description:</label>
-  <input type="textbox" name="description" />
+  <label for="alterDescription">Description:</label>
+  <input id="alterDescription" type="textbox" name="description" />
   </div>
   <div>
-  <label for="notes">Notes:</label>
-  <input type="textbox" name="notes" />
+  <label for="alterNotes">Notes:</label>
+  <input id="alterNotes" type="textbox" name="notes" />
   </div>
-  ##<div>
-  ##<label for="owners">Owners (comma separated userids):</label>
-  ##<input type="textbox" name="owners" />
-  ##</div>
   % if c.roles and "admin" in c.roles:
     <div>
-    <label for="administrators">Add Administrators (comma separated userids):</label>
-    <input type="textbox" name="administrators"/>
+    <label for="alterAdministrators">Add Administrators (comma separated userids):</label>
+    <input id="alterAdministrators" type="textbox" name="administrators"/>
     </div>
   % endif
   <div>
-  <label for="managers">Add Managers (comma separated userids):</label>
-  <input type="textbox" name="managers"/>
+  <label for="alterManagers">Add Managers (comma separated userids):</label>
+  <input id="alterManagers" type="textbox" name="managers"/>
   </div>
   <div>
-  <label for="submitters">Add Submitters (comma separated userids):</label>
-  <input type="textbox" name="submitters"/>
+  <label for="alterSubmitters">Add Submitters (comma separated userids):</label>
+  <input id="alterSubmitters" type="textbox" name="submitters"/>
   </div>
   <div>
-  <label for="disk_allocation">Disk Allocation (in Kb):</label>
-  <input type="textbox" name="disk_allocation" />
+  <label for="alterAllocation">Disk Allocation (in Kb):</label>
+  <input id="alterAllocation" type="textbox" name="disk_allocation" />
   </div>
 % endif
 <div><input type="submit" value="Alter silo metadata"/></div>

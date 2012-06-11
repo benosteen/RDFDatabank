@@ -71,13 +71,13 @@ n = len(c.items)
 
 ## Pagination and sort options
 % if c.numFound and c.numFound > 0:
-<div class="searchtop">
+<div class="browsetop">
   ${pagination()}
 </div>
 % endif
 
 ## Number of records, current span of records and items per page
-<div class="searchtop">
+<div class="browsetop">
 <div class="searchleft numRecords">
 ${ c.numFound} records found.
 </div>
@@ -91,7 +91,6 @@ ${c.start+c.rows}
 </div>
 % endif
 </div>
-<div class="clear"></div>
 <table class="dataset_list">
 % for item in sorted(c.items):
 <tr>
@@ -103,7 +102,7 @@ ${c.start+c.rows}
     from dateutil.parser import parse
     from time import strftime
     dt_human = c.emb[1]
-    if c.emb[1].strip():
+    if c.emb[1] and c.emb[1].strip():
       dt_obj = parse(c.emb[1].strip(), dayfirst=True, yearfirst=False)
       dt_human = dt_obj.strftime('%B %d %Y, %I:%M %p')
   %>
@@ -126,14 +125,14 @@ ${c.start+c.rows}
 
 ## Pagination and sort options
 %if c.numFound and c.numFound > 0:
-<div class="searchbottom">
+<div class="browsebottom">
   ${pagination()}
 </div>
 % endif
 
 ## Number of records, current record start and end and items per page
 %if c.numFound and c.numFound > 0:
-<div class="searchbottom">
+<div class="browsebottom">
 <div class="searchleft">
 ${ c.numFound} records found.
 </div>

@@ -15,7 +15,7 @@
 </script>
 
 </%def>
-<h1>User ${c.username}</h1>
+<h1>Details for user <i>${c.username}</i></h1>
 % if c.message:
 <p><span style="color:red;">${c.message}</span></p>
 % endif
@@ -39,22 +39,22 @@
   </div>
 
   <ul class="metadata">
-  <li><label for="username">Username:</label>${c.username}</li>
+  <li><span class="displayLabel">Username:</span>${c.username}</li>
   
   % if 'firstname' in c.user and c.user['firstname']:
-    <li><label for="firstname">Firstname:</label>${c.user['firstname']}</li>
+    <li><span class="displayLabel">Firstname:</span>${c.user['firstname']}</li>
   % endif
   % if 'lastname' in c.user and c.user['lastname']:
-    <li><label for="lastname">Lastname:</label>${c.user['lastname']}</li>
+    <li><span class="displayLabel">Lastname:</span>${c.user['lastname']}</li>
   % endif
   % if 'name' in c.user and c.user['name']:
-    <li><label for="name">Display name:</label>${c.user['name']}</li>
+    <li><span class="displayLabel">Display name:</span>${c.user['name']}</li>
   % endif
   % if 'email' in c.user and c.user['email']:
-    <li><label for="email">Email:</label>${c.user['email']}</li>
+    <li><span class="displayLabel">Email:</span>${c.user['email']}</li>
   % endif
   % if 'groups' in c.user and c.user['groups']:
-    <h4>Membership information</h4><ul>
+    <h2>Membership information</h2><ul>
     % for g, p in c.user['groups']:
       % if g == '*':
         <li>Databank administrator</li>
@@ -71,9 +71,10 @@
 % if c.ident['user'].user_name == c.username:
   <div id="edit_user" class="edit_section" style="display: none;">
   <a name="edit_user"></a>
-  <h2> Update user details for ${c.username} </h2>
+  <h2> Update user details for <i>${c.username}</i> </h2>
   <%include file="/update_user.html"/>
-  <div class="top"><a href="#top" onclick="showhide('edit_user');" title="Back to top"><img src="/static/styles/images/go-up-icon-24.png"/></a></div>
+  <div class="top"><a href="#top" onclick="showhide('edit_user');" title="Back to top">
+    <img src="/static/styles/images/go-up-icon-24.png"/></a></div>
   </div>
 % endif
 

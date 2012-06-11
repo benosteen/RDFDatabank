@@ -89,6 +89,15 @@ media="(min-width: 1100px) and (max-width: 1600px)"/>
   </head>
 <body>
   <div id="page" >
+  
+  <ul class="skipLinks">
+  <li><a href="#mainContent">skip to content</a></li>
+   <li><a href="#mainnav">skip to navigation</a></li>
+  
+  </ul>
+  
+  
+  
     <header class="pageHeader">
       <%include file="/header.html"/>
      
@@ -107,7 +116,7 @@ media="(min-width: 1100px) and (max-width: 1600px)"/>
       <nav>
 
      <!--  mainnav div starts -->
-	<label class="nonVis"  >main navigation</label>
+	<span class="nonVis"  >main navigation</span>
 
 	<ul id="mainnav">
 	<li> <a href="/" id="nav-index" >home</a></li>
@@ -124,10 +133,10 @@ media="(min-width: 1100px) and (max-width: 1600px)"/>
 
 	</ul>
 
-<label class="nonVis" >breadcrumb trail</label>
+<span class="nonVis" >breadcrumb trail</span>
 <ul class="breadcrumb" >
 % if c.silo_name:
-<li class="silo"><label>silo: </label><a href="/${c.silo_name}">${c.silo_name}</a><span class="apart">|</span>
+<li class="silo"><span>silo: </span><a href="/${c.silo_name}">${c.silo_name}</a>
 % if c.ident and 'role' in c.ident and c.ident['role'] in ["admin", "manager"]:
   <a href="/${c.silo_name}/admin/">manage ${c.silo_name}</a>
 % endif
@@ -135,7 +144,7 @@ media="(min-width: 1100px) and (max-width: 1600px)"/>
 % endif
 
 % if c.id:
-<li class="dataPackage"><label>data package: </label><a href="/${c.silo_name}/datasets/${c.id}">${c.id}</a></li>
+<li class="dataPackage"><span>data package: </span><a href="/${c.silo_name}/datasets/${c.id}">${c.id}</a></li>
 % endif
 
 % if c.path:
@@ -168,7 +177,7 @@ path_url = "/%s/datasets/%s"%(c.silo_name,c.id)
 
 
 
-<div class="main">
+<div id="mainContent"  class="main">
 
     <article class="content" >
 

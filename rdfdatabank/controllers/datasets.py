@@ -39,6 +39,7 @@ from rdfdatabank.lib.utils import create_new, get_readme_text, serialisable_stat
 from rdfdatabank.lib.utils import is_embargoed, test_rdf, munge_manifest, get_embargo_values, get_rdf_template, extract_metadata
 from rdfdatabank.lib.file_unpack import get_zipfiles_in_dataset
 from rdfdatabank.lib.conneg import MimeType as MT, parse as conneg_parse
+from rdfdatabank.lib.auth_entry import add_dataset, delete_dataset, get_datasets_count, get_datasets
 
 JAILBREAK = re.compile("[\/]*\.\.[\/]*")
 
@@ -71,11 +72,37 @@ class DatasetsController(BaseController):
                     silos = ag.authz(ident)
                     if silo in silos:
                         c.editor = True
+
+            options = request.GET
+            c.start = 0
+            if 'start' in options and options['start']:
+                try:
+                    c.start = int(options['start'])
+                except ValueError:
+                    c.start = 0
+            c.rows = 100
+            if 'rows' in options and options['rows']:
+                try:
+                    c.rows = int(options['rows'])
+                except ValueError:
+                    c.rows = 100
                  
-            #TODO: Get this information from SOLR, not the granary OR Do not get the embargo information, as that is what fails
             c_silo = ag.granary.get_rdf_silo(silo)
+            # Get title of silo
+            state_info = ag.granary.describe_silo(silo)
+            if 'title' in state_info and state_info['title']:
+                c.title = state_info['title']
+            # Get number of data packages in silo
+            numFound = get_datasets_count(silo)
+            try:
+                c.numFound = int(numFound)
+            except ValueError:
+                c.numFound = 0
+
+            #c.embargos = {'params':{'numFound':numFound, 'start':c.start, 'rows':c.rows}}
             c.embargos = {}
-            for item in c_silo.list_items():
+            #for item in c_silo.list_items():
+            for item in get_datasets(silo, start=c.start, rows=c.rows):
                 try:
                     c.embargos[item] = is_embargoed(c_silo, item)
                 except:
@@ -93,6 +120,37 @@ class DatasetsController(BaseController):
             mimetype = accept_list.pop(0)
             while(mimetype):
                 if str(mimetype).lower() in ["text/html", "text/xhtml"]:
+                    #Calculate the pagination for display of data packages
+                    c.permissible_offsets = []
+                    c.pages_to_show = 5
+                    print type(c.start), type(c.pages_to_show), type(c.rows), type(c.numFound)
+                    print c.start, c.pages_to_show, c.rows, c.numFound
+                    try:
+                        remainder = c.numFound % c.rows
+                        if remainder > 0:
+                            c.lastPage = c.numFound - remainder
+                        else:
+                            c.lastPage = c.numFound - c.rows
+
+                        if c.numFound > c.rows:
+                            offset_start = c.start - ( (c.pages_to_show/2) * c.rows )
+                            if offset_start < 0:
+                                offset_start = 0
+         
+                            offset_end = offset_start + (c.pages_to_show * c.rows)
+                            if offset_end > c.numFound:
+                                offset_end = c.numFound
+                                if remainder > 0:
+                                    offset_start = c.lastPage - (c.pages_to_show * c.rows)
+                                else:
+                                    offset_start = c.lastPage - ((c.pages_to_show-1) * c.rows)
+
+                                if offset_start < 0:
+                                    offset_start = 0
+                              
+                            c.permissible_offsets = list( xrange( offset_start, offset_end, c.rows) )
+                    except ValueError:
+                        pass
                     return render('/siloview.html')
                 elif str(mimetype).lower() in ["text/plain", "application/json"]:
                     response.content_type = 'application/json; charset="UTF-8"'
@@ -134,11 +192,11 @@ class DatasetsController(BaseController):
                 response.content_type = "text/plain"
                 response.status_int = 400
                 response.status = "400 Bad request. Data package name not valid"
-                return "Data package name can contain only the following characters - %s and has to be more than 1 character"%ag.naming_rule_humanized
+                return "Data package name can only contain %s"%ag.naming_rule_humanized
 
             del params['id']
             item = create_new(c_silo, id, ident['repoze.who.userid'], **params)
-                   
+            add_dataset(silo, id)
             # Broadcast change as message
             try:
                 ag.b.creation(silo, id, ident=ident['repoze.who.userid'])
@@ -364,6 +422,7 @@ class DatasetsController(BaseController):
                     return "Data package name can contain only the following characters - %s and has to be more than 1 character"%ag.naming_rule_humanized
                 params = {}
                 item = create_new(c_silo, id, ident['repoze.who.userid'], **params)
+                add_dataset(silo, id)
                 code = 201
                 response.status = "201 Created"
                 response.status_int = 201
@@ -638,6 +697,7 @@ class DatasetsController(BaseController):
                 pass
 
             c_silo.del_item(id)
+            delete_dataset(silo, id)
             
             response.content_type = "text/plain"
             response.status_int = 200

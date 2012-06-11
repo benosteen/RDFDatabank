@@ -3,7 +3,7 @@
 import sqlalchemy as sa
 from sqlalchemy import orm
 from rdfdatabank.model import meta
-from rdfdatabank.model.auth import User, Group, Permission
+from rdfdatabank.model.auth import User, Group, Permission, Datasets
 
 def init_model(engine):
     """Call me before using any of the tables or classes in the model"""

@@ -6,8 +6,10 @@
 % if c.silo_name and c.id and c.zipfiles:
 <h1> List of package unpack endpoints</h1>
 <ul>
+<% c.zipFileCount = 0 %>
 % for zf in c.zipfiles:
 <%
+c.zipFileCount += 1
 c.zipfile = zf
 c.newid = c.zipfiles[zf]
 %>

@@ -1096,7 +1096,7 @@ div#link_to_this_search a {
     width: 100%;
 }
 
-.searchbottom {
+.searchbottom, .browsebottom {
         margin-bottom: 5px;
         margin-top: 10px;
         float: left;
@@ -1105,14 +1105,22 @@ div#link_to_this_search a {
         background: white;
         width: 100%;
 }
-.searchtop {
+.searchtop , .browsetop {
         margin-top: 5px;
         margin-bottom: 10px;
         float: left;
         font-size: 13px;
         color: #002147;
         background: white;
+        clear:left;
+}
+
+.searchtop {
         width: 100%;
+}
+
+.browsetop {
+        width: 50%;
 }
 
 .searchleft {
@@ -1439,3 +1447,103 @@ pre {
     margin-right: 10px;
 }
 
+form div.role {
+    width: 100%;
+    max-width: 100%;
+}
+
+form.newitem label{
+    width:100%;
+    text-align:left;
+    padding-bottom: 5px;
+}
+
+
+div.newPackage {
+background: #002147; /* for non-css3 browsers */
+/* filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#002147', endColorstr='#DDDDDD'); */ /* for IE */
+/* background: -webkit-gradient(linear, left top, left bottom, from(#002147), to(#DDDDDD)); */ /* for webkit browsers */
+/* background: -moz-linear-gradient(top,  #002147,  #DDDDDD); */ /* for firefox 3.6+ */
+border: 1px solid #002147;
+border-bottom-width: 3px;
+-moz-border-radius: 5px;
+-webkit-border-radius: 5px;
+border-radius: 5px;
+clear: both;
+color: black;
+margin: 0px 0px;
+padding: 5px;
+
+
+}
+
+div.newPackage h2{
+
+margin:  0px;
+}
+
+/* hide skipLinks off-screen */
+ul.skipLinks a{
+
+font-weight: bold;
+position: absolute;
+top: -9000px;
+
+}
+
+/* show skipLinks link on focus */
+ul.skipLinks a:focus{
+position: relative;
+left: 300px;
+top: 0px;
+}
+
+#accessStatusForm fieldset{
+    max-width: 90%;
+}
+
+#emu {
+    width: 250px;
+}
+
+.unpack_endpoints form label {
+    width: 25em;
+}
+
+.unpackForm fieldset {
+    max-width: 90%;
+}
+
+.manifest-form  form label {
+    width: 90%;
+    text-align: left;
+}
+
+.displayLabel {
+	font-weight: bold;
+	display: inline;
+	width: 10em;
+	float: left;
+	text-align: right;
+	margin-right: 5px; 
+	padding: 0px 5px;
+	text-transform: none;
+}
+
+.displayValues {
+	margin-left: 10em;
+}
+
+.siloList tr {
+    border-bottom: 0.12em solid #ccc;
+}
+
+.siloList td {
+	padding: 10px;
+}
+
+.siloList a {
+        font-weight: bold;
+        font-size: 1.2em;
+        margin-bottom: 5px;
+}

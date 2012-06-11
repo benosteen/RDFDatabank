@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 <div class="metadata">
-  <div><label for="silo">Silo label:</label> ${c.silo}</div>
+  <div><span class="displayLabel">Silo label:</span> ${c.silo}</div>
 % if c.kw:
-  % if 'title' in c.kw:
-    <div><label for="title">Title:</label>${c.kw.get('title')}</div>
+  % if 'title' in c.kw and c.kw.get('title', None):
+    <div><span class="displayLabel">Title:</span>${c.kw.get('title')}</div>
   % endif
-  % if 'description' in c.kw:
-    <div><label for="description">Description:</label>${c.kw.get('description')}</div>
+  % if 'description' in c.kw and c.kw.get('description', None):
+    <div><span class="displayLabel">Description:</span>${c.kw.get('description')}</div>
   % endif
-  % if 'notes' in c.kw:
-    <div><label for="notes">Notes:</label>${c.kw.get('notes')}</div>
+  % if 'notes' in c.kw and c.kw.get('notes', None):
+    <div><span class="displayLabel">Notes:</span>${c.kw.get('notes')} </div>
   % endif
-  % if 'disk_allocation' in c.kw:
-    <div><label for="disk_allocation">Disk Allocation (in Kb):</label>${c.kw.get('disk_allocation')}</div>
+  % if 'disk_allocation' in c.kw and c.kw.get('disk_allocation', None):
+    <div><span class="displayLabel">Disk Allocation (in Kb):</span>${c.kw.get('disk_allocation')} </div>
   % endif
   % if ('administrators' in c.kw and c.kw['administrators']) or ('managers' in c.kw and c.kw['managers']) or ('submitters' in c.kw and c.kw['submitters']):
     <h3><a href="/${c.silo}/users">Members of the silo</a></h3>

@@ -44,7 +44,7 @@ class SearchController(BaseController):
         c.field_names = term_list().get_search_field_dictionary()
         c.facetable_fields = term_list().get_all_facet_fields()
         c.types = term_list().get_type_field_dictionary()
-        c.search_fields = ['silo', 'id', 'uuid', 'embargoStatus', 'embargoedUntilDate', 'currentVersion', 'doi', 'publicationDate', 'abstract', 'description', 'creator', 'isVersionOf', 'isPartOf', 'subject']
+        c.search_fields = ['silo', 'id', 'title', 'uuid', 'embargoStatus', 'embargoedUntilDate', 'currentVersion', 'doi', 'publicationDate', 'abstract', 'description', 'creator', 'isVersionOf', 'isPartOf', 'subject', 'type']
         c.sort_options = {'score desc':'Relevance',  'publicationDate desc':'Date (Latest to oldest)','publicationDate asc':'Date (Oldest to Latest)','silo asc':'Silo A to Z','silo desc':'Silo Z to A'}
 
     def raw(self):
@@ -174,6 +174,7 @@ class SearchController(BaseController):
         start = request.params.get('start', None)
         rows = request.params.get('rows', None)
         sort = request.params.get('sort', None)
+        fields = request.params.get('fl', None)
         res_format = request.params.get('format', None)
         if not res_format:
             accept_list = None
@@ -214,6 +215,14 @@ class SearchController(BaseController):
         
         c.chosen_fields = []
         c.chosen_fields.extend(c.search_fields)
+
+        if fields:
+            fields = fields.split(',')
+        if fields and type(fields).__name__ == 'list':
+            fields = [x.strip() for x in fields]
+            for fld in fields:
+                if fld in c.all_fields and not fld in c.chosen_fields:
+                    c.chosen_fields.append(fld)
 
         for fld in additional_fields:
             if not fld in c.chosen_fields:
@@ -305,7 +314,8 @@ class SearchController(BaseController):
             elif c.typ and 'dataset' in c.typ:
                 solr_params['q'] = c.q.encode('utf-8')+query_filter+" AND type:dataset"
             elif c.typ and 'item' in c.typ and c.q != "*:*":
-                solr_params['q'] = """aggregatedResource:"%s" %s"""%(c.q.encode('utf-8'),query_filter)
+                #solr_params['q'] = """aggregatedResource:"%s" %s"""%(c.q.encode('utf-8'),query_filter)
+                solr_params['q'] = """filename:"%s" %s"""%(c.q.encode('utf-8'),query_filter)
             else:
                 solr_params['q'] = c.q.encode('utf-8')+query_filter  
 

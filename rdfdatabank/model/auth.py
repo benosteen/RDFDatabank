@@ -11,7 +11,7 @@ from rdfdatabank.model.meta import metadata, Base
 import os
 from hashlib import sha1
 
-__all__ = ['User', 'Group', 'Permission']
+__all__ = ['User', 'Group', 'Permission', 'Datasets']
 
 # This is the association table for the many-to-many relationship between
 # groups and permissions. This is required by repoze.what.
@@ -162,4 +162,15 @@ class User(Base):
  
     #def __unicode__(self):
     #    return self.name
+
+class Datasets(Base):
+    """
+    Table to store index of datasets
+    """
+
+    __tablename__ = 'datasets'
+
+    # columns
+    silo = Column(Unicode(50), primary_key=True)
+    id = Column(Unicode(75), primary_key=True)
 

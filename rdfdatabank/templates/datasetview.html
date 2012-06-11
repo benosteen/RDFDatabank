@@ -191,8 +191,10 @@ c.current = c.id
       <a name="unpack_endpoints"></a>
       <h2>Unpack zipfiles in the data package:</h2>
       <ul class="unpack_endpoints">
+      <% c.zipFileCount = 0 %>
       % for zf in c.zipfiles:
         <%
+        c.zipFileCount += 1
         c.zipfile = zf
         c.newid = c.zipfiles[zf].replace('/', '-')
         %>

@@ -3,13 +3,22 @@
 <%def name="head_tags()">
   <title> List of Data packages </title>
 </%def>
-% if c.silo_name:
-<h1>List of Data packages in Silo <span class="name" >${c.silo_name}</span></h1>
+% if c.title:
+<h1>Silo <span class="name" >${c.title} </span></h1>
+% elif c.silo_name:
+<h1>Silo <span class="name" >${c.silo_name}</span></h1>
+% endif
+% if c.editor:
+  <div class="newPackage">
+  <h2> Create new data package </h2>
+  <%include file="create_new_item.html"/>
+  </div>
+% endif
+% if c.title:
+<h2>List of Data packages in ${c.title}</h2>
+% elif c.silo_name:
+<h2>List of Data packages in ${c.silo_name}</h2>
 % else:
-<h1>List of Data packages in Silo</h1>
+<h2>List of Data packages</h2>
 % endif
 <%include file="list_of_datasets.html"/>
-% if c.editor:
-  <h2> Create new empty data package: </h2>
-  <%include file="create_new_item.html"/>
-% endif

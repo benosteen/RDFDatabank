@@ -2,7 +2,7 @@
 from rdflib import URIRef
 %>
 % if c.metadata:
-  <table class="metadata">
+  <table class="metadata" summary="Bibliographic information for the data package" >
   <!-- title -->
   % if 'title' in c.metadata:
     <tr><th>Title</th><td>
@@ -175,6 +175,12 @@ from rdflib import URIRef
   % if 'isEmbargoed' in c.metadata:
     <tr><th>Is embargoed</th><td>
     % for v in c.metadata['isEmbargoed']:
+      <%
+      if str(v).lower() in ['true', '1']:
+          v = 'Yes'
+      else:
+          v = 'No'
+      %>
       % if isinstance(v, URIRef):
         <a href="${v}">${v}</a><br/>
       % else:

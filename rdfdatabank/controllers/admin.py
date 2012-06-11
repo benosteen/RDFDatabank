@@ -145,7 +145,12 @@ class AdminController(BaseController):
 
                 # Add silo to database
                 add_silo(silo)
-                
+               
+                try:
+                    ag.b.silo_creation(silo, ident=ident['repoze.who.userid'])
+                except:
+                    pass
+ 
                 #Add users belonging to the silo, to the database
                 all_silo_users = []
                 
@@ -172,12 +177,12 @@ class AdminController(BaseController):
                 mimetype = accept_list.pop(0)
                 while(mimetype):
                     if str(mimetype).lower() in ["text/html", "text/xhtml"]:
-                        redirect(url(controller="silos", action="siloview", silo=silo))
+                        redirect(url(controller="datasets", action="siloview", silo=silo))
                     elif str(mimetype).lower() in ["text/plain", "application/json"]:
                         response.content_type = "text/plain"
                         response.status_int = 201
                         response.status = "201 Created"
-                        response.headers['Content-Location'] = url(controller="silos", action="siloview", silo=silo)
+                        response.headers['Content-Location'] = url(controller="datasets", action="siloview", silo=silo)
                         return "201 Created Silo %s" % silo
                     try:
                         mimetype = accept_list.pop(0)
@@ -187,7 +192,7 @@ class AdminController(BaseController):
                 response.content_type = "text/plain"
                 response.status_int = 201
                 response.status = "201 Created"
-                response.headers['Content-Location'] = url(controller="silos", action="siloview", silo=silo)
+                response.headers['Content-Location'] = url(controller="datasets", action="siloview", silo=silo)
                 return "201 Created Silo %s" % silo
             else:
                 response.content_type = "text/plain"
@@ -327,6 +332,11 @@ class AdminController(BaseController):
                 #Add new silo users into database
                 if new_silo_users:
                     add_group_users(silo, new_silo_users)
+            if updateMetadata:
+                try:
+                    ag.b.silo_change(silo, ident=ident['repoze.who.userid'])
+                except:
+                    pass
                        
             # conneg return
             accept_list = None
