@@ -28,7 +28,7 @@ padding: 0px;
 margin: 0px;
 }
 
-#search label
+#search label.searchterm
 {
 
 position: absolute;
@@ -122,6 +122,23 @@ padding: 10px;
   width: 300px;
 }
 
+div.newPackage {
 
+width: 280px;
+float: right;
+
+}
+
+div.newPackage h2{
+
+text-align: center;
+
+}
+
+
+div.newPackage  .form_helper {
+margin: 0px 0px 10px 0px;
+
+}
 
 
