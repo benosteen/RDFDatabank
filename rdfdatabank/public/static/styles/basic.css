@@ -181,9 +181,9 @@ header.pageHeader a
 header.pageHeader h1
 {
 	background-color: transparent;
-	font-size: 5em;
+	font-size: 5.5555em;;
 	font-weight: bold;
-	letter-spacing: -0.1em;
+	letter-spacing: -0.16em;
 	/*
 	margin: -10px 0px -10px -7px;
 	*/
@@ -468,13 +468,27 @@ form
 margin: 1em;
 }
 
-form label
+.main form label
 {
 display: block;
 width: 10em;
 float: left;
 text-align: right;
 margin-right: 5px; 
+}
+
+#search form label
+{
+font-weight: normal;
+text-transform: none;
+}
+
+
+#search form fieldset
+{
+border: none;
+padding: 0px;
+
 }
 
  label 
@@ -560,14 +574,14 @@ nav  {
     position: relative;    
 }
 
-nav label.nonVis
+nav span.nonVis
 {
 color: #000;
 position: absolute;
 top: -9000px;
 }
 
-nav label
+nav span
 {
 color: #000;
 }
@@ -843,13 +857,13 @@ div.response_doc {
         border-bottom: 1px solid #999;
 }
 
-.response_doc .silotitle {
+.response_doc .resultTitle {
         font-weight: bold;
         font-size: 1.2em;
         margin-bottom: 5px;
 }
 
-.response_doc .silotitle a {
+.response_doc .resultTitle a {
         font-weight: bold;
         font-size: 1.2em;
         
@@ -1105,7 +1119,7 @@ div#link_to_this_search a {
         background: white;
         width: 100%;
 }
-.searchtop , .browsetop {
+.searchtop, .browsetop {
         margin-top: 5px;
         margin-bottom: 10px;
         float: left;
@@ -1125,7 +1139,7 @@ div#link_to_this_search a {
 
 .searchleft {
     float: left;
-    width: 200px;
+    width: 150px;
 }
 
 .searchright {
@@ -1238,7 +1252,7 @@ list-style: none;
 /*List of Datsets */
 .dataset_list {
     margin: 0px 0px 20px 0px;
-}
+    clear: left;}
 
 .dataset_list tr {
    margin: 0px 10px 10px 10px;
@@ -1396,7 +1410,10 @@ div.metadata {
     line-height: 1.5em;
 }
 
-div.metadata label {
+ul.metadata li {
+    margin-bottom: 5px;
+    line-height: 1.5em;
+    display: block;
 }
 
 pre {
