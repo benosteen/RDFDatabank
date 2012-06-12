@@ -21,9 +21,9 @@ else:
 %>
     % if not part.startswith('3=') and not part.startswith('4='):
 <li>${part} ${ext}
-<a href="/${c.silo_name}/datasets/${c.id}${subpath}/${part}${urlext}"><img src="/static/styles/images/download_zip_icon_32.png" title="download file"></a>
+<a href="/${c.silo_name}/datasets/${c.id}${subpath}/${part}${urlext}"><img src="/static/styles/images/view_icon_32.png" title="view or download file"></a>
 %     if part.endswith('.zip'):
-    <a href="/${c.silo_name}/items/${c.id}${subpath}/${part}${urlext}"><img src="/static/styles/images/view_zip_icon_32.png" title="View zip file"></a>
+    <a href="/${c.silo_name}/items/${c.id}${subpath}/${part}${urlext}"><img src="/static/styles/images/view_zip_icon_32.png" title="View contents of zip file"></a>
 %     endif
 </li>
     % endif
