@@ -459,8 +459,8 @@ def getSiloModifiedDate(silo_name):
     solr_params['wt'] = 'json'
     solr_params['start'] = 0
     solr_params['rows'] = 1
-    solr_params['sort'] = "timestamp desc"
-    solr_params['fl'] = 'timestamp'
+    solr_params['sort'] = "modified desc"
+    solr_params['fl'] = 'modified'
     solr_response = None
     try:
         solr_response = ag.solr.raw_query(**solr_params)
@@ -471,8 +471,8 @@ def getSiloModifiedDate(silo_name):
     result = simplejson.loads(solr_response)
     docs = result['response'].get('docs',None)
     numFound = result['response'].get('numFound',None)
-    if docs and len(docs) > 0 and docs[0]:
-        dt = docs[0]['timestamp']
+    if docs and len(docs) > 0 and docs[0] and 'modified' in  docs[0] and len(docs[0]['modified']) > 0:
+        dt = docs[0]['modified'][0]
     else:
         return ''
     dt = formatDate(dt)

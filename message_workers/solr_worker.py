@@ -79,6 +79,7 @@ if __name__ == "__main__":
     redis_section = "redis"
     worker_section = "worker_solr"
     worker_number = sys.argv[1]
+    hours_before_commit = 1 
     if len(sys.argv) == 3:
         if "redis_%s" % sys.argv[2] in c.sections():
             redis_section = "redis_%s" % sys.argv[2]
@@ -98,14 +99,14 @@ if __name__ == "__main__":
     solr = SolrConnection(c.get(worker_section, "solrurl"))
 
     idletime = 2
-    commit_time = datetime.now() + timedelta(hours=1)
+    commit_time = datetime.now() + timedelta(hours=hours_before_commit)
     toCommit = False
     while(True):
         sleep(idletime)
 
         if datetime.now() > commit_time and toCommit:
             solr.commit()
-            commit_time = datetime.now() + timedelta(hours=1)
+            commit_time = datetime.now() + timedelta(hours=hours_before_commit)
             toCommit = False
 
         line = rq.pop()
@@ -114,7 +115,7 @@ if __name__ == "__main__":
             if toCommit:
                 solr.commit()
                 toCommit = False
-                commit_time = datetime.now() + timedelta(hours=1)
+                commit_time = datetime.now() + timedelta(hours=hours_before_commit)
             continue
 
         logger.debug("Got message %s" %str(line))
@@ -159,8 +160,12 @@ if __name__ == "__main__":
             else:
                 silo_metadata = g.describe_silo(silo_name)
                 solr_doc = {'id':silo_name, 'silo':silo_name, 'type':'Silo', 'uuid':uuid4().hex}
-                solr_doc['title'] = silo_metadata['title']
-                solr_doc['description'] = silo_metadata['description']
+                solr_doc['title'] = ''
+                if 'title' in silo_metadata:
+                    solr_doc['title'] = silo_metadata['title']
+                solr_doc['description'] = ''
+                if 'description' in silo_metadata:
+                    solr_doc['description'] = silo_metadata['description']
                 solr.add(_commit=False, **solr_doc)
             rq.task_complete()
         elif msg['type'] == "d":

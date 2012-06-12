@@ -58,9 +58,9 @@ isSilo = False
 if 'type' in c.docs[doc_index] and c.docs[doc_index]['type']:
     if not isinstance(c.docs[doc_index]['type'], list):
         c.docs[doc_index]['type'] = [c.docs[doc_index]['type']]
-for typ in c.docs[doc_index]['type']:
-    if typ.lower() == 'silo':
-        isSilo = True
+    for typ in c.docs[doc_index]['type']:
+        if typ.lower() == 'silo':
+            isSilo = True
 %>
 <h2 class="resultTitle">
 % if isSilo == True:
