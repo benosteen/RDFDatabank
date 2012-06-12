@@ -22,6 +22,9 @@
 c.current = c.id
 %>
 <h1>Data package ${c.id}</h1>
+% if 'title' in c.metadata and c.metadata['title'][0]:
+<h1>${c.metadata['title'][0]}</h1>
+% endif
 % if c.version:
 <h2>Version ${c.version}</h2>
 % elif c.versions:
