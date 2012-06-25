@@ -14,12 +14,8 @@
   % if c.embargos[c.current][1]:
     <%
      from rdfdatabank.lib.utils import formatDate
-     ##dateutil.parser import parse
-     ##from time import strftime
      dt_human = c.embargos[c.current][1]
-     if c.embargos[c.current][1].strip():
-       ##dt_obj = parse(c.embargos[c.current][1].strip(), dayfirst=True, yearfirst=False)
-       ##dt_human = dt_obj.strftime('%Y-%m-%d %H:%M:%S')
+     if dt_human and dt_human.strip():
        dt_human = formatDate(dt_human)
     %>
     <label for="emu">Embargoed until (date)</label>

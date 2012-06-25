@@ -449,8 +449,12 @@ def extract_metadata(item):
     return dict(m)
 
 def formatDate(dt):
-    dt_obj = parse(dt, dayfirst=True, yearfirst=False)
-    dt_human = dt_obj.strftime("%B %d %Y, %I:%M %p") 
+    dt_human = dt
+    try:
+        dt_obj = parse(dt, dayfirst=True, yearfirst=False)
+        dt_human = dt_obj.strftime("%B %d %Y, %I:%M %p")
+    except:
+        return dt
     return dt_human
 
 def getSiloModifiedDate(silo_name):

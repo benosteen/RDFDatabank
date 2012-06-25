@@ -109,15 +109,13 @@ c.current = c.id
 <h2>Access Information</h2>
 <div class="dataset_info">
 % if c.embargos and c.current in c.embargos and c.embargos[c.current]:
-  <%
-   from dateutil.parser import parse
-   from time import strftime
-   c.emb = c.embargos[c.current] 
-   dt_human = c.emb[1]
-   if c.emb[1] and c.emb[1].strip():
-       dt_obj = parse(c.emb[1].strip(), dayfirst=True, yearfirst=False)
-       dt_human = dt_obj.strftime('%B %d %Y, %I:%M %p')
-  %>
+<%
+from rdfdatabank.lib.utils import formatDate
+c.emb = c.embargos[c.current]
+dt_human = c.emb[1]
+if dt_human and dt_human.strip():
+    dt_human = formatDate(dt_human)
+%>
   % if c.emb[0] == True or c.emb[0] == 1 or (isinstance(c.emb[0], basestring) and c.emb[0].strip().lower() in ['true', '1']):
      % if (isinstance(c.emb[1], basestring) and c.emb[1].strip()):
         Data package is embargoed until ${dt_human}. Only the metadata is openly accessible.
