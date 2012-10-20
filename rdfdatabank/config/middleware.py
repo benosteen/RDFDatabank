@@ -1,4 +1,30 @@
+#-*- coding: utf-8 -*-
+"""
+Copyright (c) 2012 University of Oxford
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, --INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+
 """Pylons middleware initialization"""
+
+#from paste import httpexceptions
 from beaker.middleware import CacheMiddleware, SessionMiddleware
 from paste.cascade import Cascade
 from paste.registry import RegistryManager
@@ -42,12 +68,23 @@ def make_app(global_conf, full_stack=True, static_files=True, **app_conf):
     # The Pylons WSGI app
     app = PylonsApp()
 
+    #app = httpexceptions.make_middleware(app, global_conf)
+    #if asbool(config['debug']):
+    #    from repoze.profile.profiler import AccumulatingProfileMiddleware
+    #    app = AccumulatingProfileMiddleware(
+    #       app,
+    #       log_filename=app_conf['profile.log_filename'],
+    #       discard_first_request=True,
+    #       flush_at_shutdown=True,
+    #       path=app_conf['profile.path']
+    #       )
+
     # Routing/Session/Cache Middleware
     app = RoutesMiddleware(app, config['routes.map'])
     app = SessionMiddleware(app, config)
     app = CacheMiddleware(app, config)
 
-
+    #TODO: Check if the new error controller works with sword server
     # CUSTOM MIDDLEWARE HERE (filtered by error handling middlewares)
     if asbool(full_stack):
         # Handle Python exceptions

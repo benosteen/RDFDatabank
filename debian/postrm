@@ -1,0 +1,22 @@
+#!/bin/bash
+set -e
+
+if [ -f /usr/share/debconf/confmodule ]; then
+        . /usr/share/debconf/confmodule
+fi
+if [ -f /usr/share/dbconfig-common/dpkg/postrm.mysql ]; then
+        . /usr/share/dbconfig-common/dpkg/postrm.mysql 
+        dbc_go databank $@
+fi
+
+if [ "$1" = "purge" ]; then
+        rm -f /etc/default/databank/db.sh
+        if which ucf >/dev/null 2>&1; then
+                ucf --purge /etc/default/databank/db.sh
+                ucfr --purge databank /etc/default/databank/db.sh
+        fi
+fi
+
+
+# Remove my changes to the db.
+db_purge

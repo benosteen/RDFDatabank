@@ -1,17 +1,46 @@
 # -*- coding: utf-8 -*-
-<form method="POST" enctype="multipart/form-data" action="/objects/${c.silo_name}/${c.current}">
-<label for="embargoed">Embargoed?</label>
-% if c.embargos:
-%   if c.embargos[c.current][0] not in ['False', 'false', 0, False]:
-<input type="checkbox" name="embargoed" checked="true"/>
-%   else:
-<input type="checkbox" name="embargoed"/>
-%   endif
-<input type="text" name="embargoed_until" value="${c.embargos[c.current][1]}" />
+<form method="POST" enctype="multipart/form-data" action="/${c.silo_name}/datasets/${c.current}" accept-charset="UTF-8" id="accessStatusForm">
+<fieldset><legend>Access status</legend>
+% if c.embargos and c.current in c.embargos and c.embargos[c.current]:
+  % if c.embargos[c.current][0] == True or (isinstance(c.embargos[c.current][0], basestring) and c.embargos[c.current][0].lower() in ['true', '1', 1]):
+    <label for="emt"><input type="radio" id="emt" name="embargoed" value="true" checked="true" />Embargoed</label>
+    <label for="emf"><input type="radio" id="emf" name="embargoed" value="false" />Open access</label>
+    <div style="clear:both;"></div>
+  % else:
+    <label for="emt"><input type="radio" id="emt" name="embargoed" value="true" /> Embargoed</label>
+    <label for="emf"><input type="radio" id="emf" name="embargoed" value="false" checked="true" /> Open access</label>
+    <br/><br/>
+  % endif
+  % if c.embargos[c.current][1]:
+    <%
+     from rdfdatabank.lib.utils import formatDate
+     dt_human = c.embargos[c.current][1]
+     if dt_human and dt_human.strip():
+       dt_human = formatDate(dt_human)
+    %>
+    <label for="emu">Embargoed until (date)</label>
+    <input type="text" name="embargoed_until" id="emu" value="${dt_human}" />
+    <br/><br/>
+  % else:
+    <label for="emu">Embargoed until (date)</label>
+    <input type="text" name="embargoed_until" id="emu" value="" />
+    <br/><br/>
+  % endif
 % else:
-<input type="checkbox" name="embargoed"/>
-<input type="text" name="embargoed_until" />
+  <label for="emt"><input type="radio" id="emt" name="embargoed" value="true" /> Embargoed</label>
+  <label for="emf"><input type="radio" id="emf" name="embargoed" value="false" checked="true" /> Open access</label>
+  <br/><br/>
+  <label for="emu">Embargoed until (date)</label>
+  <input type="text" id="emu" name="embargoed_until" /></p>
+  <br/><br/>
 % endif
-<input type="hidden" name="embargo_change" value="true"/>
+</fieldset>
+<div class="form_helper"><b><i>Embargoed:</i></b> only authorized users of the silo can access the data package <br />
+<b><i>Open access:</i></b> all users can access the data package.</div>
+<div class="form_helper"><b><i>Embargo date:</i></b> Date until which a data package should be emargoed. 
+By default, this is set to 70 years from now. If no time is included, the current time is used. <br /><br />
+The date and time can be in one of several formats. <br/>For example: January 16 2020; 16-01-2020; 16/Jan/2020; 16/01/2020; Jan 16 2020, 1:00 AM; 16-Jan-2020 13:00 
+</div>
 <input type="submit" value="Change embargo"/>
 </form>
+

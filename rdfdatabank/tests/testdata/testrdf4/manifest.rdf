@@ -1,0 +1,13 @@
+<rdf:RDF
+  xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'
+  xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xmlns:dcterms='http://purl.org/dc/terms/'
+  xmlns:oxds='http://vocab.ox.ac.uk/dataset/schema#'
+>
+  <oxds:Grouping>
+    <dcterms:title>Test dataset 4 with updated and merged metadata</dcterms:title>
+    <rdfs:seeAlso rdf:resource="directory/1a.rdf"/>
+    <rdfs:seeAlso rdf:resource="directory/1b.rdf"/>
+  </oxds:Grouping>
+</rdf:RDF>
+

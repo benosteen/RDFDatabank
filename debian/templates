@@ -1,0 +1,57 @@
+Template: databank/email
+Type: string
+Description: Adminstrator Email:
+ The email id will be used to send error messages from Databank.
+
+Template: databank/smtpserver
+Type: string
+Default: localhost
+Description: SMTP Server:
+ This is used for sending emails from Databank
+
+Template: databank/store
+Type: string
+Default: /silos
+Description: Data storage location:
+ The location where the data will be stored by Databank.
+
+Template: databank/uri
+Type: string
+Description: Base URI:
+ The base uri (domain name) of Databank. 
+ Example: http://example.com/
+
+Template: databank/password
+Type: password
+Description: Administrator password:
+ The password for user 'admin'
+ The user 'admin' is the main administartor for Databank and 
+ has access to all parts of Databank
+
+Template: databank/confsolr
+Type: boolean
+Description: Can SOLR be configured for Databank?
+ The search facility in Databank is powered by SOLR.
+ .
+ If you choose to configure SOLR now, the existing schema 
+ at /etc/solr/conf/schema.xml will be replaced with Databank's schema
+ .
+ If you choose to configure SOLR at a later time, 
+ the instructions to do so are at /usr/share/doc/databank/ConfiguringSOLR.txt
+
+Template: databank/nosolrconf
+Type: note
+Description: Configuring SOLR
+ SOLR has not been configured for Databank. 
+ If you choose to configure SOLR at a later time, 
+ the instructions to do so are at /usr/share/doc/databank/ConfiguringSOLR.txt
+
+Template: databank/passwdnote
+Type: note
+Description: Change your password
+ Databank has been installed successfully and is available at http://localhost
+ .
+ The default credntials for the main user is - username: admin password: test
+ .
+ On logging in, Please change the default admin password
+

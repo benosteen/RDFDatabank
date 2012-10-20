@@ -1,0 +1,82 @@
+# -*- coding: utf-8 -*-
+<%inherit file="/base.html" />
+<%def name="head_tags()">
+  <title>User Info - ${c.username} </title>
+<script type="text/javascript">
+<!--
+    function showhide(id) {
+       var e = document.getElementById(id);
+       if(e.style.display == 'block')
+          e.style.display = 'none';
+       else
+          e.style.display = 'block';
+    }
+//-->
+</script>
+
+</%def>
+<h1>Details for user <i>${c.username}</i></h1>
+% if c.message:
+<p><span style="color:red;">${c.message}</span></p>
+% endif
+
+% if c.user:
+  <div id="editor_view">
+  <h2>Edit options</h2>
+  <ul class="stateInfo">
+  % if c.ident['user'].user_name == c.username:
+    <li><a href="#edit_user" onclick="showhide('edit_user');">
+    <img src="/static/styles/images/user-edit-icon-24.png"/>Update user details</a></li>
+  % endif
+  <li><a class="delete" href="/users/${c.username}" data-remove="delete_${c.username}" data-url="/users">
+    <img src="/static/styles/images/user-delete-icon-24.png" alt="Delete user" title="Delete ${c.username}"/>Delete user</a>
+  </li>
+  <li><a href="/users">
+    <img src="/static/styles/images/user-group-icon-24.png"/>View users</a></li>
+  <li><a href="/admin">
+    <img src="/static/styles/images/silo-view-icon-24.png"/>View silos</a></li>
+  </ul>
+  </div>
+
+  <ul class="metadata">
+  <li><span class="displayLabel">Username:</span>${c.username}</li>
+  
+  % if 'firstname' in c.user and c.user['firstname']:
+    <li><span class="displayLabel">Firstname:</span>${c.user['firstname']}</li>
+  % endif
+  % if 'lastname' in c.user and c.user['lastname']:
+    <li><span class="displayLabel">Lastname:</span>${c.user['lastname']}</li>
+  % endif
+  % if 'name' in c.user and c.user['name']:
+    <li><span class="displayLabel">Display name:</span>${c.user['name']}</li>
+  % endif
+  % if 'email' in c.user and c.user['email']:
+    <li><span class="displayLabel">Email:</span>${c.user['email']}</li>
+  % endif
+  % if 'groups' in c.user and c.user['groups']:
+    <h2>Membership information</h2><ul>
+    % for g, p in c.user['groups']:
+      % if g == '*':
+        <li>Databank administrator</li>
+      % else:
+        <li><a href="/${g}/users/${c.username}">${p} for ${g}</a></li>
+      % endif
+  % endfor
+    </ul>
+  % endif
+  </ul>
+% endif
+
+
+% if c.ident['user'].user_name == c.username:
+  <div id="edit_user" class="edit_section" style="display: none;">
+  <a name="edit_user"></a>
+  <h2> Update user details for <i>${c.username}</i> </h2>
+  <%include file="/update_user.html"/>
+  <div class="top"><a href="#top" onclick="showhide('edit_user');" title="Back to top">
+    <img src="/static/styles/images/go-up-icon-24.png"/></a></div>
+  </div>
+% endif
+
+
+

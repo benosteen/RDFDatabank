@@ -1,0 +1,9 @@
+Admin information obtained for the silo 'sandbox' (at /sandbox/admin) in text/plain or application/json
+
+data_returned = {
+    "title": "Sandbox", 
+    "notes": "", 
+    "disk_allocation": "10000", 
+    "owners": "admin,testuser", 
+    "description": "Silo to test and play with"
+}

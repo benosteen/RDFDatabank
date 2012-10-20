@@ -1,0 +1,9 @@
+# -*- coding: utf-8 -*-
+<%inherit file="/base.html" />
+<%def name="head_tags()">
+  <title> Contents of zipfile ${c.path}/${c.subpath} </title>
+</%def>
+% if c.silo_name and c.id and c.path and c.subpath:
+<h1> Contents of zipfile ${c.path}/${c.subpath} </h1>
+<p>TO BE DONE</p>
+% endif

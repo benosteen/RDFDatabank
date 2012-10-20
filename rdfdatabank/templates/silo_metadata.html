@@ -1,0 +1,57 @@
+# -*- coding: utf-8 -*-
+<div class="metadata">
+  <div><span class="displayLabel">Silo label:</span> ${c.silo}</div>
+% if c.kw:
+  % if 'title' in c.kw and c.kw.get('title', None):
+    <div><span class="displayLabel">Title:</span>${c.kw.get('title')}</div>
+  % endif
+  % if 'description' in c.kw and c.kw.get('description', None):
+    <div><span class="displayLabel">Description:</span>${c.kw.get('description')}</div>
+  % endif
+  % if 'notes' in c.kw and c.kw.get('notes', None):
+    <div><span class="displayLabel">Notes:</span>${c.kw.get('notes')} </div>
+  % endif
+  % if 'disk_allocation' in c.kw and c.kw.get('disk_allocation', None):
+    <div><span class="displayLabel">Disk Allocation (in Kb):</span>${c.kw.get('disk_allocation')} </div>
+  % endif
+  % if ('administrators' in c.kw and c.kw['administrators']) or ('managers' in c.kw and c.kw['managers']) or ('submitters' in c.kw and c.kw['submitters']):
+    <h3><a href="/${c.silo}/users">Members of the silo</a></h3>
+    % for role in ['administrators', 'managers', 'submitters']:
+      % if role in c.kw and c.kw[role]:
+        <%
+          admins = []
+          admins = [x.strip() for x in c.kw[role].split(",") if x]
+        %>
+        <h3>${role}</h3>
+        <ul class="admin_list">
+        % for o in admins:
+          <li><h4><a href="/${c.silo}/users/${o}">${o}</a></h4>
+          <a href="/${c.silo}/users/${o}">
+            <img src="/static/styles/images/user-edit-icon-16.png" alt="Edit user details" title="edit ${o}"/></a>
+          <a class="delete" href="/${c.silo}/users/${o}" data-remove="delete_${c.silo}_${o}" data-url="/${c.silo}/users">
+            <img src="/static/styles/images/delete-icon-16.png" alt="Delete user from silo" title="Delete ${o} from ${c.silo}"/></a>
+          </li>
+        % endfor
+        </ul>
+      % endif
+    % endfor
+  % elif 'owners' in c.kw:
+    <%
+      owners = []
+      owners = [x.strip() for x in c.kw['owners'].split(",") if x]
+    %>
+    <h3><a href="/${c.silo}/users">Members of the silo</a></h3>
+    <ul class="admin_list">
+    % for o in owners:
+      <li><h4><a href="/${c.silo}/users/${o}">${o}</a></h4>
+      <a href="/${c.silo}/users/${o}">
+        <img src="/static/styles/images/user-edit-icon-16.png" alt="Edit user details" title="edit ${o}"/></a>
+      <a class="delete" href="/${c.silo}/users/${o}" data-remove="delete_${c.silo}_${o}" data-url="/${c.silo}/users">
+        <img src="/static/styles/images/delete-icon-16.png" alt="Delete user from silo" title="Delete ${o} from ${c.silo}"/></a>
+      </li>
+    % endfor
+    </ul>
+  % endif
+% endif
+</div>
+</p>

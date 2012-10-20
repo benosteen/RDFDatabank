@@ -1,36 +1,118 @@
 # -*- coding: utf-8 -*-
 <%inherit file="/base.html" />
 <%def name="head_tags()">
-  <link rel="meta" type="application/rdf+xml" title="RDF Manifest"
-               href="/objects/${c.silo_name}/${c.id}/manifest.rdf"/>
-  <title> View of item ${c.item.uri} </title>
+  <title>Item View</title>
+<script type="text/javascript">
+<!--
+    function showhide(id) {
+       var e = document.getElementById(id);
+       if(e.style.display == 'block')
+          e.style.display = 'none';
+       else
+          e.style.display = 'block';
+    }
+//-->
+</script>
+
 </%def>
+
+<h1>Data package ${c.id}</h1>
+% if c.version:
+<h2>Version ${c.version}</h2>
+% elif c.versions:
+<h2>Version ${c.versions[-1]}</h2>
+% endif
+
+<!-- View Information -->
 % if c.editor:
-<p>View as <a href="/objects/${c.silo_name}/${c.id}?view=editor"> Editor </a>, or <a href="/objects/${c.silo_name}/${c.id}?view=user">User</a>
+  <div id="editor_view">
+  <h2>Edit options</h2>
+  <!-- 
+  % if c.view == 'editor':
+    Editor view 
+  % else:
+    User view 
+  % endif
+  % if c.version: 
+    <br /> Change view : 
+    <a href="/${c.silo_name}/datasets/${c.id}/${c.path}?version=${c.version}&view=editor">Editor</a> | 
+    <a href="/${c.silo_name}/datasets/${c.id}/${c.path}?version=${c.version}&view=user">User</a></p>
+  % else:
+    <br />Change view : 
+    <a href="/${c.silo_name}/datasets/${c.id}/${c.path}?view=editor">Editor</a> | 
+    <a href="/${c.silo_name}/datasets/${c.id}/${c.path}?view=user">User</a></p>
+  % endif
+  -->
+  <ul class="stateInfo">
+  <li><a href="#upload_file" onclick="showhide('upload_file');">
+    <img src="/static/styles/images/file-new-icon-24.png"/>Upload file</a></li>
+  </ul>
+  </div>
 % endif
-% if c.readme_text:
-<%include file="/readme_section.html"/>
+
+<!-- Version of Datapackage -->
+<div class="dataset_info">
+% if c.version and c.versions and c.version == c.versions[-1]:
+<p>You are currently viewing the <b>latest version (${c.versions[-1]})</b> of the data package</p>
+% elif c.version:
+<p>You are currently viewing <b> version ${c.version}</b> of the data package</p>
+% elif c.versions:
+<p>You are currently viewing the <b>latest version (${c.versions[-1]})</b> of the data package</p>
+% else:
+<p>You are currently viewing the <b>latest version</b> of th data package</p>
 % endif
-<%include file="/part_list.html"/>
-% if c.item and c.view == "editor":
-<div id="editor_metadata_view">
-<p> Detailed view (As Editor)
-<dl>
-<dt>Item's JSON state (Accept: application/json):</dt>
-<dd>${repr(c.item)}</dd>
-<dt>Item's Embargo state</dt>
-<dd>
-<%
-c.current = c.id
-%>
-<p><%include file="/embargo_form.html"/></p>
-<p><small>Embargo state: True - only those logged in and with edit rights can see item. False - Anyone can GET the item and it's files.</small></p>
-<p><small>Embargo date: Aim is for ISO8601 dates to provide embargo trigger events. Currently unused, unvalidated and unparsed.</small></p></dd>
-<dt>Item's RDF Manifest (Accept: most RDF mimetypes):</dt>
-<dd><pre>${c.item.rdf_to_string(format="pretty-xml")}</pre></dd>
-<dt>Change RDF Manifest:</dt>
-<dd><%include file="/rdf_manifest_form.html"/></dd>
-</dl>
+
+% if c.versions:
+  <h3>View other versions:</h3><ul class="versions">
+  % for v in c.versions:
+    % if c.version and v == c.version:
+      <li><a class="current" href="/${c.silo_name}/datasets/${c.id}/${c.path}?version=${v}">${v}</a></li>
+    % elif (not c.version) and (v == c.versions[-1]):
+      <li><a class="current" href="/${c.silo_name}/datasets/${c.id}/${c.path}?version=${v}">${v}</a></li>
+    % else:
+      <li><a href="/${c.silo_name}/datasets/${c.id}/${c.path}?version=${v}">${v}</a></li>
+    % endif
+  % endfor
+  </ul>
+% endif
 </div>
-<%include file="/file_upload.html"/>
+
+<div class="datapackage">
+<!-- List of Files -->
+% if c.parts:
+  <h2>Data package contents within ${c.path}</h2>
+  <div class="dataset_info">
+  % if c.show_files:
+    % if c.editor:
+      <%include file="/part_list.html"/>
+    % else:
+      <%include file="/part_list_display.html"/>
+    % endif
+  % else:
+    <p>You do not have permission to view these files</p>
+  % endif
+  </div>
+% else:
+  <p>There are no files or folders in this path</p>
 % endif
+</div>
+
+<!-- Read Me Information -->
+% if c.readme_text:
+<h2>README text</h2>
+<div class="dataset_info">
+<%include file="/readme_section.html"/>
+</div>
+% endif
+
+<!-- DISPLAYED FOR EDITOR ONLY -->
+% if c.editor and c.view == 'editor':
+  <!-- Upload File -->
+  <div id="upload_file" class="edit_section" style="display: none;">
+  <a name="upload_file"></a>
+  <h2>Upload file to ${c.id}/${c.path}:</h2>
+  <%include file="/item_file_upload.html"/>
+  <div class="top"><a href="#top" onclick="showhide('upload_file');" title="Back to top"><img src="/static/styles/images/go-up-icon-24.png"/></a></div>
+  </div>
+% endif
+

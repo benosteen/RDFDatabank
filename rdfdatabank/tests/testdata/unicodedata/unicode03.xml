@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF 
+    xmlns:dcterms="http://purl.org/dc/terms/" 
+    xmlns:dcmitype="http://purl.org/dc/dcmitype/"
+    xmlns:oxds="http://vocab.ox.ac.uk/dataset/schema#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+>
+  <oxds:DataSet rdf:about="">
+    <dcterms:title>Combining diacritics</dcterms:title>
+    <rdf:value>The following paragraph gives a few forms formed by using combining diacritics. The equal sign means that the combined form on the left should be identical in all respects (and in particular, represented identically) to the atomic form on the right. To emphasize even more: you should not see two signs on the left of the equal sign but one, the same as on the right.
+ &lt;br&gt; &lt;br&gt; 
+à=à; é=é; î=î (not the same as ı̂ but may be graphically identical); õ=õ; ū=ū (whereas u¯ is two different symbols); ă=ă; ė=ė (also note i̇ should be essentially i); ï=ï (whereas i̇̈ has three dots on the i); å=å (not to be confused with a° (read “a degrees”) nor a˚); ő=ő; č=č
+ç=ç; ḅ=ḅ; ḏ=ḏ (this is supposedly different from d̠ but may be graphically identical); ḙ=ḙ
+ǖ=ǖ=ǖ (not the same as ṻ which has the diaeresis on top of the macron); ǡ=ǡ=ǡ
+ǭ=ǭ=ǭ (also ǭ but the latter is not so canonical); ó̷=ǿ=ǿ (not so sure about this one) </rdf:value>
+    <dcterms:source>http://www.madore.org/~david/misc/unitest/</dcterms:source>
+  </oxds:DataSet>
+</rdf:RDF>

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-<p> Add File to ${c.id}</p>
-<p>
-<form method="POST" enctype="multipart/form-data" action="/objects/${c.silo_name}/${c.id}">
-<input type="file" name="file" /> 
-<label for="filename">Filename: (optional)</label><input type="text" name="filename"/>
+<form method="POST" enctype="multipart/form-data" action="/${c.silo_name}/datasets/${c.id}" accept-charset="UTF-8">
+<label for="fileUpload">File:</label>
+<input type="file" name="file" id="fileUpload" /> 
+<br/><br/>
+<label for="fileUploadName">Filename:</label>
+<input id="fileUploadName" type="text" name="filename" placeholder="alternate name for file"/>
+<div class="form_helper">Filename is optional. Use it to specify a new filename for the file being uploaded.</div>
 <input type="submit" value="Add File"/>
 </form>
-</p>

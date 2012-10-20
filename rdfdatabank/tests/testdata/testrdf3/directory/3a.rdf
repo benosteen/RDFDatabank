@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF 
+    xmlns:dcterms="http://purl.org/dc/terms/" 
+    xmlns:dcmitype="http://purl.org/dc/dcmitype/"
+    xmlns:oxds="http://vocab.ox.ac.uk/dataset/schema#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+>
+  <oxds:item rdf:about="hebrew.txt">
+    <dcterms:title>Hebrew text</dcterms:title>
+    <rdf:value>ומנהאגא בי מדראשי קביעי דנהרדעא ודסורא עדיין למימר ואור חדש וא̇ע̇פ̇ דר̇ 
+&lt;br&gt; &lt;br&gt;ריש מתיבתא בסורא לא קבילו מיניה אפילו בחייה
+&lt;br&gt; &lt;br&gt;ואתכאלהם עלי קלה אפהאם אלנאס פראית אן אכתצר גמל מא יקרב מן וגוה וגוב אלאומאן אלכפיפה ואלתקילה אעני שבועת דאוריתא
+&lt;br&gt; &lt;br&gt;אם בגפו יבא בגפו יצא כלו̇ יחידי נכנס יחידי יצא וכן הוא אומר תמכור עמך
+&lt;br&gt; &lt;br&gt;מתני̇ בנה בית חדש וקנה כלים חדשים אומר שהחיינו וכול̇ זו השמועה משובשת היא בנוסחאות אבל אנו נסחנוה מן הנוסחא שבאה מבבל ובן סידורה</rdf:value>
+    <dcterms:source>http://genizah.bodleian.ox.ac.uk/</dcterms:source>
+  </oxds:item>
+</rdf:RDF>

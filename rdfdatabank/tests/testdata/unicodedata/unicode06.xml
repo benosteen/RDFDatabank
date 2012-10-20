@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF 
+    xmlns:dcterms="http://purl.org/dc/terms/" 
+    xmlns:dcmitype="http://purl.org/dc/dcmitype/"
+    xmlns:oxds="http://vocab.ox.ac.uk/dataset/schema#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+>
+  <oxds:DataSet rdf:about="">
+    <dcterms:title>Some verses in ancient Greek</dcterms:title>
+    <rdf:value>The following verses are lines 1182–1185 of the tragedy Oedipus Rex by Sophocles (in ancient Greek): &lt;br&gt;
+ &lt;br&gt;
+    Ἰοὺ ἰού· τὰ πάντʼ ἂν ἐξήκοι σαφῆ. &lt;br&gt;
+    Ὦ φῶς, τελευταῖόν σε προσϐλέψαιμι νῦν, &lt;br&gt;
+    ὅστις πέφασμαι φύς τʼ ἀφʼ ὧν οὐ χρῆν, ξὺν οἷς τʼ &lt;br&gt;
+    οὐ χρῆν ὁμιλῶν, οὕς τέ μʼ οὐκ ἔδει κτανών. &lt;br&gt;
+ &lt;br&gt;
+Here is the transcription of it: &lt;br&gt;
+ &lt;br&gt;
+    Iou iou; ta pant' an exēkoi saphē. &lt;br&gt;
+    Ō phōs, teleutaion se prosblepsaimi nun, &lt;br&gt;
+    hostis pephasmai phus t' aph' hōn ou khrēn, xun hois t' &lt;br&gt;
+    ou khrēn homilōn, hous te m' ouk edei ktanōn. &lt;br&gt;
+ &lt;br&gt;
+A rough translation might be: &lt;br&gt;
+ &lt;br&gt;
+    Alas! All would become clear. / O light, may I see you for the last time, / I who was born of these of which it is a crime to be born, who live with these / which which it is a crime to live, and who killed these whom I must not kill.</rdf:value>
+    <dcterms:source>http://www.madore.org/~david/misc/unitest/</dcterms:source>
+  </oxds:DataSet>
+</rdf:RDF>

@@ -1,0 +1,16 @@
+﻿<rdf:RDF
+  xmlns:dcterms='http://purl.org/dc/terms/'
+  xmlns:oxds='http://vocab.ox.ac.uk/dataset/schema#'
+  xmlns:ore='http://www.openarchives.org/ore/terms/'
+  xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'
+>
+  <oxds:Grouping rdf:about="http://example.org/testrdf/">
+    <dcterms:title>Test dataset with merged metadata</dcterms:title>
+	<dcterms:description>&lt;br&gt; &lt;br&gt;ثمت مسايل حنين في حادي عشر شهر جمادى الاخر سنه سبع وثمانين وسبعمايه بخط ألعَبد الفَقير ألراجي عفو رَبه يعقوب عبد اللّه بن ابى المُرجا الاسرايلي غفر اللّه لَه امين والحمد للّه رب العالمي
+&lt;br&gt; &lt;br&gt;واذا كان البول معتدلًا في قوامه مايلًا الي لون النار فعلي ماذا يدل اذا كان معه ثفلٌ راسبٌ
+&lt;br&gt; &lt;br&gt;ما السبب الذي له صار البول الاحمر التانى والبول الاسود لا يكون معهما للبول قوام معتدل
+&lt;br&gt; &lt;br&gt;الثفل الراسب في البول متي يكون جيدًا محمودًا ومتي يكون رديًا مذمومًا
+&lt;br&gt; &lt;br&gt;اذا كان في البول دم وقيح فعلي ما ذا يدل
+&lt;br&gt; &lt;br&gt;بماذا يفرق بين القيح الدي يخرج من الكليتين والمثانه وبين القيح الدي يخرج من الاعضآء</dcterms:description>
+  </oxds:Grouping>
+</rdf:RDF>

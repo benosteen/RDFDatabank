@@ -1,0 +1,43 @@
+# -*- coding: utf-8 -*-
+<%inherit file="/base.html" />
+<%def name="head_tags()">
+  <title> DOI view </title>
+</%def>
+<h1>DOI Information for ${c.silo_name}/${c.id}/version${c.version}</h1>
+% if c.heading:
+    <h2>${c.heading}</h2>
+%endif
+<div id="flash">
+% if c.message:
+     <p>${c.message}</p>
+% endif
+% if c.resp_status:
+     <p>Response code from Datacite: ${c.resp_status}</p>
+% endif
+% if c.resp_reason:
+     <p>Response message from Datacite: ${c.resp_reason}</p>
+% endif
+</div>
+
+% if c.dois:
+    <p>DOIs available for this data package</p>
+    <ul>
+    % for v, d in c.dois.iteritems():
+        <li>Verison ${v}: ${d}</li>
+    % endfor
+    </ul>
+% endif
+
+% if c.version_doi:
+     <p><b>DOI:</b> ${c.version_doi}</p>
+% endif
+
+% if c.editor:
+    <%include file="/create_doi.html"/>
+% endif
+
+%if c.metadata:
+ <p><b>Metadata associated with the DOI</b></p>
+ <pre>${c.metadata}</pre>
+% endif
+

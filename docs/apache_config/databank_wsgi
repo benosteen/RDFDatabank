@@ -1,0 +1,21 @@
+<VirtualHost *:80>
+    #ServerName databank.com
+
+    # Logfiles
+    ErrorLog  /var/log/apache2/databank-error.log
+    CustomLog /var/log/apache2/databank-access.log combined
+    LogLevel warn 
+
+    # Use only 1 Python sub-interpreter.  Multiple sub-interpreters
+    # play badly with C extensions.
+    WSGIApplicationGroup %{GLOBAL}
+    WSGIPassAuthorization On
+    # Setup mod_wsgi
+    WSGIScriptAlias / /var/lib/databank/mod_wsgi/dispatch.wsgi
+
+    <Directory /var/lib/databank/mod_wsgi>
+    Order deny,allow
+    Allow from all
+    </Directory>
+
+</VirtualHost>

@@ -1,0 +1,537 @@
+Databank VM Setup - 0.3rc2
+This document details installing Databank from source
+
+For installing Databank from a debian package, visit http://apt-repo.bodleian.ox.ac.uk/databank/
+and follow the instruction under 'Using the repository' and 'Installing Databank'
+
+------------------------------------------------------------------------------------------------------
+I. Virtual machine details
+------------------------------------------------------------------------------------------------------
+Ubuntu 11.10 server i386
+512MB RAM
+8GB Harddrive (all of hard disk not allocated at the time of creation)
+Network: NAT
+1 processor
+
+hostname: databank
+Partition disk - guided - use entire disk and set up LVM
+Full name: Databank Admin
+username: demoSystemUser
+password: xxxxxxx
+NO encryption of home dir
+No proxy
+No automatic updates
+No predefined software
+Install Grub boot loader to master boot record
+
+Installing VMWare tools
+    Select Install Vmware tools from the VMWare console 
+    sudo mkdir /mnt/cdrom
+    sudo mount /dev/cdrom /mnt/cdrom
+    cd tmp
+    cd /tmp
+    ls -l
+    tar zxpf /mnt/cdrom/VMwareTools-7.7.6-203138.tar.gz vmware-tools-distrib/
+    ls -l
+    sudo umount /dev/cdrom
+    sudo apt-get install linux-headers-virtual
+    sudo apt-get install psmisc
+    cd vmware-tools-distrib/
+    sudo ./vmware-install.pl
+Accept all of the default options
+
+------------------------------------------------------------------------------------------------------
+II. A. Packages to be Installed
+------------------------------------------------------------------------------------------------------
+    sudo apt-get install build-essential
+    sudo apt-get update
+    sudo apt-get install openssh-server
+    
+    sudo apt-get install python-dev
+    sudo apt-get install python-setuptools
+    sudo apt-get install python-virtualenv
+
+    sudo apt-get install curl
+    sudo apt-get install links2
+    sudo apt-get install unzip
+    sudo apt-get install libxml2-dev
+    sudo apt-get install libxslt-dev
+    sudo apt-get install libxml2
+    sudo apt-get install libxslt1.1
+    
+    sudo apt-get install redis-server
+
+------------------------------------------------------------------------------------------------------
+III. Create mysql user and database for Databank
+------------------------------------------------------------------------------------------------------
+
+    # If you don't have mysql installed, run the following command
+    sudo apt-get install mysql-server libmysql++-dev
+
+    # Create mysql user and database for Databank
+    # Create Database databankauth and user databanksqladmin. Give user databanksqladmin access to databankauth
+    # Set the password for user databanksqladmin - replace 'password' in the command below
+    mysql -u root -p
+mysql> use mysql;
+mysql> CREATE DATABASE databankauth DEFAULT CHARACTER SET utf8 COLLATE utf8_bin;
+mysql> GRANT ALL ON databankauth.* TO databanksqladmin@localhost IDENTIFIED BY password;
+mysql> exit
+
+    # Test the user and database are created fine. 
+    # You should be able to login as used databanksqladmin and use the database databankatuh.
+    # The database will be populated with the required tables when the databank application is setup
+    mysql -h localhost -u databanksqladmin -p
+mysql> use databankauth;    
+mysql> show tables;
+mysql> exit
+
+------------------------------------------------------------------------------------------------------
+IV. Install Databank, Sword server and python depedencies
+------------------------------------------------------------------------------------------------------
+    Databank's root folder is not /var/lib/databank
+
+    # Create all of the folders needed for Databank and set the permission and owner
+    sudo mkdir /var/lib/databank
+    sudo mkdir /var/log/databank
+    sudo mkdir /var/cache/databank
+    sudo mkdir /etc/default/databank
+    sudo mkdir /silos
+    sudo chown -R databankadmin:www-data /var/lib/databank/
+    sudo chown -R databankadmin:www-data /var/log/databank/
+    sudo chown -R databankadmin:www-data /var/cache/databank/
+    sudo chown -R databankadmin:www-data /etc/default/databank/
+    sudo chown -R databankadmin:www-data /silos/
+    sudo chmod -R 775 /var/lib/databank/
+    sudo chmod -R 775 /var/log/databank/
+    sudo chmod -R 775 /var/cache/databank/
+    sudo chmod -R 775 /etc/default/databank/
+    sudo chmod -R 775 /silos/
+
+    # Pull databank source code from Github into /var/lib/databank
+    sudo apt-get install git-core git-doc
+    git clone git://github.com/dataflow/RDFDatabank /var/lib/databank
+
+    # Move all of the config files into /etc/default/databank so you don't overwrite them by mistake when updating the source code
+    cp production.ini /etc/default/databank/
+    cp development.ini /etc/default/databank/
+    cp -r docs/apache_config/*_wsgi /etc/default/databank/
+    cp docs/solr_config/conf/schema.xml /etc/default/databank/
+
+    # Setup a virtual environemnt fro python and install all the python packages 
+    virtualenv --no-site-packages /var/lib/databank/
+    cd /var/lib/databank/
+    source bin/activate
+    easy_install python-dateutil==1.5
+    easy_install pairtree==0.7.1-T
+    easy_install https://github.com/anusharanganathan/RecordSilo/raw/master/dist/RecordSilo-0.4.15-py2.7.egg
+    easy_install solrpy==0.9.5
+    easy_install rdflib==2.4.2
+    easy_install redis==2.4.11
+    easy_install MySQL-python
+    easy_install pylons==1.0
+    easy_install lxml==2.3.4
+    easy_install web.py
+    easy_install sqlalchemy==0.7.6
+    easy_install repoze.what-pylons
+    easy_install repoze.what-quickstart
+    
+    # Repoze.what installs repoze.who version 1.0.19 while Databank uses repoze.who 2.0a4. So delete repoze.who 1.0.19
+    rm -r lib/python2.7/site-packages/repoze.who-1.0.19-py2.7.egg/
+
+    # Pylons installs the latest version of WebOb, which expects all requests in utf-8 while earlier WebOb until 1.0.8 did't insist on utf-8.
+    # So remove the latest version of WebOb, which currently is 1.2b3
+    rm -r lib/python2.7/site-packages/WebOb-1.2b3-py2.7.egg/
+
+    # Install the particular version of repoze.who and WebOb needed for Databank
+    easy_install repoze.who==2.0a4 
+    easy_install webob==1.0.8
+
+    # Pull the sword server from source forge and copy the folder sss within sword server into databank
+    cd ~
+    wget http://sword-app.svn.sourceforge.net/viewvc/sword-app/sss/branches/sss-2/?view=tar
+    mv index.html\?view\=tar sword-server-2.tar.gz
+    tar xzvf sword-server-2.tar.gz 
+    cp -r ./sss-2/sss/ ./
+    cd /var/lib/databank
+
+    Installing profilers in python and pylons to obtain run time performance and other stats
+    Note: This package is OPTIONAL and is only needed in development machines. 
+          See the note below about running Pylons in debug mode (section B)
+    easy_install profiler
+    easy_install repoze.profile
+
+------------------------------------------------------------------------------------------------------
+V. Customizing Databank to your environment
+------------------------------------------------------------------------------------------------------
+All of Databank's configuration settings are placed in the file production.ini or development.ini
+  * development.ini is configured to work in debug mode with all of the logs written to the console.
+  * production.ini is configured to not work in debug mode with all of the logs written to log files
+
+The following settings need to be configured
+1. Adminsitrator email and smtp server for emails
+    The databank will email errors to the administrator
+    Edit the field 'email_to' for the email address
+    Edit the field 'smtp_server' for the smtp server to be used. The default value is 'localhost'.
+
+2. The location where all of Databank's data is to be stored
+    Edit the field 'granary.store'
+    The default value is '/silos'
+
+3^. The url where Databank will be available. 
+    Examples for this are: 
+        The server name like                                http://example.com/databank/ or 
+        the ip address fo the machine,if it has no cname    http://192.168.23.131/  or
+        just using localhost (development / evaluation)     http://localhost/ or 
+    Edit the field 'granary.uri_root'
+    The default value is 'http://databank/'        
+
+4. The mysql database connction string for databank
+    The format of the connection string is mysql://username:password@localhost:3306/database_name
+        Replace username, password and database_name with the corect values.
+        The default username is databankdsqladmin
+        The default database name is databankauth
+    Edit the field 'sqlalchemy.url'
+    The default value is mysql://databanksqladmin:d6sqL4dm;n@localhost:3306/databankauth'
+    
+5. The SOLR end point
+    Should point to the databank solr instance
+    Edit the field 'solr.host'
+    The default value is http://localhost:8080/solr,
+
+6. Default metadata values
+    The value of publisher and the defualt value of rights and license can be modified
+    These are treated as text strings and are currently used in the manifest.rdf 
+
+ ^  This setting will also need to be modified at /var/lib/databank/rdfdatabank/tests/RDFDatabankConfig.py
+    Change 'granary_uri_root'. 
+	See section XVI for the significance of the base URI
+
+------------------------------------------------------------------------------------------------------
+VI. Customizing Databank Sword to your environment
+------------------------------------------------------------------------------------------------------
+The sword configuration settings are placed in the file sss.conf.json
+
+The url where Databank will be available needs to be set
+Without this, a sword client cannot talk to Databank through the sword interface
+
+Edit the field 'base_url'
+The default value is http://localhost:5000/swordv2/
+Replace http://localhost/ with the correct base url
+Examples for this are: 
+    The server name like                                http://example.com/databank/ or 
+    the ip address fo the machine,if it has no cname    http://192.168.23.131/  or
+    just using localhost (development / evaluation)     http://localhost/ or 
+
+
+Edit the field 'db_base_url'
+The default value is http://192.168.23.133/
+Replace with the correct base url
+
+------------------------------------------------------------------------------------------------------
+VII. Intialize databank and Create the main admin user to access Databank
+------------------------------------------------------------------------------------------------------    
+    paster setup-app production.ini
+    python add_user.py admin password dataflow-devel@googlegroups.com
+	
+	The second command is used to create the administrator user for databank.
+	* The administrator has a default username as 'admin'. 
+	* This user is the root administrator for Databank and has access to all the silos in Databank.
+	* Please choose a strong password for the user and replace the string 'password' with the password. 
+
+------------------------------------------------------------------------------------------------------
+VIII. Installing SOLR with Tomcat and cutomizing SOLR for Databank
+	  * If you already have an existing SOLR installation and would like to use that, see section XVIII
+------------------------------------------------------------------------------------------------------    
+    # Install solr with tomcat
+    sudo apt-get install openjdk-6-jre    
+    sudo apt-get install solr-tomcat
+
+        This will install Solr from Ubuntu's repositories as well as install and configure Tomcat. 
+        Tomcat is installed with CATALINA_HOME in /usr/share/tomcat6 and CATALINA_BASE in /var/lib/tomcat6, 
+        following the rules from /usr/share/doc/tomcat6-common/RUNNING.txt.gz. 
+        The Catalaina configuration files are in /etc/tomcat6/ 
+        
+        Solr itself lives in three spots, /usr/share/solr, /var/lib/solr/ and /etc/solr. 
+        These directories contain the solr home director, data directory and configuration data respectively.
+        
+        You can visit the url http://localhost:8080 and http://localhost:8080/solr to make sure Tomcat and SOLR are working fine
+
+    # Stop tomcat before customizing solr
+    /etc/init.d/tomcat6 stop
+
+    # Backup the current solr schema
+    sudo cp /etc/solr/conf/schema.xml /etc/solr/conf/schema.xml.bak
+
+    # Copy (sym link) the Databank SOLR Schema into Solr
+    sudo ln -sf /etc/default/databank/schema.xml /etc/solr/conf/schema.xml  
+
+    # Start tomcat and test solr is working fine by visting http://localhost:8080/solr
+    /etc/init.d/tomcat6 start
+
+------------------------------------------------------------------------------------------------------
+IX. Setting up Supervisor to manage the message workers
+------------------------------------------------------------------------------------------------------
+Items are indexed in SOLR from Databank, through redis using message queues
+The workers that run on these message queues are managed using supervisor
+
+# If you do not already have supervisor, install it
+    sudo apt-get install supervisor
+
+# Configuring Supervisor for Databank
+
+    # Stop supervisor
+    sudo /etc/init.d/supervisor stop
+
+    # Copy (sym link) the supervisor configuration files for the message workers
+    sudo ln -sf /var/lib/databank/message_workers/workers_available/worker_broker.conf  /etc/supervisor/conf.d/worker_broker.conf
+    sudo ln -sf /var/lib/databank/message_workers/workers_available/worker_solr.conf  /etc/supervisor/conf.d/worker_solr.conf
+
+    sudo /etc/init.d/supervisor start
+
+# The controller for supervisor can be invoked with the command 'supervisorctl'
+    sudo supervisorctl
+        
+    This will list all of the jobs manged by supervisor and their current status.
+    You can start / stop / restart jobs from within the controller.
+    For more info on supervisor, read http://supervisord.org/index.html
+
+------------------------------------------------------------------------------------------------------
+X. Integrate Databank with Datacite, for minting DOIs (this section is optional)
+------------------------------------------------------------------------------------------------------
+If you want to integrate Databank with Datacite for minting DOIs for each of the data-packages, then you would need to do the following:
+
+Create a file called doi_config.py which has all of the authentication information given to you by Datacite. Copy the lines below and 
+edit the values for each of the fields in "#Details pertaining to account with datacite" and "#Datacite api endpoint" if it is different
+
+By default, this file is palced in /var/lib/databank/rdfdatabank/config/doi_config.py.
+If you want to place the file in a different location, make sure Datababk knows where to find the file. 
+The field 'doi.config' in section [app:main] in production.ini and development.ini has this setting.
+
+#-*- coding: utf-8 -*-
+from pylons import config
+
+class OxDataciteDoi():
+    def __init__(self):
+        """
+            DOI service provided by the British Library on behalf of Datacite.org
+            API Doc: https://api.datacite.org/
+            Metadata requirements: http://datacite.org/schema/DataCite-MetadataKernel_v2.0.pdf
+        """
+        #Details pertaining to account with datacite
+        self.account = "BL.xxxx"
+        self.description = "Oxford University Library Service Databank"
+        self.contact = "Contact Name of person in your organisation"
+        self.email = "email of contact person in your organisation"
+        self.password = "password as given by DataCite"
+        self.domain = "ox.ac.uk"
+        self.prefix = "the prefix as given by DataCite"
+        self.quota = 500
+
+        if config.has_key("doi.count"):
+            self.doi_count_file = config['doi.count']
+
+        #Datacite api endpoint
+        self.endpoint_host = "api.datacite.org"
+        self.endpoint_path_doi = "/doi"
+        self.endpoint_path_metadata = "/metadata"
+
+------------------------------------------------------------------------------------------------------
+XI. Integrate Databank with Apache
+------------------------------------------------------------------------------------------------------
+1. Install Apache and the required libraries 
+    sudo apt-get install apache2 apache2-utils libapache2-mod-wsgi
+
+2. Stop Apache before making any modification   
+    sudo /etc/init.d/apache2 stop
+
+3. Add a new site in apache sites-available called 'databank_ve27_wsgi'
+    sudo ln -sf /etc/default/databank/databank_ve27_wsgi /etc/apache2/sites-available/databank_ve27_wsgi
+
+4. Disable the default sites
+    # Check what default sites you have 
+    sudo ls -l /etc/apache2/sites-available
+    sudo a2dissite default
+    sudo a2dissite default-ssl 
+    sudo a2dissite 000-default
+
+5. Enable the site 'databank_ve27_wsgi'
+    sudo a2ensite databank_ve_27_wsgi
+
+6. Reload apache and start it
+    sudo /etc/init.d/apache2 reload
+    sudo /etc/init.d/apache2 start    
+
+------------------------------------------------------------------------------------------------------
+XII. Making sure all of the needed folders are available and apache has access to all the needed parts
+------------------------------------------------------------------------------------------------------
+Apache runs as user www-data. Make sure the user www-data is able to read write to the following locations
+    /var/lib/databank
+    /silos
+    /var/log/databank
+    /var/cache/databank
+    
+Change permission, so www-data has access to RDFDatabank
+    sudo chgrp -R www-data path_to_dir
+    sudo chmod -R 775 $path_to_dir
+
+------------------------------------------------------------------------------------------------------
+XIII. Test your Pylons installation 
+------------------------------------------------------------------------------------------------------
+Visit the page http://localhost/
+  
+If you see an error message look at the logs at /var/log/apache2/databank-error.log and /var/log/databank/
+
+------------------------------------------------------------------------------------------------------
+XIV. Run the test code and make sure all the tests pass
+------------------------------------------------------------------------------------------------------
+The test code is located at /var/lib/databank/rdfdatabank/tests
+
+The test use the configuration file RDFDatabankConfig.py, which you may need to modify
+    granary_uri_root="http://databank"
+        This needs to be the same value as granary.uri_root in the production.ini file (or development.ini file if usign that instead)
+    endpointhost="localhost"
+        This should point to the url where the databank instance is running. 
+        If it is running on http://localhost/, it should be localhost. If it is running on http://example.org it should be example.org.
+        if it is running on a non-standard port like port 5000 at http://localhost:5000, this would be localhost:5000
+    endpointpath="/sandbox/" and endpointpath2="/sandbox2/"
+        The silos that are going to be used for testing. Currently only the silo defined in endpointpath is used. 
+        The silos will be created by the test if they don't exist.
+    The rest of the file lists the credentials of the different users used for testing
+
+To run the tests
+    Make sure databank is running (see section IX)
+    cd /var/lib/databank
+    . bin/activate
+    cd rdfdatabank/tests
+    python TestSubmission.py
+
+-----------------------------------------------------------------------------------------------------  
+XV. Running Pylons from the command line in debug mode and dumping logs to stdout
+-----------------------------------------------------------------------------------------------------
+If you would like to run Pylons in debug mode from the command line and dump all of the log messages to stdout, stop apache and start paster from the command line.
+
+The configuration file development.ini has been setup to do just that.
+        
+Make sure the user running paster has access to all the directories. 
+
+Running Pylons on port 80 (host=0.0.0.0 and port=80 in development.ini)
+    you are now likely to be running databank as the super user and not user 'www-data' and so would have to revisit section XII and 
+    change permissions giving the super user running paster access to the different directories.
+   
+The commands to run pylons from the command line
+    sudo /etc/init.d/apache2 stop
+    sudo ./bin/paster serve development.ini
+
+To stop paster,press ctrl+c
+
+To run paster on another port, modify the fields host and port in development.ini. 
+For example, to run on port 5000, the settings would be
+host = 127.0.0.1
+port = 5000    
+
+-----------------------------------------------------------------------------------------------------
+XVI. The Base URI setting (granary.uri_root) for Databank and it's significance
+-----------------------------------------------------------------------------------------------------
+One of the configuration options available in Databank is the 'granary.uri_root' which is the base uri for Databank.
+This value is used in the following:
+	* Each of the silos created in Databank will be intialized with this base URI
+	* In each of the data packages, the metadata (held in the manifest.rdf) will use this base URI in creating the URI for the data package
+	* The links to each data item in the package will be created using this base uri (aggregate map for each data package)
+
+	If this base uri doesn't resolve, the links for each of the items in the data package will not resolve
+
+This base uri is regarded to be permanent. Modifying the base uri at some point in the future will create all new silos and the data packages within the new silos with the new base uri, but the existing silos and data packages will continue to have the old uri.
+
+-----------------------------------------------------------------------------------------------------
+XVII. Recap of the services running in Databank
+-----------------------------------------------------------------------------------------------------
+Apache2 
+	Runs the databank web server (powered by Pylons) 
+	at http://localhost or http://ip_address from your host machine
+
+ 	Apache should start automatically on startup of the VM. 
+
+ 	The apache log files are at 
+		/var/log/apache2/
+
+	The command to stop, start and restart apache are 
+		sudo /etc/init.d/apache2 [ stop | start | restart ]
+
+
+Tomcat 
+	Tomcat runs the SOLR webservice. Tomcat should start automatically on startup of the VM. 
+	Tomcat should be available at http://localhost:8080 and 
+	SOLR should be available at http://localhost:8080/solr
+
+ 	 Tomcat is installed with 
+		CATALINA_HOME in /usr/share/tomcat6, 
+		CATALINA_BASE in /var/lib/tomcat6 and 
+		configuration files in /etc/tomcat6/ 
+
+	SOLR itself lives in three spots, 
+		/usr/share/solr - contains the SOLR home director,
+		/var/lib/solr/ - contains the data directory and
+		/etc/solr – contains the configuration data
+
+	The command to stop, start and restart tomcat are 
+		sudo /etc/init.d/tomcat6 [ stop | start | restart ]
+
+
+ Redis 
+	Runs a basic messaging queue used by the API for indexing items into SOLR 
+	and storing information that need to accessed quickly (like embargo information) 
+
+ 	Redis should start automatically on startup of the VM.  
+
+	The data directory is at /var/lib/redis and the configuration is at /etc/redis 
+
+	 The command to stop, start and restart redis are 
+		sudo /etc/init.d/redis-server [ stop | start | restart ]
+
+
+Supervisor
+	Supervisor maintains the message workers run by Databank. 
+	Run the supervisor controller to manage processes maintained by supervisor
+	sudo supervisorctl
+
+------------------------------------------------------------------------------------------------------
+XVIII. Integrating SOLR for Databank with an existing SOLR installation 
+------------------------------------------------------------------------------------------------------
+If you already have a SOLR instance running and would like to add databank to it
+	- either by creating a new core (https://wiki.apache.org/solr/CoreAdmin) 
+	- or by creating a new instance 
+		http://wiki.apache.org/solr/SolrTomcat#Multiple_Solr_Webapps
+		http://wiki.apache.org/solr/SolrJetty#Running_multiple_instances
+you can do so.
+
+
+Once you have created a new core or new instance, and verified it is wotking,
+	stop SOLR, 
+	replace the example schema file for that core / instance with Databank's schema file. 
+	It is available at /etc/default/databank/schema.xml
+	Start SOLR
+
+	
+Stop Databank web server (stop apache) and the solr worker (using supervisorctl)
+
+
+You need to configure the solr end point in the config file production.ini or development.ini 
+(as mentioned in section V). 
+	In the case of mmultiple cores, the solr end point would be something like http://localhost:8080/solr/core_databank
+	if you have called the databank core 'core_databank'
+
+	In the case of mmultiple SOLR instances, the solr end point would be something like http://localhost:8080/solr_databank
+	if you have called the databank instance 'solr_databank'	
+	
+	Edit the field 'solr.host'. 
+	Replace the default value with your solr endpoint
+
+	
+You need to configure the solr end point in the config file loglines.cfg 
+located at /var/lib/databank/message_workers/ and used by the solr worker for indexing items into SOLR
+	Edit the field 'solrurl' in the section [worker_solr]. 
+	Replace the default value with your solr endpoint
+	
+Start the solr worker (using supervisorctl) and the Databank web server (start apache)
+    
+-----------------------------------------------------------------------------------------------------

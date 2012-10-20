@@ -1,32 +1,24 @@
 # -*- coding: utf-8 -*-
 <%inherit file="/base.html" />
 <%def name="head_tags()">
-  <title> List of Data Archives </title>
+  <title> List of Data packages </title>
 </%def>
-% if c.silo_name:
-<ul>
-% for key in ['title', 'description','owner']:
-% if c.silo.state.has_key(key):
-<li><big><big>${key.capitalize()} - </big> ${c.silo.state[key]}</big></li>
+% if c.title:
+<h1>Silo <span class="name" >${c.title} </span></h1>
+% elif c.silo_name:
+<h1>Silo <span class="name" >${c.silo_name}</span></h1>
 % endif
-% endfor
-<li> <big>Items:</big> <ul>
-% for item in sorted(c.items):
-<li id="${"_".join(c.silo_name.split("."))}_${"_".join(item.split(":"))}"> 
-<a href="/objects/${c.silo_name}/${item}"> ${item}</a>
-<ul><li><a class="delete" href="/objects/${c.silo_name}/${item}" data-remove="${"_".join(c.silo_name.split("."))}_${"_".join(item.split(":"))}">Delete item</a></li>
-<%
-c.current = item
-%>
-<li><%include file="/embargo_form.html"/></li>
-</ul>
-</li>
-% endfor
-</ul>
-</li>
-<ul>
+% if c.editor:
+  <div class="newPackage">
+  <h2> Create new data package </h2>
+  <%include file="create_new_item.html"/>
+  </div>
 % endif
-<p> Create new empty object: </p>
-<p>
-<%include file="create_new_item.html"/>
-</p>
+% if c.title:
+<h2>List of Data packages in ${c.title}</h2>
+% elif c.silo_name:
+<h2>List of Data packages in ${c.silo_name}</h2>
+% else:
+<h2>List of Data packages</h2>
+% endif
+<%include file="list_of_datasets.html"/>

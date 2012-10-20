@@ -1,5 +1,30 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+Copyright (c) 2012 University of Oxford
 
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, --INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+
+from pylons import app_globals as ag
+from datetime import datetime
 def skipws(next):
     skip = 1
     if not skip:
@@ -205,7 +230,7 @@ class Parser(object):
         key = self.ml.next()
         eq = self.ml.next()
         if eq != "=":
-            raise ParseError("Expected =, got: " + sl)
+            raise ParseError("Expected =, got: " + eq)
         val = self.ml.next()
         return (key, val)
             
@@ -231,8 +256,20 @@ def best(client, server):
 
 def parse(data):
     lex = MiniLex(data)
+
     p = Parser(lex)
     mts = p.process()
+
+    #Accept headers added using javascript are appended to the end of the list of default accept headers
+    #This behaviour observed in Opera 9.80, Chrome 10.0, MSIE 7.0, MSIE 8.0. 
+    #In Firefox 3.6.14 and Firefox 3.6.15, only the new headers set in ajax is sent
+    #See doc accessLogEWithHeaderInfo_2011_03_16
+    #So moving the last accept header to the front
+    tmp = str(mts[-1]).lower()
+    if tmp in ag.formats_served:
+        last_mt = mts.pop()
+        mts.insert(0, last_mt)
+
     mts.sort(key=lambda x: x.sort2(), reverse=True)
     mts.sort(key=lambda x: x.qval, reverse=True)
     return mts
@@ -249,5 +286,4 @@ if __name__ == '__main__':
     mts2 = p2.process()
 
     b = best(mts, mts2)
-    print b
 
