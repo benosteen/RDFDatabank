@@ -1,0 +1,20 @@
+# -*- coding: utf-8 -*-
+<%inherit file="/base.html" />
+<%def name="head_tags()">
+  <title>Users - ${c.silo_name} </title>
+</%def>
+<h1>Users of ${c.silo_name}</h1>
+% if c.message:
+<p><span style="color:red;">${c.message}</span></p>
+% endif
+<hr/>
+% if c.users:
+  <ul>
+  % for o in c.users:
+    <li><a href="/${c.silo_name}/users/${o}">${o}</a></li>
+  % endfor
+  </ul>
+% endif
+<hr/>
+<h2><b>Create new user</b></h2>
+<%include file="/register_new_user.html"/>

@@ -1,0 +1,43 @@
+#!/bin/sh -e
+
+# Source debconf library.
+. /usr/share/debconf/confmodule
+
+# Admin email?
+db_input critical databank/email || true
+db_go
+
+# SMTP server?
+db_input high databank/smtpserver || true
+db_go
+
+# Storgae area?
+db_input high databank/store || true
+db_go
+
+# Databank URI?
+db_input critical databank/uri || true
+db_go
+
+#Configure SOLR
+db_input high databank/confsolr || true
+db_go
+
+#Note on configuring SOLR
+#db_input high databank/nosolrconf || true
+#db_go
+
+# Password?
+db_input critical databank/password || true
+db_go
+
+# Note on Password
+#db_input critical databank/passwdnote || true
+#db_go
+
+# Set default database name, database user
+if [ -f /usr/share/dbconfig-common/dpkg/config ]; then
+        . /usr/share/dbconfig-common/dpkg/config.mysql
+        dbc_go databank $@
+fi
+

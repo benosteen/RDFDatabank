@@ -1,0 +1,246 @@
+<% 
+from rdflib import URIRef
+%>
+% if c.metadata:
+  <table class="metadata" summary="Bibliographic information for the data package" >
+  <!-- title -->
+  % if 'title' in c.metadata:
+    <tr><th>Title</th><td>
+    % for v in c.metadata['title']:
+      % if isinstance(v, URIRef):
+        <a href="${v}">${v}</a><br/>
+      % else:
+        ${v}<br/>
+      % endif
+    % endfor
+    </td></tr>
+  % endif
+  <!-- Identifier -->
+  % if 'identifier' in c.metadata:
+    <tr><th>Identifier(s)</th><td>
+    % for v in c.metadata['identifier']:
+      % if isinstance(v, URIRef):
+        <a href="${v}">${v}</a><br/>
+      % else:
+        ${v}<br/>
+      % endif
+    % endfor
+    </td></tr>
+  % endif
+  <!-- description -->
+  % if 'description' in c.metadata:
+    <tr><th>Description</th><td>
+    % for v in c.metadata['description']:
+      % if isinstance(v, URIRef):
+        <a href="${v}">${v}</a><br/>
+      % else:
+        ${v}<br/>
+      % endif
+    % endfor
+    </td></tr>
+  % endif
+  <!-- creator -->
+  % if 'creator' in c.metadata:
+    <tr><th>Creator</th><td>
+    % for v in c.metadata['creator']:
+      % if isinstance(v, URIRef):
+        <a href="${v}">${v}</a><br/>
+      % else:
+        ${v}<br/>
+      % endif
+    % endfor
+    </td></tr>
+  % endif
+  <!-- subject -->
+  % if 'subject' in c.metadata:
+    <tr><th>Subject</th><td>
+    % for v in c.metadata['subject']:
+      % if isinstance(v, URIRef):
+        <a href="${v}">${v}</a><br/>
+      % else:
+        ${v}<br/>
+      % endif
+    % endfor
+    </td></tr>  
+  % endif
+  <!-- abstract -->
+  % if 'abstract' in c.metadata:
+    <tr><th>Abstract</th><td>
+    % for v in c.metadata['abstract']:
+      % if isinstance(v, URIRef):
+        <a href="${v}">${v}</a><br/>
+      % else:
+        ${v}<br/>
+      % endif
+    % endfor
+    </td></tr> 
+  % endif
+  <!-- created -->
+  % if 'created' in c.metadata:
+    <tr><th>Created</th><td>
+    % for v in c.metadata['created']:
+      % if isinstance(v, URIRef):
+        <a href="${v}">${v}</a><br/>
+      % else:
+        ${v}<br/>
+      % endif
+    % endfor
+    </td></tr>
+  % endif
+  <!-- hasVersion -->
+  % if 'hasVersion' in c.metadata:
+    <tr><th>Has version</th><td>
+    % for v in c.metadata['hasVersion']:
+      % if isinstance(v, URIRef):
+        <a href="${v}">${v}</a><br/>
+      % else:
+        ${v}<br/>
+      % endif
+    % endfor
+    </td></tr>  
+  % endif
+  <!-- isVersionOf -->
+  % if 'isVersionOf' in c.metadata:
+    <tr><th>Is Version of</th><td>
+    % for v in c.metadata['isVersionOf']:
+      % if isinstance(v, URIRef):
+        <a href="${v}">${v}</a><br/>
+      % else:
+        ${v}<br/>
+      % endif
+    % endfor
+    </td></tr>  
+  % endif
+  <!-- license -->
+  % if 'license' in c.metadata:
+    <tr><th>License</th><td>
+    % for v in c.metadata['license']:
+      % if isinstance(v, URIRef):
+        <a href="${v}">${v}</a><br/>
+      % else:
+        ${v}<br/>
+      % endif
+    % endfor
+    </td></tr>  
+  % endif
+  <!-- mediator -->
+  % if 'mediator' in c.metadata:
+    <tr><th>Mediator</th><td>
+    % for v in c.metadata['mediator']:
+      % if isinstance(v, URIRef):
+        <a href="${v}">${v}</a><br/>
+      % else:
+        ${v}<br/>
+      % endif
+    % endfor
+    </td></tr>
+  % endif
+  <!-- modified -->
+  % if 'modified' in c.metadata:
+    <tr><th>Modified</th><td>
+    % for v in c.metadata['modified']:
+      % if isinstance(v, URIRef):
+        <a href="${v}">${v}</a><br/>
+      % else:
+        ${v}<br/>
+      % endif
+    % endfor
+    </td></tr>  
+  % endif
+  <!-- publisher -->
+  % if 'publisher' in c.metadata:
+    <tr><th>Publisher</th><td>
+    % for v in c.metadata['publisher']:
+      % if isinstance(v, URIRef):
+        <a href="${v}">${v}</a><br/>
+      % else:
+        ${v}<br/>
+      % endif
+    % endfor
+    </td></tr>  
+  % endif
+  <!-- rights -->
+  % if 'rights' in c.metadata:
+    <tr><th>Rights</th><td>
+    % for v in c.metadata['rights']:
+      % if isinstance(v, URIRef):
+        <a href="${v}">${v}</a><br/>
+      % else:
+        ${v}<br/>
+      % endif
+    % endfor
+    </td></tr>  
+  % endif
+  <!-- isEmbargoed -->
+  % if 'isEmbargoed' in c.metadata:
+    <tr><th>Is embargoed</th><td>
+    % for v in c.metadata['isEmbargoed']:
+      <%
+      if str(v).lower() in ['true', '1']:
+          v = 'Yes'
+      else:
+          v = 'No'
+      %>
+      % if isinstance(v, URIRef):
+        <a href="${v}">${v}</a><br/>
+      % else:
+        ${v}<br/>
+      % endif
+    % endfor
+    </td></tr>  
+  % endif
+  <!-- embargoedUntil -->
+  % if 'embargoedUntil' in c.metadata:
+    <tr><th>Embargoed Until</th><td>
+    % for v in c.metadata['embargoedUntil']:
+      % if isinstance(v, URIRef):
+        <a href="${v}">${v}</a><br/>
+      % else:
+        ${v}<br/>
+      % endif
+    % endfor
+    </td></tr>  
+  % endif
+  <!-- currentVersion -->
+  % if 'currentVersion' in c.metadata:
+    <tr><th>Current version</th><td>
+    % for v in c.metadata['currentVersion']:
+      % if isinstance(v, URIRef):
+        <a href="${v}">${v}</a><br/>
+      % else:
+        ${v}<br/>
+      % endif
+    % endfor
+    </td></tr>  
+  % endif
+  <!-- doi -->
+  % if 'doi' in c.metadata:
+    <tr><th>DOI</th><td><div>
+    % for v in c.metadata['doi']:
+      % if isinstance(v, URIRef):
+        <a href="${v}">${v}</a><br/>
+      % else:
+        ${v}<br/>
+      % endif
+    % endfor
+    </div></td></tr>  
+  % endif
+  <!-- aggregates  -->
+  % if 'aggregates' in c.metadata:
+    <tr class="aggregates"><th>Aggregates</th><td><div>
+    <ul>
+    
+    % for v in c.metadata['aggregates']:
+      % if isinstance(v, URIRef):
+        <li><a href="${v}">${v}</a></li>
+      % else:
+        <li>${v} type(v)</li>
+      % endif
+    % endfor
+    </ul>
+    </div></td></tr>  
+  % endif
+  <!-- end -->
+  ##${c.metadata}
+  </table>
+% endif

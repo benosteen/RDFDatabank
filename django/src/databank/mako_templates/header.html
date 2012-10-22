@@ -1,0 +1,11 @@
+# -*- coding: utf-8 -*-
+<%
+from frontend.settings import API_VERSION
+%>
+  <h1><a  href="/" id="homelink">DataBank
+  %if API_VERSION:
+  <span class="small">${API_VERSION}</span>
+ % endif
+  </a></h1>
+<%include file="/search_form.html"/>
+

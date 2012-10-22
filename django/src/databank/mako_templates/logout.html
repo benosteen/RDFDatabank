@@ -1,0 +1,14 @@
+# -*- coding: utf-8 -*-
+<%def name="head_tags()">
+  <title> Login to Databank </title>
+</%def>
+<%inherit file="/base.html" />
+<h2>Loggin out</h2>
+<p>&nbsp;</p>
+% if c.message:
+  <div class="flash">${c.message | n}</div>
+% endif
+<p>You have successfully logged out. </p>
+<p> To login again <a href="/login">click here</a></p>
+<p>&nbsp;</p>
+

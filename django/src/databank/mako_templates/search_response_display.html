@@ -1,0 +1,195 @@
+<%namespace name="options" file="/search_response_options.html" />
+##=============================================================================
+## Current search options
+${options.currentsearch()}
+##=============================================================================
+## Pagination and sort options
+% if c.numFound and c.numFound > 0:
+<div class="searchtop">
+  ${options.pagination()}
+  ${options.sortoptions()}
+</div>
+% endif
+##=============================================================================
+## Number of records, current span of records and items per page
+<div class="searchtop">
+
+<div class="searchleft numRecords">
+${ c.numFound} records found.
+</div>
+
+% if c.numFound > 0:
+<div class='searchmid'>Showing results ${c.start+1} to 
+%   if (c.start+c.rows) > c.numFound:
+${c.numFound}
+%   else:
+${c.start+c.rows}
+%   endif
+</div>
+% endif
+
+% if c.numFound > 0:
+${options.numresultspp("itemsppt")}
+% endif
+
+</div>
+##=============================================================================
+##Link to these results
+% if c.docs and c.add_facet:
+<div id="link_to_this_search">Link to these search results | 
+<a href="${c.add_facet}&format=html&sort=${c.sort}&rows=${c.rows}&start=${c.start}">
+  <img src="/static/styles/images/link.png" border="0" alt="HTML" /> This page'</a>
+<a href="${c.add_facet}&format=csv&sort=${c.sort}&rows=${c.rows}&start=${c.start}">
+  <img src="/static/styles/images/csv.png" border="0" alt="CSV Logo" /> CSV</a>
+<a href="${c.add_facet}&format=json&sort=${c.sort}&rows=${c.rows}&start=${c.start}">
+  <img src="/static/styles/images/json.png" border="0" alt="JSON Logo" />JSON</a>
+</div>
+% endif
+##=============================================================================
+##Search results
+% if c.docs:
+<div class="clear">&nbsp;</div>
+<div class="response_doc">
+<% cnt = 0 %>
+%   for doc_index in xrange(len(c.docs)):
+<% 
+cnt += 1 
+isSilo = False
+if 'type' in c.docs[doc_index] and c.docs[doc_index]['type']:
+    if not isinstance(c.docs[doc_index]['type'], list):
+        c.docs[doc_index]['type'] = [c.docs[doc_index]['type']]
+    for typ in c.docs[doc_index]['type']:
+        if typ.lower() == 'silo':
+            isSilo = True
+%>
+<h2 class="resultTitle">
+% if isSilo == True:
+<a href="/${c.docs[doc_index]['silo']}" title="Silo"><img title="Silo" alt="Silo" src="/static/styles/images/silo-view-icon-24.png">
+% else:
+<a href="/${c.docs[doc_index]['silo']}/datasets/${c.docs[doc_index]['id']}" title="Data package">
+<img title="Data package" alt="Data package" src="/static/styles/images/datapackage-24.png">
+% endif
+% if 'title' in c.docs[doc_index] and c.docs[doc_index]['title'] and c.docs[doc_index]['title'][0]:
+${c.docs[doc_index]['title'][0]}
+% else:
+${c.docs[doc_index]['id']}
+% endif
+</a></h2>
+<table class="searchresult" summary="Search result ${cnt}">
+% if isSilo == False:
+<tr><th>Identifier </th><td>${c.docs[doc_index]['id']}</td></tr>
+<tr><th>Silo </th><td>${c.docs[doc_index]['silo']}</td></tr>
+%     for field in c.chosen_fields:
+%       if field in c.docs[doc_index] and field not in ['silo', 'id', 'title']:
+<% 
+lbl = field
+if field in c.field_names:
+    lbl = c.field_names[field]
+%>
+<tr><th>${lbl}</th><td>
+%         if isinstance(c.docs[doc_index][field], list):
+%           for txt in c.docs[doc_index][field]:
+%             if isinstance(txt, basestring):
+<%
+todisplay = txt
+if c.truncate and len(txt) > c.truncate:
+    todisplay = txt[:c.truncate] + ' ...'
+%>
+%               if txt.startswith('http'):
+<a href="${txt}">${todisplay |n}</a>
+%               else:                
+${ todisplay |n}
+%               endif
+%             elif isinstance(txt, int) or isinstance(txt, bool):
+${str(txt)}
+%             else:
+${txt |n}
+%             endif
+%           endfor
+%         elif isinstance(c.docs[doc_index][field], basestring):
+<%
+    todisplay = c.docs[doc_index][field]
+    if c.truncate and len(c.docs[doc_index][field]) > c.truncate:
+        todisplay = c.docs[doc_index][field][:c.truncate] + ' ...'
+%>
+%           if c.docs[doc_index][field].startswith('http'):
+<a href= "c.docs[doc_index][field]">${todisplay |n}</a>
+%           else:
+${ todisplay |n}
+%           endif
+%         elif isinstance(c.docs[doc_index][field], int) or isinstance(c.docs[doc_index][field], bool):
+${str(c.docs[doc_index][field])}
+%         else:
+${c.docs[doc_index][field] |n}
+%         endif
+
+</td></tr>
+%       endif
+%     endfor
+% else:
+<tr><th>Silo identifier</th><td>${c.docs[doc_index]['silo']}</td></tr>
+% if 'description' in c.docs[doc_index] and c.docs[doc_index]['description'] and c.docs[doc_index]['description']:
+<tr>
+<th>Description</th><td>
+%   if isinstance(c.docs[doc_index]['description'], list):
+%     for txt in c.docs[doc_index]['description']:
+<%
+todisplay = txt
+if c.truncate and len(txt) > c.truncate:
+    todisplay = txt[:c.truncate] + ' ...'
+%>
+${ todisplay |n}
+%     endfor
+%   else:
+<%
+todisplay = c.docs[doc_index]['description']
+if c.truncate and len(todisplay) > c.truncate:
+    todisplay = todisplay[:c.truncate] + ' ...'
+%>
+${ todisplay |n}
+</td></tr>
+%   endif
+% endif
+% endif
+</table>
+%   endfor
+</div>
+<div class="clear"></div>
+% endif 
+##=============================================================================
+## Pagination and sort options
+%if c.numFound and c.numFound > 0:
+<div class="searchbottom">
+  ${options.pagination()}
+  ${options.sortoptions()}
+</div>
+% endif
+##=============================================================================
+## Number of records, current record start and end and items per page
+%if c.numFound and c.numFound > 0:
+<div class="searchbottom">
+
+<div class="searchleft">
+${ c.numFound} records found.
+</div>
+
+% if c.numFound > 0:
+<div class='searchmid'>Showing results ${c.start+1} to 
+%   if (c.start+c.rows) > c.numFound:
+${c.numFound}
+%   else:
+${c.start+c.rows}
+%   endif
+</div>
+% endif
+
+% if c.numFound > 0:
+${options.numresultspp("itemsppb")}
+% endif
+
+</div>
+% endif
+##=============================================================================
+<div class="clear"></div>
+
+

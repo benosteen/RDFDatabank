@@ -1,0 +1,30 @@
+# -*- coding: utf-8 -*-
+<%inherit file="/base.html" />
+<%def name="head_tags()">
+  <title> List of Silos </title>
+</%def>
+<%
+n = len(c.silo_infos)
+%>
+<h1> List of Silos </h1>
+% if c.silo_infos and n > 0:
+  <p>Number of silos: ${n}</p>
+  <div class="silo_list">
+  <table summary="list of silos in Databank" class="siloList">
+  <tr>
+    <th>Silo title</th>
+    <th>Number of data packages in silo</th>
+    <th>Date silo last modified</th>
+  </tr>
+  % for silo in c.silo_infos:
+    <tr>
+    <td><a href="/${silo}">${c.silo_infos[silo][0]}</a></td>
+    <td>${c.silo_infos[silo][1]}</td>
+    <td>${c.silo_infos[silo][2]}</td>
+    </tr>
+  % endfor
+  </table>
+  </div>
+% else:
+  <p>Number of silos: ${n}</p>
+% endif

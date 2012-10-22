@@ -1,0 +1,165 @@
+{
+    ############################################################################
+    # SWORD SERVER CONFIGURATION
+    ############################################################################
+    # This configuration file specifies the parameters for SSS
+    #
+    # Each configuration option can be accessed as an attribute of the 
+    # Configuration python object.  e.g.
+    #
+    #   Configuration().base_url
+    #
+    # You may add any other configuration options directly to this JSON file
+    # and they will be picked up in the same way by the Configuration object.
+    #
+    # Some core configuration options have special methods for access built into
+    # the Configuration object (check the docs for details)
+    #
+    # This file is JSON formatted with one extension: comments are allowed.
+    # Comments are must be on a line of their own, and prefixed with #.  The #
+    # must be the first non-whitespace character on the line.  The configuration
+    # interpreter will strip all such lines before parsing the JSON, but will
+    # leave blank lines in the resulting JSON so that errors may be detected
+    # accurately by line number.
+    #
+    # To validate an this file, run:
+    #
+    #   python config.py /path/to/sss.conf.json
+    #
+    ############################################################################
+    
+    # The base url of the webservice where SSS is deployed
+    "base_url" : "http://localhost:5000/swordv2/",
+    
+    # the DataBank base url for the UI and other such reference points
+    "db_base_url" : "http://192.168.23.133/",
+    
+    # explicitly set the sword version, so if you're testing validation of
+    # service documents you can "break" it.
+    "sword_version" : "2.0",
+    
+    # require authentication (although DataBank will enforce this anyway)
+    "authenticate" : true,
+    
+    # DataBank does not require support of On-Behalf-Of as users will be
+    # authenticated using OAuth.  So we turn mediation off in the service document
+    "mediation" : false,
+    
+    # What media ranges should the app:accept element in the Service Document support
+    "app_accept" : [ "*/*" ],
+    "multipart_accept" : [ "*/*" ],
+    
+    # What packaging formats should the sword:acceptPackaging element in the Service Document support
+    # In DataBank we explicitly support the DataBankBagIt format, as well as the
+    # required Binary format (Note that it does not support SimpleZip
+    "sword_accept_package" : [
+            "http://purl.org/net/sword/package/Binary",
+            "http://dataflow.ox.ac.uk/package/DataBankBagIt"
+        ],
+    
+    # For DataBank this is currently disabled; it can be re-enabled at any 
+    # point if upload size limits become necessary.
+    #
+    # maximum upload size to be allowed, in bytes (this default is 16Mb)
+    # (omitting this config option means there is no max_upload_size limit)
+    #"max_upload_size" : 16777216,
+    
+    # FIXME: will we ever really support SimpleZip
+    # list of package formats that SSS can provide when retrieving the Media Resource
+    # Here we support the required SimpleZip format and the standard DataBankBagIt
+    "sword_disseminate_package" : [
+        "http://purl.org/net/sword/package/SimpleZip",
+        "http://dataflow.ox.ac.uk/package/DataBankBagIt"
+    ],
+    
+    
+    # FIXME: what are the dissemination packagers for DataBank?
+    # FIXME: this is a bad config option - way too complex, can we simplify? (e.g. each disseminator is a 
+    # dictionary whose keys match parameters, and for which there is an "implementation" key pointing
+    # to the disseminator
+    # Supported package format disseminators; for the content type (dictionary key), the associated
+    # class will be used to package the content for dissemination
+    "package_disseminators" : {
+    #        "(& (type=\"application/zip\") (packaging=\"http://purl.org/net/sword/package/SimpleZip\") )" : "sss.ingesters_disseminators.DefaultDisseminator",
+    #        "(& (type=\"application/zip\") )" : "sss.ingesters_disseminators.DefaultDisseminator",
+    #        "(& (type=\"application/atom+xml;type=feed\") )" : "sss.ingesters_disseminators.FeedDisseminator"
+    },
+    
+    
+    # FIXME: this is probably not going to be used, as the unpacking will be done asynchronously
+    # in DataBank
+    #
+    # Supported package format ingesters; for the Packaging header (dictionary key), the associated class will
+    # be used to unpackage deposited content
+    "package_ingesters" : {
+            "http://purl.org/net/sword/package/Binary" : "sss.ingesters_disseminators.BinaryIngester",
+            "http://dataflow.ox.ac.uk/package/DataBankBagIt" : "sss.ingesters_disseminators.SimpleZipIngester"
+    },
+    
+    # FIXME: what is the Entry Ingester for DataBank?
+    # FIXME: at the moment the Entry Ingester in DataBank is hard coded, but we should break it out here
+    #
+    # Ingester to use for atom entries
+    "entry_ingester" : "rdfdatabank.lib.sword_server.DefaultEntryIngester",
+    
+    # we can turn off updates and deletes in order to examine the behaviour of Method Not Allowed errors
+    # We leave these in and configured to true for DataBank, just in case we ever need to turn
+    # off any of the features
+    "allow_update" : true,
+    "allow_delete" : true,
+    
+    # we can turn off deposit receipts, which is allowed by the specification
+    # DataBank is well behaved, and ALWAYS returns a deposit receipt
+    "return_deposit_receipt" : true,
+
+    # FIXME: this relates to the package_disseminators configuration above, which
+    # is not yet stabilised or used in DataBank.  This configuration is therefore
+    # speculative
+    #
+    # The acceptable formats that the server can return the media resource in
+    # on request.
+    # This is used in Content Negotiation during GET on the EM-URI
+    "media_resource_formats" : [
+        {"content_type" : "application/zip", "packaging": "http://dataflow.ox.ac.uk/package/DataBankBagIt"},
+        {"content_type" : "application/zip"},
+        {"content_type" : "application/atom+xml;type=feed"},
+        {"content_type" : "text/html"}
+    ],
+    
+    # FIXME: this relates to the package_disseminators configuration above, which
+    # is not yet stabilised or used in DataBank.  This configuration is therefore
+    # speculative
+    #
+    # If no Accept parameters are given to the server on GET to the EM-URI the
+    # following defaults will be used to determine the response type
+    "media_resource_default" : {
+        "content_type" : "application/zip", "packaging": "http://dataflow.ox.ac.uk/package/DataBankBagIt"
+    },
+    
+    # FIXME: this is a standard required set for SWORD, although at present
+    # DataBank only supports type=entry for real.  The rest coming in the full
+    # sword2 implementation
+    #
+    # The acceptable formats that the server can return the entry document in
+    # on request
+    # This is used in Content Negotiation during GET on the Edit-URI
+    "container_formats" : [
+        {"content_type" : "application/atom+xml;type=entry" },
+        {"content_type" : "application/atom+xml;type=feed" },
+        {"content_type" : "application/rdf+xml" }
+    ],
+    
+    # If no Accept parameters are given to the server on GET to the Edit-URI the
+    # following defaults will be used to determine the response type
+    "container_format_default" : {
+        "content_type" : "application/atom+xml;type=entry"
+    },
+    
+    # Dynamically load the implementation classes for the 3 main interfaces
+    # Here DataBank provides the implementation classes for the server and 
+    # authenticator, and no WebUI is provided, as this is done by the main
+    # application
+    "sword_server" : "rdfdatabank.lib.sword_server.SwordDataBank",
+    "authenticator" : "rdfdatabank.lib.sword_server.DataBankAuthenticator"
+    #"webui" : "sss.repository.WebInterface"
+}

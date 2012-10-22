@@ -1,0 +1,10 @@
+nose
+pairtree==0.7.1-T
+rdflib==3.2.3
+solrpy
+uuid
+redis==1.34.1
+python-dateutil==1.5
+django
+django-mako
+

@@ -1,0 +1,16 @@
+# -*- coding: utf-8 -*-
+<%inherit file="/base.html" />
+<%def name="head_tags()">
+  <title> Raw Solr search </title>
+</%def>
+<form method="GET" enctype="multipart/form-data" action="/search/raw" accept-charset="UTF-8">
+<label for="q">Search terms</label>
+<textarea name="q" cols="60" rows="10">
+*:*
+</textarea>
+<label for="fl">Fields to return</label>
+<input id="fl" type="text" name="fl" value="*,score"/>
+<label for="wt">Return format</label>
+<input id="wt" type="text" name="wt" value="json"/>
+<input type="submit" value="Search"/>
+</form>

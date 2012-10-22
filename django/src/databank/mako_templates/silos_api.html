@@ -1,0 +1,61 @@
+# -*- coding: utf-8 -*-
+<div id="globalWrapper">
+<h2>Silos</h2>
+<p>Obtain a list of all silos visible to your account or a list of datasets in a silo</p>
+<p>Sections</p>
+<ol>
+<li><a href="#section1">/silos</a></li>
+<li><a href="#section2">/{silo name}</a></li>
+</ol>
+<!-- ========== /silos ========== -->
+<div id="section1">
+  <div class="Section">
+    <div class="lt">/silos</div>
+    <div class="rt"><a href="#globalWrapper">top</a></div>
+  </div>
+</div>
+<p>Returns a list of silos visible to your account</p>
+<p><i><b>Controller: silos &nbsp;&nbsp;&nbsp;&nbsp;action: index</b></i></p>
+<div class="List">
+<p><b>GET</b></p>
+<div class="List-contents">Returns 401 if not a valid user</div>
+<div class="List-entry">Accept: text/html (with auth)</div>
+<div class="List-contents">Returns text/HTML listing the 'silos' your account can see, with links to dataset view</div>
+<div class="List-entry">Accept: text/plain, application/json (with auth) </div>
+<div class="List-contents">Returns a JSON-encoded list of exising silos your account can see. </div>
+<div class="List-contents">The file <a href="/static/json_data/silos.txt" target="_blank">silos.txt</a> contains an example of the data returned (data_returned) </div>
+<div class="List-entry">Accept: */*, default (with auth)</div><div class="List-contents">Returns text/HTML listing the ’silos’ your account can see, with links to dataset view</div>
+</div>
+<div class="List">
+<p><b>POST, PUT, DELETE</b> NOOP</p>
+</div>
+
+<!-- ========== /{silo name} ========== -->
+<div id="section2">
+  <div class="Section">
+    <div class="lt">/{silo name}</div>
+    <div class="rt"><a href="#globalWrapper">top</a></div>
+  </div>
+</div>
+<p>Returns a list of datasets in the silo </p>
+<p><i><b>Controller: silos &nbsp;&nbsp;&nbsp;&nbsp;action: siloview</b></i></p>
+<div class="List">
+<p><b>GET</b></p>
+<div class="List-contents">Returns 401 if not a valid user and 403 if not authorized</div>
+<div class="List-entry">Accept:text/html (with auth)</div>
+<div class="List-contents">Returns text/HTML  
+listing the ids of each dataset, along with a form for changing the embargo information and deleting the dataset. 
+A form for dataset creation is also available. </div>
+<div class="List-entry">Accept: text/plain, application/json (with auth)</div>
+<div class="List-contents">Returns a JSON-encoded list of dataset ids in that silo, along with the embargo information for each dataset</div>
+<div class="List-contents">The file <a href="/static/json_data/siloInformation.txt" target="_blank">siloInformation.txt</a> contains an example of the data returned (data_returned) </div>
+<div class="List-entry">Accept:*/*, default (with auth)</div>
+<div class="List-contents">Returns text/HTML 
+listing the ids of each dataset, along with a form for changing the embargo information and deleting the dataset. 
+A form for dataset creation is also available. </div>
+</div>
+<div class="List">
+<p><b>POST, PUT, DELETE</b> NOOP</p>
+</div>
+<!-- ========== END ========== -->
+</div>

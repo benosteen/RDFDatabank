@@ -1,0 +1,493 @@
+# -*- coding: utf-8 -*-
+<div id="globalWrapper">
+<h2>Datasets</h2>
+<p>API call to </p><ul>
+<li>Obtain a list of datasets in a silo</li>
+<li>Obtain information about the latest version of the dataset or information about a particular vesion of the dataset</li>
+<li>View the contents of the dataset - view / download files and view contents of sub-directories (latest verison or a particular version) </li>
+<li>Create a dataset</li>
+<li>Modify the datasets embargo information</li>
+<li>Add new files to the dataset (including metadata files)</li>
+<li>Update existing files in the dataset (including metadata files)</li>
+<li>Delete files in the dataset</li>
+<li>Delete the dataset</li>
+</ul>
+<p>Sections</p>
+<ol>
+<li><a href="#section1">/{silo name}/datasets</a></li>
+<li><a href="#section2">/{silo name}/datasets/{id}</a></li>
+<li><a href="#section3">/{silo name}/datasets/{id}/version{#}</a></li>
+<li><a href="#section4">/{silo name}/datasets/{id}/{subpath}</a></li>
+<li><a href="#section5">/{silo name}/datasets/{id}[/{subpath}]/version{#}</a></li>
+</ol>
+<!-- ========== /{silo name}/datasets ========== -->
+<div id="section1">
+  <div class="Section">
+    <div class="lt">/{silo name}/datasets</div>
+    <div class="rt"><a href="#globalWrapper">top</a></div>
+  </div>
+</div>
+<p>API call to obtain a list of datasets in a silo and create a new dataset</p>
+<p><i><b>Controller: datasets &nbsp;&nbsp;&nbsp;&nbsp;action: siloview</b></i></p>
+<div class="List">
+  <p><b>GET</b>: Obtain a list of datasets in a silo</p>
+  <div class="List-entry">Returns</div/>
+  <div class="List-contents">
+    <div class="List-contents">401 if not a valid user</div>
+    <div class="List-contents">403 if not authorized</div>
+    <div class="List-entry">Accept:text/html</div>
+    <div class="List-contents">Returns the ids of each dataset in the silo, along with a form for changing the embargo information and deleting the dataset. A form for dataset creation is also available. </div>
+    <div class="List-entry">Accept: text/plain, application/json</div>
+    <div class="List-contents">200 OK</div>
+    <div class="List-contents">Returns a JSON-encoded list of dataset ids in that silo along with the embargo information for each dataset</div>
+    <div class="List-contents">The file <a target="_blank" href="/static/json_data/datasetsInSiloInformation.txt">datasetsInSiloInformation.txt</a> contains an example of the data returned (data_returned) </div>
+    <div class="List-entry">Accept:*/*, default</div>
+    <div class="List-contents">Returns text/HTML listing the ids of each dataset, along with a form for changing the embargo information and deleting the dataset. A form for dataset creation is also available. </div>
+  </div>
+</div>
+<div class="List">
+<p><b>POST</b>: Create new dataset </p>
+  <div class="List-entry">Parameters</div>
+  <div class="List-contents">
+    <table>
+    <tr><td><b>id</b></td><td> {id to create}</td></tr>
+    <tr><td><b>embargoed</b></td><td> {true|false} (optional).<br /> If the parameter is not supplied, a default value of <i>true</i> will be used.</td></tr>
+    <tr><td><b>embargoed_until</b></td><td> {ISO8601 date} (optional).<br /> If embargoed = true and no date has been supplied, a default time delta of 70 years will be used</td></tr>
+    <tr><td><b>title</b></td><td>{(Optional)}</td></tr>
+    </table>
+  </div>
+  <div class="List-entry">Returns</div/>
+  <div class="List-contents">
+    <div class="List-contents">
+    409 if dataset already exists <br />
+    401 If not a valid user <br />
+    403 if not authorized <br />
+    403 if the name of the dataset does not confirm to the naming rule (name can contain only the followin characters 0-9a-zA-Z-_:<br />
+    </div>
+    <div class="List-entry">Accept: text/html</div>
+    <div class="List-contents">302 to splash page for newly created dataset</div>
+    <div class="List-entry">Accept: text/plain, application/json</div>
+    <div class="List-contents">201 created</div>
+    <div class="List-entry">Accept: */*, default</div>
+    <div class="List-contents">Returns text/plain, 201 created</div>
+  </div>
+</div>
+<div class="List">
+<p><b>PUT, DELETE</b>: NOOP</p>
+</div>
+
+<!-- ========== /{silo name}/datasets/{id} ========== -->
+<div id="section2">
+  <div class="Section">
+    <div class="lt">/{silo name}/datasets/{id}</div>
+    <div class="rt"><a href="#globalWrapper">top</a></div>
+  </div>
+</div>
+<p>API call to obtain information about the dataset, create a dataset, modify the datasets embargo information, post files to the dataset and delete the dataset. All of this is performed on the latest version of the dataset.</p>
+<p><i><b>Controller: datasets &nbsp;&nbsp;&nbsp;&nbsp;action: datasetview</b></i></p>
+<div class="List">
+  <p><b>GET</b>: Obtain information about the dataset</p>
+  <div class="List-entry">Returns</div/>
+  <div class="List-contents">
+    <div class="List-contents">404 if dataset is not available</div>
+    <div class="List-contents">401 if not authenticated and dataset is under embargo</div>
+    <div class="List-contents">403 if not authorized and dataset is under embargo</div>
+    <div class="List-entry">Accept: text/html</div>
+    <div class="List-contents">returns HTML splash page for dataset <i>id</i>. The page contains the following:
+      <ul>
+      <li>Readme text</li>
+      <li>List of files / folders at the top level</li>
+      <li>Dataset's embargo state</li>
+      <li>Manifest data</li>
+      <li>If authenticated and authorized user: <br />
+        <ul>
+          <li>View options: Choice to view page as anonymous user or as editor </li>
+          <li>Form to modify manifest </li>
+          <li>Form to upload file</li>
+          <li>List of dataset unpack endpoints, to unpack file to new dataset</li>
+        </ul>
+      </li>
+      </ul>
+    </div>
+    <div class="List-entry">Accept: application/json</div>
+    <div class="List-contents">200 OK</div>
+    <div class="List-contents">Returns a JSON-encoded hash/dict. The keys map to the following :
+      <ul>
+      <li>Readme text - data_returned["readme_text"]</li>
+      <li>Dataset's embargo information data_returned["embargos"]</li>
+      <li>If user is authenticated and authorized (editor = true) / anonymous (editor = false) - data_returned["editor"]</li>
+      <li>List of zipfiles - data_returned["zipfiles"]</li>
+      <li>If user is authenticated and authorized, the view chosen by the user - data_returned["view"]</li>
+      <li>Manifest data in two forms - data_returned["manifest"] and data_returned["manifest_pretty"]</li>
+      <li>Hash dict of files / folders at the top level - data_returned["parts"][file_or_directory_name"] <br />
+      If it is a file, the file stat information is also available. See <a href="http://docs.python.org/library/os.html#os.stat" target="_blank">http://docs.python.org/library/os.html#os.stat</a> for more information. <br />
+      If it is a directory, the dictionary value is empty as there is no stat information </li>
+      </ul>
+    </div>
+    <div class="List-contents">The file <a target="_blank" href="/static/json_data/datasetInformation.txt">datasetInformation.txt</a> contains an example of the data returned (data_returned) </div>
+    <div class="List-entry">Accept: application/rdf+xml, text/xml</div>
+    <div class="List-contents">returns dataset's RDF manifest as RDF/XML</div>
+    <div class="List-entry">Accept: text/rdf+n3</div>
+    <div class="List-contents">returns dataset's RDF manifest as N3</div>
+    <div class="List-entry">Accept: application/x-turtle</div>
+    <div class="List-contents">Returns dataset's RDF manifest as Turtle</div>
+    <div class="List-entry">Accept: text/rdf+ntriples, text/rdf+nt</div>
+    <div class="List-contents">returns dataset's RDF manifest as ntriples</div>
+    <div class="List-entry">Accept: */*, default</div>
+    <div class="List-contents">returns text/HTML of splash page for dataset <i>id</i>, as described above</div>
+  </div>
+</div>
+<div class="List">
+  <p><b>POST</b>: Create new dataset. Dataset <i>id</i> doesn't exist. (As POST /{silo}/datasets id=...)</p>
+  <div class="List-entry">Parameters</div>
+  <div class="List-contents">
+    <table>
+    <tr><td><b>embargoed</b></td><td> {true|false} (optional).<br /> If the parameter is not supplied, a default value of <i>true</i> will be used.</td></tr>
+    <tr><td><b>embargoed_until</b></td><td> {ISO8601 date} (optional).<br /> If embargoed = true and no date has been supplied, a default time delta of 70 years will be used</td></tr>
+    <tr><td><b>title</b></td><td>{(Optional)}</td></tr>
+    </table>
+  </div>
+  <div class="List-entry">Returns</div/>
+  <div class="List-contents">
+    <div class="List-contents">
+    401 If not a valid user <br />
+    403 if not authorized <br />
+    403 if the name of the dataset does not confirm to the naming rule (name can contain only the followin characters 0-9a-zA-Z-_:<br />
+    </div>
+    <div class="List-entry">Accept: text/html</div>
+    <div class="List-contents">302 to splash page for newly created dataset</div>
+    <div class="List-entry">Accept: text/plain, application/json</div>
+    <div class="List-contents">201 created</div>
+    <div class="List-entry">Accept: */*, default</div>
+    <div class="List-contents">Returns text/plain, 201 created</div>
+  </div>
+</div>
+<div class="List">
+  <p><b>POST </b>: change embargo information in dataset. On success, version is incremented.</p>
+  <div class="todo">
+    <div class="List-entry">TODO:</div>
+    <div class="List-contents">Redo this bit of code, removing the parameter embargo_change and just using embargoed and embargoed_until</div>
+  </div>
+  <div class="List-entry">Parameters</div>
+  <div class="List-contents">
+    <table>
+    <tr><td><b>embargo_change</b></td><td>true (used as a convenience parameter for html forms)</td></tr>
+    <tr><td><b>embargoed</b></td><td>{true|false}</td></tr>
+    <tr><td><b>embargoed_until</b></td><td>{ISO8601 date} (optional). <br />If embargoed = true and no date has been supplied, a default time delta of 70 years will be used</td></tr>
+    </table>
+  </div>
+  <div class="List-entry">Returns</div>
+    <div class="List-contents">
+      <div class="List-contents">401 if not a valid user</div>
+      <div class="List-contents">403 if not authorized</div>
+      <div class="List-entry">Accept: text/html</div>
+      <div class="List-contents">302 to splash page of dataset</div>
+      <div class="List-entry">Accept: text/plain, application/json</div>
+      <div class="List-contents">204 updated</div>
+      <div class="List-entry">Accept: */*, default</div>
+      <div class="List-contents">204 updated</div>
+    </div>
+  </div>
+</div>
+<div class="List">
+  <p><b>POST</b>: Upload file to root directory. On success, version is incremented.</p>
+  <div class="List-entry">Parameters</div>
+  <div class="List-contents">
+    <table>
+    <tr><td><b>file </b></td><td> Multipart-encoded (HTML) file upload</td></tr>
+    <tr><td><b>filename </b></td><td> {Optional filename for upload}</td></tr>
+    </table>
+  </div>
+  <div class="List-entry">Returns</div>
+  <div class="List-contents">
+    <div class="List-contents">401 if not a valid user</div>
+    <div class="List-contents">403 if not authorized</div>
+    <div class="List-contents">400 if filename contains <i>..</i></div>
+    <div class="List-contents">403 if filename is an existing directory in dataset. Cannot post a file to update a directory with a file.</div>
+    <div class="List-contents">400 if filename is <i>manifest.rdf</i> and cannot read / parse rdf in manifest</div>
+    <div class="List-entry">Accept: text/html</div>
+    <div class="List-contents">302 to splash page of dataset</div>
+    <div class="List-entry">Accept: text/plain</div>
+    <div class="List-contents">204 on update, if filename exists.</div>
+    <div class="List-contents">201 on creation, if filename does not exist</div>
+    <div class="List-entry">Accept: */*, default</div>
+    <div class="List-contents">Returns text/plain</div>
+    <div class="List-contents">204 on update, if filename exists.</div>
+    <div class="List-contents">201 on creation, if filename does not exist</div>
+  </div>
+</div>
+<div class="List">
+  <p><b>POST</b>: Text upload. Convenience function for HTML to update/create text files. On success, version is incremented.</p>
+  <div class="List-entry">Parameters</div>
+  <div class="List-contents">
+    <table>
+    <tr><td><b>text </b></td><td> {UTF text to store}</td></tr>
+    <tr><td><b>filename </b></td><td> {desired filename}</td></tr>
+    </table>
+  </div>
+  <div class="List-entry">Returns</div>
+  <div class="List-contents">
+    <div class="List-contents">401 if not a valid user</div>
+    <div class="List-contents">403 if not authorized</div>
+    <div class="List-contents">400 if filename contains <i>..</i></div>
+    <div class="List-contents">406 if the parameter filename is missing </div>
+    <div class="List-contents">403 if filename is an existing directory in dataset. Cannot post a file to update a directory with a file.</div>
+    <div class="List-contents">406 if the filename is <i>manifet.rdf</i> and cannot parse rdf</div>
+    <div class="List-entry">Accept: text/html</div>
+    <div class="List-contents">302 to splash page of dataset</div>
+    <div class="List-entry">Accept: text/plain</div>
+    <div class="List-contents">204 on update, if filename exists.</div>
+    <div class="List-contents">201 on creation, if filename does not exist</div>
+    <div class="List-entry">Accept: */*, default</div>
+    <div class="List-contents">Returns text/plain</div>
+    <div class="List-contents">204 on update, if filename exists.</div>
+    <div class="List-contents">201 on creation, if filename does not exist</div>
+  </div>
+</div>
+<div class="List">
+  <p><b>DELETE</b> Deletes the dataset <i>id</i></p>
+  <div class="todo">
+    <div class="List-entry">Be Aware!</div>
+    <div class="List-contents">Delete currently deletes the dataset. This action cannot be undone and your data is lost following this action.</div>
+  </div>
+  <div class="todo">
+    <div class="List-entry">TODO:</div>
+    <div class="List-contents"> Delete currently deletes the dataset. This SHOULD NOT happen. On delete, create a new version with just a stub in the manifest saying deleted. Also, this dataset should not be returned in the list of datasets and dataset create should not return a 409.</div>
+  </div>
+  <div class="List-entry">Returns</div>
+  <div class="List-contents">
+    <div class="List-contents">401 if not a valid user</div>
+    <div class="List-contents">403 if not authorized</div>
+    <div class="List-contents">404 if <i>id</i> doesn't exist</div>
+    <div class="List-entry">Accept: */*, default</div>
+    <div class="List-contents">Returns text/plain, 200 on success</div>
+  </div>
+</div>
+<div class="List">
+<p><b>PUT</b> NOOP</p>
+</div>
+
+<!-- ========== /{silo_name}/datasets/{id}/version{#} ========== -->
+<div id="section3">
+  <div class="Section">
+    <div class="lt">/{silo name}/datasets/{id}/version{#}</div>
+    <div class="rt"><a href="#globalWrapper">top</a></div>
+  </div>
+</div>
+<p>API call to obtain information about a particular version of the dataset</p>
+<p><i><b>Controller: datasets &nbsp;&nbsp;&nbsp;&nbsp;action: datasetview_vnum</b></i></p>
+<div class="List">
+  <p><b>GET</b>: Obtain information about a particular version of the dataset</p>
+  <div class="List-entry">Returns</div/>
+  <div class="List-contents">
+    <div class="List-contents">404 if dataset is not available</div>
+    <div class="List-contents">404 if version number <i>#</i> of dataset is not available</div>
+    <div class="List-contents">401 if not authenticated and dataset is under embargo</div>
+    <div class="List-contents">403 if not authorized and dataset is under embargo</div>
+    <div class="List-entry">Accept: text/html</div>
+    <div class="List-contents">returns HTML splash page for dataset <i>id</i>. The page contains the following:
+      <ul>
+      <li>Readme text</li>
+      <li>List of files / folders at the top level</li>
+      <li>Dataset's embargo state</li>
+      <li>Manifest data</li>
+      </ul>
+    </div>
+    <div class="List-entry">Accept: application/json</div>
+    <div class="List-contents">200 OK</div>
+    <div class="List-contents">Returns a JSON-encoded hash/dict. The keys map to the following :
+      <ul>
+      <li>Readme text - data_returned["readme_text"]</li>
+      <li>Dataset's embargo information data_returned["embargos"]</li>
+      <li>If user is authenticated and authorized (editor = true) / anonymous (editor = false) - data_returned["editor"]</li>
+      <li>If user is authenticated and authorized, the view chosen by the user - data_returned["view"] <br />(Note : this will always return empty as there is no edit possible for previous versions of the dataset)</li>
+      <li>Manifest data - data_returned["manifest_pretty"]</li>
+      <li>Hash dict of files / folders at the top level - data_returned["parts"][file_or_directory_name"] <br />
+      If it is a file, the file stat information is also available. See <a href="http://docs.python.org/library/os.html#os.stat" target="_blank">http://docs.python.org/library/os.html#os.stat</a> for more information. <br />
+      If it is a directory, the dictionary value is empty as there is no stat information </li>
+      </ul>
+    </div>
+    <div class="List-contents">The files 
+      <a target="_blank" href="/static/json_data/datasetInformation-version0.txt">datasetInformation-version0.txt</a> and 
+      <a target="_blank" href="/static/json_data/datasetInformation-version1.txt">datasetInformation-version1.txt</a> 
+      contain an example of the data returned (data_returned) 
+    </div>
+    <div class="List-entry firefinder-match">Accept: application/rdf+xml, text/xml</div>
+    <div class="List-contents">returns dataset's RDF manifest as RDF/XML</div>
+    <div class="List-entry">Accept: text/rdf+n3</div>
+    <div class="List-contents">returns dataset's RDF manifest as N3</div>
+    <div class="List-entry">Accept: application/x-turtle</div>
+    <div class="List-contents">Returns dataset's RDF manifest as Turtle</div>
+    <div class="List-entry">Accept: text/rdf+ntriples, text/rdf+nt</div>
+    <div class="List-contents">returns dataset's RDF manifest as ntriples</div>
+    <div class="List-entry">Accept: */*, default</div>
+    <div class="List-contents">returns text/HTML of splash page for dataset <i>id</i>, as described above</div>
+  </div>
+</div>
+
+<!-- ========== /{silo name}/datasets/{id}/{subpath} ========== -->
+<div id="section4">
+  <div class="Section">
+    <div class="lt">/{silo name}/datasets/{id}/{subpath}</div>
+    <div class="rt"><a href="#globalWrapper">top</a></div>
+  </div>
+</div>
+<p>API call to view files / contents of a folder and add, update or delete a file. All of these actions are performed on the latest version of the dataset.
+</p>
+<p><i><b>Controller: datasets &nbsp;&nbsp;&nbsp;&nbsp;action: itemview</b></i></p>
+<div class="List">
+  <p><b>GET</b>: view the contents of subpath (subpath could point to a file or a folder)</p>
+  <div class="List-entry">Returns</div>
+  <div class="List-contents">
+    <div class="List-contents">404 if dataset is not available</div>
+    <div class="List-contents">401 if not authenticated and dataset is under embargo</div>
+    <div class="List-contents">403 if not authorized and dataset is under embargo</div>
+    <div class="List-contents">404 if subpath is not available</div>
+    <div class="List-entry">subpath is a file</div>
+    <div class="List-contents">
+      <div class="List-entry">Accept: */*, default</div>
+      <div class="List-contents">The file is served</div>
+    </div>
+    <div class="List-entry">subpath is a directory</div>
+    <div class="List-contents">
+      <div class="List-entry">Accept: text/html</div>
+      <div class="List-contents">HTML page listing the files within the given subpath and readme_text</div>
+      <div class="List-entry">Accept: text/plain, application/json</div>
+      <div class="List-contents">200 OK</div>
+      <div class="List-contents">Returns a JSON-encoded hash/dict. The keys map to the following :
+        <ul>
+        <li>Readme text - data_returned["readme_text"]</li>
+        <li>Hash dict of files / folders at subpath (just that level) - data_returned["parts"]["file_or_directory_name"] <br>
+         If it is a file, the file stat information is also available. 
+         See <a target="_blank" href="http://docs.python.org/library/os.html#os.stat">http://docs.python.org/library/os.html#os.stat</a> for more information. <br>
+         If it is a directory, the dictionary value is empty as there is no stat information </li>
+        </ul>
+      </div>
+      <div class="List-contents">The file
+        <a href="/static/json_data/datasetSubdirInformation.txt" target="_blank">datasetSubdirInformation.txt</a>  
+        contains an example of the data returned (data_returned) 
+      </div>
+      <div class="List-entry">Accept: */*, default</div>
+      <div class="List-contents">HTML page listing the files within the given subpath and readme_text</div>
+    </div>
+  </div>
+</div>
+<div class="List">
+  <p><b>PUT</b>: used to add content to a file.<br />
+    If the subpath points to manifest.rdf, the content is munged with exisitng metadata.<br />
+    If the subpath does not exist, a file is created in the same name as the filename in path including all the intermediate directories in the subpath (using os.makedirs) and the contents are added to that file.<br />
+    On success, version is incremented.
+  </p>
+  <div class="List-entry">Returns</div>
+  <div class="List-contents">
+    <div class="List-contents">401 if not authenticated</div>
+    <div class="List-contents">403 if not authorized</div>
+    <div class="List-contents">403 if subpath points to a directory - cannot put content onto an existing directory</div>
+    <div class="List-contents">400 if subpath contains <i>..</i></div>
+    <div class="List-entry">Accept: text/html</div>
+    <div class="List-contents">302 to the subpath, listing the files within the given subpath and readme_text</div>
+    <div class="List-entry">Accept: text/plain, application/json</div>
+    <div class="List-contents">204 Updated, if subpath did exist</div>
+    <div class="List-contents">201 created, if subpath did not exist</div>
+    <div class="List-entry">Accept: */*, default</div>
+    <div class="List-contents">Return text/plain. 201 on creation and 204 on update.</div>
+  </div>
+</div>
+<div class="List">
+  <p><b>POST</b> Upload a file within the subpath<br />
+    If the subpath + filename parameter points to manifest.rdf, the content is munged with exisitng metadata.<br />
+    If the subpath + filename parameter does not exist, the file is added as filename into subpath. The intermediate directories in the subpath (using os.makedirs) are created if they do not exist.<br />
+    On success, version is incremented.
+  </p>
+  <div class="List-entry">Parameters</div>
+  <div class="List-contents">
+  <table>
+  <tr><td><b>file </b></td><td> Multipart-encoded (HTML) file upload</td></tr>
+  <tr><td><b>filename </b></td><td> {Optional <i>filename</i> for upload}. <br />
+    When provided, it is only used if subpath points to an existing directory.</td></tr>
+  </table>
+  </div>
+  <div class="List-entry">Returns</div>
+  <div class="List-contents">
+    <div class="List-contents">401 if not authenticated</div>
+    <div class="List-contents">403 if not authorized</div>
+    <div class="List-contents">400 if subpath contains <i>..</i></div>
+    <div class="List-contents">403 if subpath + filename points to an existing directory</div>
+    <div class="List-entry">Accept: text/html</div>
+    <div class="List-contents">302 to the subpath, listing the file <i>filename</i> within the given subpath and readme_text</div>
+    <div class="List-entry">Accept: text/plain, application/json</div>
+    <div class="List-contents">204 Updated, if subpath did exist</div>
+    <div class="List-contents">201 created, if subpath did not exist</div>
+    <div class="List-entry">Accept: */*, default</div>
+    <div class="List-contents">Returns text/plain. 201 on creation and 204 on update.</div>
+  </div>
+</div>
+<div class="List">
+  <p><b>DELETE</b>: deletes files or directories within the dataset. It also performs recursive deletes (directories with sub-directories within them).<br />
+    On success, version is incremented.
+  </p>
+  <div class="List-entry">Returns</div>
+  <div class="List-contents">
+    <div class="List-contents">401 if not authenticated</div>
+    <div class="List-contents">403 if not authorized</div>
+    <div class="List-contents">403 if subpath is <i>manifest.rdf</i></div>
+    <div class="List-entry">Accept: */*, default</div>
+    <div class="List-contents">Returns text/plain. 200 OK on successful completion.</div>
+  </div>
+</div>
+
+<!-- ========== /{silo name}/datasets/{id}[/{subpath}]/version{#} ========== -->
+<div id="section5">
+  <div class="Section">
+    <div class="lt">/{silo name}/datasets/{id}[/{subpath}]/version{#}</div>
+    <div class="rt"><a href="#globalWrapper">top</a></div>
+  </div>
+</div>
+<p>API call to obtain a file or view the contents of a folder, for a particular version of the dataset</p>
+<p><i><b>Controller: datasets &nbsp;&nbsp;&nbsp;&nbsp;action: itemview</b></i></p>
+<div class="List">
+  <p><b>GET</b>: Obtain files or view the contents of a directory for a particular version of the dataset.</p>
+  <div class="List-entry">Returns</div>
+  <div class="List-contents">
+    <div class="List-contents">404 if dataset, subpath or version number (#) is not available</div>
+    <div class="List-contents">401 if not authenticated and dataset is under embargo</div>
+    <div class="List-contents">403 if not authorized and dataset is under embargo</div>
+    <div class="List-entry">subpath is a file</div>
+    <div class="List-contents">
+      <div class="List-entry">Accept: */*, default</div>
+      <div class="List-contents">The file is served</div>
+    </div>
+    <div class="List-entry">subpath is a directory</div>
+    <div class="List-contents">
+      <div class="List-entry">Accept: text/html</div>
+      <div class="List-contents">HTML page listing the files within the given subpath and readme_text (pertaining to that version)</div>
+      <div class="todo">
+        <div class="List-entry">TODO:</div>
+        <div class="List-contents">The html display is not showing the files. Fix bug!</div>
+      </div>
+      <div class="List-entry">Accept: text/plain, application/json</div>
+      <div class="List-contents">200 OK</div>
+      <div class="List-contents">Returns a JSON-encoded hash/dict. The keys map to the following :
+        <ul>
+        <li>Readme text - data_returned["readme_text"]</li>
+        <li>Hash dict of files / folders at subpath (just that level) - data_returned["parts"]["file_or_directory_name"] <br>
+         If it is a file, the file stat information is also available. 
+         See <a target="_blank" href="http://docs.python.org/library/os.html#os.stat">http://docs.python.org/library/os.html#os.stat</a> for more information. <br>
+         If it is a directory, the dictionary value is empty as there is no stat information </li>
+        </ul>
+      </div>
+      <div class="List-contents">The files
+        <a href="/static/json_data/datasetSubdirInformation-version3.txt" target="_blank">datasetSubdirInformation-version3.txt</a> and 
+        <a href="/static/json_data/datasetSubdirInformation-version1.txt" target="_blank">datasetSubdirInformation-version1.txt</a>  
+        contains an example of the data returned (data_returned) 
+      </div>
+      <div class="List-entry">Accept: */*, default</div>
+      <div class="List-contents">HTML page listing the files within the given subpath and readme_text</div>
+    </div>
+  </div>
+</div>
+<div class="List">
+  <p><b>POST, PUT, DELETE</b>: NOOP</p>
+</div>
+<!-- ========== END ========== -->
+</div>

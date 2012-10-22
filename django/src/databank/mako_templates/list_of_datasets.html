@@ -1,0 +1,151 @@
+# -*- coding: utf-8 -*-
+##=============================================================================
+## Pagination fucntion
+<%def name="pagination()">
+    % if len(c.permissible_offsets) > 0:
+<div class="paginated_results">
+        <%
+            jump = c.rows*10
+            lowerJump = c.start-jump
+            if lowerJump < 0:
+                lowerJump = 0;
+            higherJump = c.start+jump
+            if higherJump > c.lastPage:
+                higherJump = c.lastPage
+        %>
+<span class="numbers">
+        ## Goto to first page
+        % if c.start == 0:
+<span class="pagination_label highlighted_page">
+        % else:
+<span class="pagination_label">
+        % endif
+<a href="/${c.silo_name}?start=0&rows=${c.rows}">&#171;</a>
+</span>
+        % if c.start != 0:
+<span class="ellipse">&#133;</span>
+        % endif
+                <%! import math %>
+                <% pagcount = 0.0 %>
+        % for offset in c.permissible_offsets:
+            % if c.start == offset:
+<span class="pagination_label highlighted_page">
+            % else:
+<span class="pagination_label">
+            % endif
+            <%
+                offset_start = offset+1
+                offset_end = offset+c.rows
+                if offset_end > c.numFound:
+                    offset_end = c.numFound
+                pagcount = float(offset_end) / float(c.rows)
+                pagcount= math.ceil(pagcount)
+                pagcount= int(pagcount) 
+            %>
+${h.link_to(pagcount, "%s?start=%d&rows=%d"%(c.silo_name, offset, c.rows))}
+</span>
+        % endfor
+        % if c.start != c.lastPage:
+<span class="ellipse">&#133;</span>
+        % endif
+        ## Goto to last page
+        % if c.start == c.lastPage:
+<span class="pagination_label highlighted_page">
+        % else:
+<span class="pagination_label">
+        % endif
+<a href="${c.silo_name}?start=${c.lastPage}&rows=${c.rows}">&#187;</a>
+</span>
+</span><!--class=numbers-->
+</div><!--class=paginated_results-->
+    % endif
+## end pagination()
+</%def>
+##=============================================================================
+
+% if c.silo_name:
+<%
+n = len(c.items)
+%>
+% if n > 0:
+
+## Pagination and sort options
+% if c.numFound and c.numFound > 0:
+<div class="browsetop">
+  ${pagination()}
+</div>
+% endif
+
+## Number of records, current span of records and items per page
+<div class="browsetop">
+<div class="searchleft numRecords">
+${ c.numFound} records found.
+</div>
+% if c.numFound > 0:
+<div class='searchmid'>Showing results ${c.start+1} to
+%   if (c.start+c.rows) > c.numFound:
+${c.numFound}
+%   else:
+${c.start+c.rows}
+%   endif
+</div>
+% endif
+</div>
+<table class="dataset_list">
+% for item in sorted(c.items):
+<tr>
+<td><ul><li><a href="/${c.silo_name}/datasets/${item}"> ${item}</a></li></ul></td>
+<td>
+% if c.embargos and item in c.embargos and c.embargos[item]:
+<% 
+from rdfdatabank.lib.utils import formatDate
+c.emb = c.embargos[item]
+dt_human = c.emb[1]
+if dt_human and dt_human.strip():
+    dt_human = formatDate(dt_human)
+%>
+  % if c.emb[0] == True or c.emb[0] == 1 or (isinstance(c.emb[0], basestring) and c.emb[0].strip().lower() in ['true', '1']):
+     % if (isinstance(c.emb[1], basestring) and c.emb[1].strip()):
+        Data package is embargoed until ${dt_human}
+     % else:
+        Data package is embargoed indefinitely
+     % endif
+  % else:
+    Data package is openly accessible
+  % endif
+% else:
+    Data package is openly accessible
+% endif
+</td>
+</tr>
+% endfor
+</table>
+
+## Pagination and sort options
+%if c.numFound and c.numFound > 0:
+<div class="browsebottom">
+  ${pagination()}
+</div>
+% endif
+
+## Number of records, current record start and end and items per page
+%if c.numFound and c.numFound > 0:
+<div class="browsebottom">
+<div class="searchleft">
+${ c.numFound} records found.
+</div>
+% if c.numFound > 0:
+<div class='searchmid'>Showing results ${c.start+1} to
+%   if (c.start+c.rows) > c.numFound:
+${c.numFound}
+%   else:
+${c.start+c.rows}
+%   endif
+</div>
+% endif
+</div>
+% endif
+<div class="clear"></div>
+% endif
+% endif
+                                                                                      

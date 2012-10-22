@@ -1,0 +1,34 @@
+# -*- coding: utf-8 -*-
+<form class="update_user" method="POST" enctype="multipart/form-data" action="/users/${c.username}" accept-charset="UTF-8">
+<div><label for="username">Username:</label>
+<input type="textbox" name="username" value="${c.username}" readonly=readonly/></div>
+
+% if c.user and 'firstname' in c.user:
+  <div><label for="firstname">Firstname:</label>
+  <input type="text" name="firstname" value="${c.user['firstname']}" /></div>
+% else:
+  <div><label for="firstname">Firstname:</label><input type="text" name="firstname" value="" /></div>
+% endif
+
+% if c.user and 'lastname' in c.user:
+  <div><label for="lastname">Lastname:</label>
+  <input type="text" name="lastname" value="${c.user['lastname']}" /></div>
+% else:
+  <div><label for="lastname">Lastname:</label><input type="text" name="lastname" value="" /></div>
+% endif
+
+% if c.user and 'name' in c.user:
+  <div><label for="name">Display name:</label><input type="textbox" name="name" value="${c.user['name']}" /></div>
+% else:
+  <div><label for="name">Display name:</label><input type="textbox" name="name" value="" /></div>
+% endif
+
+% if c.user and 'email' in c.user:
+  <div><label for="email">Email:</label><input type="textbox" name="email" value="${c.user['email']}" /></div>
+% else:
+  <div><label for="name">Email:</label><input type="textbox" name="email" value="" /></div>
+% endif
+
+<div><label for="password">Password:</label><input type="password" name="password" /></div>
+<div><input type="submit" value="Update user information"/></div>
+</form>

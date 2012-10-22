@@ -1,0 +1,4 @@
+/usr/share/databank
+usr/share/dbconfig-common/data/databank/install/mysql
+usr/share/dbconfig-common/data/databank/upgrade/mysql
+/etc/default/databank
